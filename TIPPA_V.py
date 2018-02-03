@@ -15,7 +15,7 @@ if __name__ == '__main__':
 	)
 
 	r.fermentable_bypercent('Avangard Vienna', 100)
-	r.set_strength(S(11))
+	r.anchor_bystrength(S(11))
 	r.steal_preboil_wort(V(1.5), S(10))
 
 	mb = Hop('Mandarina Bavaria', 7.3)

@@ -18,7 +18,7 @@ if __name__ == '__main__':
 	r.fermentable_bypercent('Avangard Pilsner', r.THEREST)
 	r.fermentable_bypercent('Avangard Vienna', 15)
 	r.fermentable_bypercent('Avangard Munich light', 10)
-	r.set_strength(S(16.8))
+	r.anchor_bystrength(S(16.8))
 
 	r.steal_preboil_wort(V(0.5), S(10))
 

@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	r.fermentable_bypercent('Weyermann CaraMunich 3', 3)
 	r.fermentable_bypercent('Weyermann Carafa 2', 3)
 	r.fermentable_bypercent('Muntons Chocolate', 2.5)
-	r.set_strength(S(13))
+	r.anchor_bystrength(S(13))
 
 	ht = Hop('Hallertau', 3.8)
 	nb = Hop('Northern Brewer', 9.9)

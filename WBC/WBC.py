@@ -45,7 +45,8 @@ class Recipe:
 		self.fermentables_bypercent = []
 		self.fermentables_therest = None
 
-		self.target_strength = None
+		# final strength or mass of one fermentable
+		self.anchor = None
 
 		self.stolen_wort = (_Volume(0), _Strength(0), _Mass(0))
 
@@ -148,13 +149,23 @@ class Recipe:
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
 
-	def set_strength(self, strength):
+	def __doanchor(self, what, value):
+		if not self.anchor is None:
+			raise PilotError('anchor already set')
+		self.anchor = ( what, value )
+
+	def anchor_bystrength(self, strength):
 		checktype(strength, Strength)
 
-		if not self.target_strength is None:
-			raise PilotError('target already set')
+		self.__doanchor('strength', strength)
 
-		self.target_strength = strength
+	def anchor_bymass(self, fermentable, mass):
+		checktype(mass, Mass)
+
+		# test
+		self.__getfermentable(fermentable)
+
+		self.__doanchor('mass', (fermentable, mass))
 
 	def __getfermentable(self, name):
 		from Fermentables import fermentables
@@ -205,7 +216,7 @@ class Recipe:
 			    percent))
 			if sum(x[2] for x in self.fermentables_bypercent) > 100:
 				raise PilotError('captain, I cannot change the'\
-				    ' laws of math; 100% grains max!')
+				    ' laws of math; 100% fermentables max!')
 
 	def fermentables_settemp(self, temp):
 		checktype(degc, Temperature)
@@ -252,29 +263,47 @@ class Recipe:
 		missing = 100 - totpers
 		if missing > 0:
 			if self.fermentables_therest is None:
-				raise PilotError('fermentable percentages add' \
-				    + ' up to only ' + str(totpers)
+				raise PilotError('fermentable percentages add '
+				    + 'up to only ' + str(totpers)
 				    + '%, need 100%')
 			i = (self.fermentables_therest[0],
 			    self.fermentables_therest[1], missing)
 			self.fermentables_bypercent.append(i)
 		assert (sum(x[2] for x in self.fermentables_bypercent) == 100)
 
-		if self.target_strength is None:
-			raise PilotError('target strength must be set for ' \
+		if self.anchor is None:
+			raise PilotError('anchor must be set for '
 			    + 'by-percent fermentables')
 
-		extract = self.__extract(self.__volume_at_stage(self.POSTBOIL),
-		    self.target_strength) + self.stolen_wort[2]
+		if self.anchor[0] == 'strength':
+			# calculate extract required for strength, and derive
+			# masses of fermentables from that
 
-		# now, solve for the total mass:
-		# extract = yield1 * m1 + yield2 * m2 + ...
-		# where yieldn = extract% * mash_efficiency / 100.0
-		# and   mn = pn * totmass
-		# and then solve: totmass = extract / (sum(yieldn*pn))
-		thesum = sum([self.fermentable_percentage(x)/100.0 * x[2]/100.0
-		    for x in self.fermentables_bypercent])
-		totmass = _Mass(extract / thesum)
+			extract = self.__extract(
+			    self.__volume_at_stage(self.POSTBOIL),
+			    self.anchor[1]) + self.stolen_wort[2]
+
+			# now, solve for the total mass:
+			# extract = yield1 * m1 + yield2 * m2 + ...
+			# where yieldn = extract% * mash_efficiency / 100.0
+			# and   mn = pn * totmass
+			# and then solve: totmass = extract / (sum(yieldn*pn))
+			thesum = sum([self.fermentable_percentage(x)/100.0
+			    * x[2]/100.0
+			    for x in self.fermentables_bypercent])
+			totmass = _Mass(extract / thesum)
+
+		elif self.anchor[0] == 'mass':
+			# mass of one fermentable is set, others are
+			# simply scaled to that value
+
+			a = self.anchor[1]
+			f = filter(lambda x: x[0] == a[0],
+			    self.fermentables_bypercent)
+			if len(f) != 1:
+				raise PilotError("could not find anchor "
+				    "fermentable: " + a[0])
+			totmass = a[1] / (f[0][2]/100.0)
 
 		# and finally set the masses of each individual fermentable
 		ferms = []
