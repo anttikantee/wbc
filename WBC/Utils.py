@@ -49,7 +49,7 @@ class PilotError(Exception):
 
 def checktype(type, cls):
 	if not isinstance(type, cls):
-		raise PilotError('invalid input type')
+		raise PilotError('invalid input type for ' + cls.__name__)
 
 def checktypes(lst):
 	for chk in lst:
