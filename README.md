@@ -21,7 +21,7 @@ The main (and only?) features are:
     also multi-step (decoction mass calculations are planned)
   * calculate IBUs and optionally calculate hop additions based on
     desired IBUs
-  * TODO: a recipe specification "grammar" and tools to process
+  * WIP: a recipe specification "grammar" and tools to process
     that grammar
 
 The "documentation" is provided by the examples.  Yes, I agree,
@@ -36,7 +36,32 @@ Features will be added as I need them (if I need them).
 Example
 -------
 
-The recipe _MarBock_ translates to the following output:
+recipe:
+
+```
+name:   MarBock
+yeast:  WLP833
+volume: 19.5l
+boil:   90min
+
+mashtemps: [ 66degC ]
+
+fermentables:
+    anchor: [ strength, 16.8 degP ]
+
+    mash:
+        Avangard Pilsner:       rest
+        Avangard Vienna:        15%
+        Avangard Munich Light:  10%
+
+hops:
+    boil:
+        - [ [ Northern Brewer, 9.9%, pellet ], 36 Recipe IBU, 90 min ]
+        - [ [ Saaz,            3.1%, leaf   ], 20 g,          30 min ]
+        - [ [ Hallertau,       3.8%, pellet ], 15 g,          15 min ]
+```
+
+translated via `wbctool`:
 
 ```
 ==============================================================================
