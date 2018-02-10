@@ -54,3 +54,6 @@ def checktype(type, cls):
 def checktypes(lst):
 	for chk in lst:
 		checktype(*chk)
+
+def warn(msg):
+	print 'WARNING: ' + msg

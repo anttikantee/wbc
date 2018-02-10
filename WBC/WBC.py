@@ -18,7 +18,7 @@
 import copy
 
 import Constants
-from Fermentables import Fermentable
+import Fermentables
 
 from Utils import *
 from Units import *
@@ -163,22 +163,9 @@ class Recipe:
 		checktype(mass, Mass)
 
 		# test
-		self.__getfermentable(fermentable)
+		self.get(fermentable)
 
 		self.__doanchor('mass', (fermentable, mass))
-
-	def __getfermentable(self, name):
-		from Fermentables import fermentables
-
-		# do case-insensitive comparison
-		res = filter(lambda x: x.lower() == name.lower(), fermentables)
-		if len(res) == 0:
-			raise PilotError("I don't know about fermentable: " \
-			    + name)
-		assert(len(res) == 1)
-
-		# return "official" leetcapsed name
-		return (res[0], fermentables[res[0]])
 
 	def fermentable_bymass(self, name, mass, when=MASH):
 		checktype(mass, Mass)
@@ -187,7 +174,7 @@ class Recipe:
 			raise PilotError('all grains in recipe must be ' \
 			    'specified by percent or mass')
 
-		(name, fermentable) = self.__getfermentable(name)
+		(name, fermentable) = Fermentables.get(name)
 		if self.__havefermentable(fermentable):
 			raise PilotError('grains must be specified only once')
 
@@ -203,7 +190,7 @@ class Recipe:
 			raise PilotError('all grains in recipe must be ' \
 			    'specified by percent or mass')
 
-		(name, fermentable) = self.__getfermentable(name)
+		(name, fermentable) = Fermentables.get(name)
 		if self.__havefermentable(name):
 			raise PilotError('fermentables may be specified once')
 
