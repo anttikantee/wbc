@@ -54,7 +54,7 @@ class Recipe:
 
 		self.fermentables_temp = _Temperature(20)
 
-		self.hopsdrunk = _Volume(0)
+		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0)}
 
 		self.results = {}
 
@@ -101,11 +101,12 @@ class Recipe:
 
 		# assume 1l lost in fermenter
 		if stage <= self.FERMENTER:
+			v += self.hopsdrunk['fermenter']
 			v += 1
 
 		# assume 2% of boil volume plus hop crud lost in kettle
 		if stage <= self.POSTBOIL:
-			v += self.hopsdrunk
+			v += self.hopsdrunk['kettle']
 			v *= 1.042
 
 		# preboil volume is postboil + boil loss
@@ -452,12 +453,13 @@ class Recipe:
 		self.ibus = totibus
 
 		# calculate amount of wort that hops will drink
-		totdrink = 0
+		hd = {x: 0 for x in self.hopsdrunk}
 		for h in allhop:
-			if h[2] is Hop.Steep or h[2] is Hop.Dryhop:
-				continue
-			totdrink += h[0].absorption(h[1])
-		self.hopsdrunk = _Volume(totdrink/1000.0)
+			if isinstance(h[2], Hop.Dryhop):
+				hd['fermenter'] += h[0].absorption(h[1])
+			else:
+				hd['kettle'] += h[0].absorption(h[1])
+		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
 
 	def _printboil(self):
 		# XXX: IBU sum might not be sum of displayed hop additions
