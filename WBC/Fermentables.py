@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-15 -*-
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
 #

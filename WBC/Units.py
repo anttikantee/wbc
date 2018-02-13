@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-15 -*-
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
 #
@@ -77,7 +76,8 @@ class Temperature(float):
 		else:
 			t = Temperature.CtoF(self)
 			sym = 'F'
-		return '{:.1f}'.format(t) + chr(0xb0) + sym
+		rv = u'{:.1f}'.format(t) + unichr(0x00b0) + sym
+		return unicode(rv)
 
 	@staticmethod
 	def FtoC(temp):
@@ -252,11 +252,7 @@ class Strength(float):
 	@staticmethod
 	def name():
 		if getconfig('strength_output') == 'plato':
-			# would be nice to use unicode, but that
-			# gets us knee-deep in unicode hell and apparently
-			# leaks through to everywhere the name is
-			# included in a string (at least from what I can tell)
-			return chr(0xb0) + 'P'
+			return unicode(unichr(0x00b0) + 'P')
 		else:
 			assert(getconfig('strength_output') == 'sg')
 			return 'SG'
@@ -273,7 +269,7 @@ class Strength(float):
 
 	def __str__(self):
 		if getconfig('strength_output') == 'plato':
-			return '{:.1f}{:}'.format(self.valueas(self.PLATO), \
+			return u'{:.1f}{:}'.format(self.valueas(self.PLATO), \
 			    Strength.name())
 		else:
 			assert(getconfig('strength_output') == 'sg')

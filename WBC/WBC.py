@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-15 -*-
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
 #
@@ -344,7 +343,7 @@ class Recipe:
 		self.results['mash'] = self.m.infusion_mash(self.mashtemps)
 
 	def _printmash(self):
-		print '{:36}{:>18}{:>12}{:>8}'.format("Fermentables",
+		print u'{:36}{:>18}{:>12}{:>8}'.format("Fermentables",
 		    "amount", "extract", Strength.name() + " tot")
 		self._prtsep()
 
@@ -352,27 +351,27 @@ class Recipe:
 		totstrength = 0
 		for f in self.results['mashfermentables']:
 			pers = ' ({:5.1f}%)'.format(f[2])
-			print '{0:36}{1:>18}{2:>12}{3:>8}'.format(f[0],
-			    str(f[1]) + pers, str(f[3]), str(f[4]))
+			print u'{0:36}{1:>18}{2:>12}{3:>8}'.format(f[0],
+			    str(f[1]) + pers, str(f[3]), unicode(f[4]))
 			totextract += f[3]
 			totstrength += f[4]
 		self._prtsep()
-		print '{0:18}{1:>36}{2:>12}{3:>8}'.format('', \
+		print u'{0:18}{1:>36}{2:>12}{3:>8}'.format('', \
 		    str(self.grainmass()) + ' (100.0%)', \
 		    str(_Mass(totextract)),\
-		    str(_Strength(totstrength)))
+		    unicode(_Strength(totstrength)))
 
 		print
 		print 'Mashing instructions'
 		self._prtsep()
 
 		for x in self.results['mash']['steps']:
-			print '{:7}'.format(str(x[0])) + ': add', x[1], \
-			    'of water at', x[2]
+			print u'{:7}'.format(unicode(x[0])) + ': add', x[1], \
+			    'of water at', unicode(x[2])
 
 		print 'Sparge water volume:', \
 		    self.results['mash']['sparge_water'], '(' \
-		    + str(Constants.spargewater_temp) + ')'
+		    + unicode(Constants.spargewater_temp) + ')'
 
 		if self.stolen_wort[0] > 0:
 			print
@@ -385,7 +384,7 @@ class Recipe:
 				print
 
 			print '==>', self.stolen_wort[0], 'of', \
-			    steal['strength'], 'stolen wort',
+			    unicode(steal['strength']), 'stolen wort',
 			if steal['strength'] < self.stolen_wort[1]:
 				print '(NOTE: strength below desired!)',
 			print
@@ -465,7 +464,7 @@ class Recipe:
 		# XXX: IBU sum might not be sum of displayed hop additions
 		# due to rounding.  cosmetic, but annoying.
 		namelen = 32
-		onefmt = '{:' + str(namelen) + '}{:8}{:>15}{:>10}{:>9}'
+		onefmt = u'{:' + str(namelen) + '}{:8}{:>15}{:>10}{:>9}'
 		print onefmt.format("Hops", "AA%", "time", "amount", "IBUs")
 		self._prtsep()
 		totmass = 0
@@ -476,9 +475,9 @@ class Recipe:
 			if h[2] is Hop.FWH:
 				time = 'FWH'
 			elif isinstance(h[2], int):
-				time = str(h[2]) + ' min'
+				time = unicode(h[2]) + ' min'
 			else:
-				time = str(h[2])
+				time = unicode(h[2])
 			maxlen = (namelen-1) - len(typ)
 			if len(nam) > maxlen:
 				nam = nam[0:maxlen-4] + '...'
@@ -498,8 +497,8 @@ class Recipe:
 
 	def _keystats(self):
 		self._prtsep()
-		onefmt = '{:19}{:}'
-		twofmt = '{:19}{:19}{:21}{:19}'
+		onefmt = u'{:19}{:}'
+		twofmt = u'{:19}{:19}{:21}{:19}'
 
 		postvol1 = self.__volume_at_stage(self.POSTBOIL)
 		postvol  = Brewutils.water_vol_at_temp(postvol1,
@@ -517,8 +516,8 @@ class Recipe:
 
 		print onefmt.format('Name:', self.name)
 		print twofmt.format('Final volume:', str(self.final_volume), \
-		    'Water (' + str(Constants.sourcewater_temp) + '):', \
-		    str(total_water))
+		    'Water (' + unicode(Constants.sourcewater_temp) + '):', \
+		    unicode(total_water))
 		bugu = self.ibus / self.results['final_strength']
 		print twofmt.format('IBU (Tinseth):', \
 		    '{:.2f}'.format(self.ibus), \
@@ -532,16 +531,16 @@ class Recipe:
 
 		print twofmt.format('Preboil  volume  :', \
 		    str(self.results['preboil_volume']) \
-		    + ' (' + str(Constants.preboil_temp) + ')', \
+		    + ' (' + unicode(Constants.preboil_temp) + ')', \
 		    'Measured:', '')
 		print twofmt.format('Preboil  strength:', \
-		    str(self.results['preboil_strength']), \
+		    unicode(self.results['preboil_strength']), \
 		    'Measured:', '')
-		print twofmt.format('Postboil volume  :', \
-		    str(postvol) + ' (' + str(Constants.postboil_temp) + ')', \
+		print twofmt.format('Postboil volume  :', str(postvol) \
+		    + ' (' + unicode(Constants.postboil_temp) + ')', \
 		    'Measured:', '')
 		print twofmt.format('Postboil strength:', \
-		    str(self.results['final_strength']), \
+		    unicode(self.results['final_strength']), \
 		    'Measured:', '')
 
 		# various expected losses and brewhouse efficiency
@@ -574,7 +573,7 @@ class Recipe:
 	def _printattenuate(self):
 		print 'Speculative apparent attenuation and resulting ABV'
 		self._prtsep()
-		onefmt = '{:^10}{:^12}{:10}'
+		onefmt = u'{:^10}{:^12}{:10}'
 		title = ''
 		for x in [1,2]:
 			title += onefmt.format('Strength', 'Atten.', 'ABV')
@@ -582,7 +581,7 @@ class Recipe:
 
 		reslst = []
 		for x in self.results['attenuation']:
-			reslst.append((str(x[1]), str(x[0]) + '%', \
+			reslst.append((unicode(x[1]), str(x[0]) + '%', \
 			    '{:.1f}%'.format(x[2])))
 
 		for i in range(0, len(reslst)/2):
@@ -648,7 +647,7 @@ class Hop:
 			self.mins = mins
 
 		def __str__(self):
-			return str(self.mins) + 'min @ ' + str(self.temp)
+			return str(self.mins) + 'min @ ' + unicode(self.temp)
 
 		def __cmp__(self, other):
 			if isinstance(other, Hop.Steep):

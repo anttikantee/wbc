@@ -29,6 +29,9 @@ usage ()
 	die usage: $0 prep\|test\|reset
 }
 
+# you have got to the be kidding me
+export PYTHONIOENCODING=utf-8
+
 [ $# -eq 1 ] || usage
 
 if [ "$1" = 'prep' ]; then
