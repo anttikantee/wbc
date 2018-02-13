@@ -1,0 +1,36 @@
+name:   NENEIPA
+yeast:  WLP095 + US-05
+volume: 19.5l
+
+mashtemps: [ 65degC ]
+
+fermentables:
+        mash:
+                Crisp Maris Otter       : 9 lb
+                Simpsons Golden Promise : 1 lb
+                Weyermann CaraMunich 1  : 8 oz
+                Flaked wheat            : 4 oz
+
+hops:
+        defs:
+                amarillo:       [ Amarillo,     8.2%,   pellet  ]
+                cascade_pellet: [ Cascade,      9.3%,   pellet  ]
+                cascade_leaf:   [ Cascade,      7.3%,   leaf    ]
+                chinook:        [ Chinook,      11.6%,  pellet  ]
+                nugget:         [ Nugget,       12.4%,  pellet  ]
+                simcoe:         [ Simcoe,       13.6%,  pellet  ]
+
+        boil:
+                - [ chinook,            0.25 oz,    FWH ]
+                - [ simcoe,             1    oz, 30 min ]
+                - [ amarillo,           1    oz, 12 min ]
+                - [ cascade_pellet,     0.5  oz, 8  min ]
+                - [ nugget,             0.5  oz, 8  min ]
+
+        steep:
+                - [ cascade_pellet,     0.5  oz, 10min @ 90degC ]
+                - [ nugget,             0.5  oz, 10min @ 90degC ]
+
+        dryhop:
+                - [ amarillo,           1    oz, 3day -> 0day ]
+                - [ cascade_leaf,       1.5  oz, 3day -> 0day ]
