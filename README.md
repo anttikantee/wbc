@@ -35,10 +35,10 @@ Features will be added as I need them (if I need them).
 
 Example
 -------
-
+<!-- BEGIN EXAMPLE -->
 recipe:
-
 ```
+
 name:   MarBock
 yeast:  WLP833
 volume: 19.5l
@@ -61,14 +61,14 @@ hops:
         - [ [ Hallertau,       3.8%, pellet ], 15 g,          15 min ]
 ```
 
-translated via `wbctool`:
+translated with `wbctool`:
 
 ```
 ==============================================================================
 Name:              MarBock
-Final volume:      19.5l              Water (20.0°C):      34.0l              
+Final volume:      19.5l              Water (20.0°C):      33.4l              
 IBU (Tinseth):     36.00              BUGU:                0.52               
-Color (EBC / SRM): 10.8 / 5.5
+Color (EBC / SRM): 10.7 / 5.4
 
 Yeast:             WLP833
 Water notes:       
@@ -79,24 +79,21 @@ Postboil volume  : 22.7l (100.0°C)    Measured:
 Postboil strength: 16.8°P             Measured:                               
 
 Kettle loss (est): 1.3l               Fermenter loss (est):1.0l               
-Mash eff (conf) :  88.0%              Brewhouse eff (est): 78.7%              
+Mash eff (conf) :  88.0%              Brewhouse eff (est): 78.8%              
 ==============================================================================
 
 Fermentables                                    amount     extract  °P tot
 ==============================================================================
-Avangard Pilsner                      4.23 kg ( 75.0%)     2.98 kg  12.8°P
-Avangard Vienna                         846 g ( 15.0%)       595 g   2.7°P
-Avangard Munich light                   564 g ( 10.0%)       399 g   1.8°P
+Avangard Pilsner                      4.17 kg ( 75.0%)     2.94 kg  12.8°P
+Avangard Vienna                         835 g ( 15.0%)       588 g   2.7°P
+Avangard Munich Light                   556 g ( 10.0%)       394 g   1.8°P
 ==============================================================================
-                                      5.64 kg (100.0%)     3.97 kg  16.9°P
+                                      5.56 kg (100.0%)     3.92 kg  16.9°P
 
 Mashing instructions
 ==============================================================================
-66.0°C : add 14.5l of water at 77.9°C
-Sparge water volume: 20.3l (82.0°C)
-
-Steal 0.4l of *well-mixed* preboil wort and blend with 0.1l water
-==> 0.5l of 10.0°P stolen wort
+66.0°C : add 14.3l of water at 78.0°C
+Sparge water volume: 20.1l (82.0°C)
 ==============================================================================
 
 Hops                            AA%                time    amount     IBUs
@@ -114,4 +111,5 @@ Speculative apparent attenuation and resulting ABV
   6.1°P       65%     6.0%        3.5°P       80%     7.4%      
   5.2°P       70%     6.4%        2.6°P       85%     7.9%      
 ==============================================================================
+
 ```
