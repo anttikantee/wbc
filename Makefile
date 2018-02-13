@@ -10,9 +10,9 @@ all:
 # (re-)create example in readme
 example:
 	sed '/<!-- BEGIN EXAMPLE -->/q' < ${README} > ${RT}
-	printf 'recipe:\n```\n\n' >> ${RT}
+	printf 'recipe:\n```\n' >> ${RT}
 	cat ${RECIPE} >> ${RT}
-	printf '```\n\ntranslated with `wbctool`:\n\n```\n' >> ${RT}
+	printf '```\ntranslated with `wbctool`:\n```\n' >> ${RT}
 	PYTHONPATH=. python ./bin/wbctool.py ${RECIPE} >> ${RT}
 	printf '```\n' >> ${RT}
 	mv ${RT} ${README}
