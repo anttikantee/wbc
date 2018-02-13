@@ -38,7 +38,6 @@ Example
 <!-- BEGIN EXAMPLE -->
 recipe:
 ```
-
 name:   MarBock
 yeast:  WLP833
 volume: 19.5l
@@ -60,9 +59,7 @@ hops:
         - [ [ Saaz,            3.1%, leaf   ], 20 g,          30 min ]
         - [ [ Hallertau,       3.8%, pellet ], 15 g,          15 min ]
 ```
-
 translated with `wbctool`:
-
 ```
 ==============================================================================
 Name:              MarBock
