@@ -516,14 +516,15 @@ class Recipe:
 
 		print onefmt.format('Name:', self.name)
 		print twofmt.format('Final volume:', str(self.final_volume), \
-		    'Water (' + unicode(Constants.sourcewater_temp) + '):', \
-		    unicode(total_water))
+		    'Boil:', str(self.boiltime) + ' min')
 		bugu = self.ibus / self.results['final_strength']
 		print twofmt.format('IBU (Tinseth):', \
 		    '{:.2f}'.format(self.ibus), \
 		    'BUGU:', '{:.2f}'.format(bugu))
-		print onefmt.format('Color (EBC / SRM):', \
-		    '{:.1f}'.format(ebc)) + ' / ' + '{:.1f}'.format(srm)
+		print twofmt.format('Color (EBC / SRM):', \
+		    '{:.1f}'.format(ebc) + ' / ' + '{:.1f}'.format(srm), \
+		    'Water (' + unicode(Constants.sourcewater_temp) + '):', \
+		    unicode(total_water))
 		print
 		print onefmt.format('Yeast:', self.yeast)
 		print onefmt.format('Water notes:', '')
