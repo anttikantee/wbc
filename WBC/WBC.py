@@ -343,7 +343,8 @@ class Recipe:
 		self.results['mash'] = self.m.infusion_mash(self.mashtemps)
 
 	def _printmash(self):
-		print u'{:36}{:>18}{:>12}{:>8}'.format("Fermentables",
+		fmtstr = u'{:36}{:>20}{:>12}{:>8}'
+		print fmtstr.format("Fermentables",
 		    "amount", "extract", Strength.name() + " tot")
 		self._prtsep()
 
@@ -351,12 +352,12 @@ class Recipe:
 		totstrength = 0
 		for f in self.results['mashfermentables']:
 			pers = ' ({:5.1f}%)'.format(f[2])
-			print u'{0:36}{1:>18}{2:>12}{3:>8}'.format(f[0],
+			print fmtstr.format(f[0],
 			    str(f[1]) + pers, str(f[3]), unicode(f[4]))
 			totextract += f[3]
 			totstrength += f[4]
 		self._prtsep()
-		print u'{0:18}{1:>36}{2:>12}{3:>8}'.format('', \
+		print fmtstr.format('', \
 		    str(self.grainmass()) + ' (100.0%)', \
 		    str(_Mass(totextract)),\
 		    unicode(_Strength(totstrength)))
@@ -463,7 +464,7 @@ class Recipe:
 	def _printboil(self):
 		# XXX: IBU sum might not be sum of displayed hop additions
 		# due to rounding.  cosmetic, but annoying.
-		namelen = 32
+		namelen = 34
 		onefmt = u'{:' + str(namelen) + '}{:8}{:>15}{:>10}{:>9}'
 		print onefmt.format("Hops", "AA%", "time", "amount", "IBUs")
 		self._prtsep()
