@@ -138,8 +138,8 @@ class Mass(float):
 			else:
 				small = False
 			if small:
-				return '{:.1f}'.\
-				    format(self/Constants.gramsperounce)+'oz'
+				return '{:.2f}'.\
+				    format(self/Constants.gramsperounce)+' oz'
 			else:
 				# format pounds in the "normal" way.  I'd use
 				# some expletives here, but it's easier to
@@ -157,7 +157,7 @@ class Mass(float):
 				if whole > 0:
 					thestr = str(whole) + ' '
 				return thestr \
-				    + str(fractions.Fraction(frac/16.0)) + 'lbs'
+				    + str(fractions.Fraction(frac/16.0)) + ' lb'
 
 
 class Strength(float):
