@@ -13,6 +13,7 @@ example:
 	printf 'recipe:\n```\n' >> ${RT}
 	cat ${RECIPE} >> ${RT}
 	printf '```\ntranslated with `wbctool`:\n```\n' >> ${RT}
-	PYTHONPATH=. python ./bin/wbctool.py ${RECIPE} >> ${RT}
+	PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
+	    ./bin/wbctool.py ${RECIPE} >> ${RT}
 	printf '```\n' >> ${RT}
 	mv ${RT} ${README}
