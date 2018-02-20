@@ -18,8 +18,9 @@
 
 from WBC.WBC import Recipe, Hop
 from WBC.Units import Mass, Temperature, Volume, Strength
-from WBC.Utils import PilotError
+from WBC.Utils import PilotError, setconfig
 
+import getopt
 import sys
 import yaml
 
@@ -195,7 +196,7 @@ def dofermentables(r, ferms):
 			raise PilotError('unexpected fermentable anchor: '
 			    + a[0])
 
-def processfile(filename):
+def processfile(clist, filename):
 	with open(filename, "r") as data:
 		d = yaml.safe_load(data.read())
 
@@ -206,14 +207,49 @@ def processfile(filename):
 	mashtemps = [parsetemp(x) for x in getdef_fatal(d, ['mashtemps'])]
 	bt = parsekettletime(d.get('boil', '60min'))
 	r = Recipe(name, yeast, parsevolume(volume), mashtemps, bt)
+	for c in clist:
+		c[0](r, *c[1:])
 
 	dofermentables(r, getdef_fatal(d, ['fermentables']))
 	dohops(r, d.get('hops', []))
 
 	r.do()
 
+def usage():
+	sys.stderr.write('usage: ' + sys.argv[0]
+	    + ' [-u metric|us|plato|sg] [-s volume,strength] recipefile\n')
+	sys.exit(1)
+
+def processopts(opts):
+	clist = []
+	for o, a in opts:
+		if o == '-h':
+			usage()
+		elif o == '-s':
+			optarg = a.split(',')
+			if len(optarg) != 2:
+				usage()
+			v = parsevolume(optarg[0])
+			s = parsestrength(optarg[1])
+			clist.append((Recipe.steal_preboil_wort, v, s))
+
+		elif o == '-u':
+			if a == 'us' or a == 'metric':
+				setconfig('units_output', a)
+			elif a == 'plato' or a == 'sg':
+				setconfig('strength_output', a)
+			else:
+				usage()
+
+	return clist
+
 if __name__ == '__main__':
+	opts, args = getopt.getopt(sys.argv[1:], 'hs:u:')
+	if len(args) != 1:
+		usage()
+
 	try:
-		processfile(sys.argv[1])
+		clist = processopts(opts)
+		processfile(clist, args[0])
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
