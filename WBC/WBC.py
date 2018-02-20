@@ -163,7 +163,7 @@ class Recipe:
 		checktype(mass, Mass)
 
 		# test
-		self.get(fermentable)
+		Fermentables.get(fermentable)
 
 		self.__doanchor('mass', (fermentable, mass))
 
