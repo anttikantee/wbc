@@ -63,9 +63,9 @@ translated with `wbctool`:
 ```
 ==============================================================================
 Name:              MarBock
-Final volume:      19.5l              Water (20.0°C):      33.4l              
+Final volume:      19.5l              Boil:                90 min             
 IBU (Tinseth):     36.00              BUGU:                0.52               
-Color (EBC / SRM): 10.7 / 5.4
+Color (EBC / SRM): 10.7 / 5.4         Water (20.0°C):      33.4l              
 
 Yeast:             WLP833
 Water notes:       
