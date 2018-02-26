@@ -75,6 +75,7 @@ add('Muntons Chocolate', 67, 0, 1000)
 
 add('Simpsons Golden Promise', 81, 140, 6.5)
 
+add('Weyermann CaraAroma', 74, 0, 350)
 add('Weyermann CaraMunich 1', 75, 0, 90)
 add('Weyermann CaraMunich 3', 76, 0, 150)
 add('Weyermann Melanoidin', 75, 0, 70)
