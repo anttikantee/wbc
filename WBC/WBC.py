@@ -131,6 +131,19 @@ class Recipe:
 		checktypes([(hop, Hop), (mass, Mass)])
 		self.hops_bymass.append([hop, mass, time])
 
+	# mass per final volume
+	def hop_bymassvolratio(self, hop, mass, vol, time):
+		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
+		hopmass = _Mass(mass * self.final_volume / vol)
+		self.hops_bymass.append([hop, hopmass, time])
+
+	# alpha acid mass per final volume
+	def hop_byAAvolratio(self, hop, mass, vol, time):
+		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
+		hopmass = _Mass((mass / (hop.aapers/100.0))
+		    * (self.final_volume / vol))
+		self.hops_bymass.append([hop, hopmass, time])
+
 	def hop_byIBU(self, hop, IBU, time):
 		checktype(hop, Hop)
 		self.hops_byIBU.append([hop, IBU, time])
