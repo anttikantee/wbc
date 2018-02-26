@@ -66,6 +66,7 @@ Name:              MarBock
 Final volume:      19.5l              Boil:                90 min             
 IBU (Tinseth):     36.00              BUGU:                0.52               
 Color (EBC / SRM): 10.7 / 5.4         Water (20.0°C):      33.4l              
+Pitch rate, ale:   258 billion        Pitch rate, lager:   516 billion        
 
 Yeast:             WLP833
 Water notes:       
@@ -93,13 +94,13 @@ Mashing instructions
 Sparge water volume: 20.1l (82.0°C)
 ==============================================================================
 
-Hops                            AA%                time    amount     IBUs
+Hops                              AA%                time    amount     IBUs
 ==============================================================================
-Northern Brewer (pellet)        9.9%             90 min    26.1 g    28.60
-Saaz (leaf)                     3.1%             30 min    20.0 g     4.48
-Hallertau (pellet)              3.8%             15 min    15.0 g     2.92
+Northern Brewer (pellet)          9.9%             90 min    26.1 g    28.60
+Saaz (leaf)                       3.1%             30 min    20.0 g     4.48
+Hallertau (pellet)                3.8%             15 min    15.0 g     2.92
 ==============================================================================
-                                                           61.1 g    36.00
+                                                             61.1 g    36.00
 
 Speculative apparent attenuation and resulting ABV
 ==============================================================================
@@ -118,6 +119,7 @@ Name:              MarBock
 Final volume:      5.2gal             Boil:                90 min             
 IBU (Tinseth):     36.00              BUGU:                0.52               
 Color (EBC / SRM): 10.7 / 5.4         Water (68.0°F):      8.8gal             
+Pitch rate, ale:   258 billion        Pitch rate, lager:   516 billion        
 
 Yeast:             WLP833
 Water notes:       
@@ -135,7 +137,7 @@ Fermentables                                      amount     extract  SG tot
 ==============================================================================
 Avangard Pilsner                      9 3/16 lb ( 75.0%)   6 7/16 lb   1.052
 Avangard Vienna                      1 13/16 lb ( 15.0%)    1 1/4 lb   1.010
-Avangard Munich Light                 1 3/16 lb ( 10.0%)     13.9 oz   1.007
+Avangard Munich Light                 1 3/16 lb ( 10.0%)    13.90 oz   1.007
 ==============================================================================
                                       12 1/4 lb (100.0%)    8 5/8 lb   1.069
 
@@ -145,13 +147,13 @@ Mashing instructions
 Sparge water volume: 5.3gal (179.6°F)
 ==============================================================================
 
-Hops                            AA%                time    amount     IBUs
+Hops                              AA%                time    amount     IBUs
 ==============================================================================
-Northern Brewer (pellet)        9.9%             90 min    0.9 oz    28.60
-Saaz (leaf)                     3.1%             30 min    0.7 oz     4.48
-Hallertau (pellet)              3.8%             15 min    0.5 oz     2.92
+Northern Brewer (pellet)          9.9%             90 min   0.92 oz    28.60
+Saaz (leaf)                       3.1%             30 min   0.71 oz     4.48
+Hallertau (pellet)                3.8%             15 min   0.53 oz     2.92
 ==============================================================================
-                                                           2.2 oz    36.00
+                                                            2.16 oz    36.00
 
 Speculative apparent attenuation and resulting ABV
 ==============================================================================
