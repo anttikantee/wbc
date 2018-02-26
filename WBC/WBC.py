@@ -539,6 +539,12 @@ class Recipe:
 		    '{:.1f}'.format(ebc) + ' / ' + '{:.1f}'.format(srm), \
 		    'Water (' + unicode(Constants.sourcewater_temp) + '):', \
 		    unicode(total_water))
+		bil = 1000*1000*1000
+		unit = ' billion'
+		print twofmt.format('Pitch rate, ale:',
+		    str(int(self.results['pitch']['ale'] / bil)) + unit,
+		    'Pitch rate, lager:',
+		    str(int(self.results['pitch']['lager'] / bil)) + unit)
 		print
 		print onefmt.format('Yeast:', self.yeast)
 		print onefmt.format('Water notes:', '')
@@ -637,6 +643,14 @@ class Recipe:
 			raise Exception('recipe failed to converge ... panic?')
 
 		self._doattenuate()
+
+		# calculate suggested pitch rates, using 0.75mil/ml/degP for
+		# ales and 1.5mil for lagers
+		tmp = self.__volume_at_stage(self.FERMENTER) * 1000 \
+		    * self.results['final_strength'].valueas(Strength.PLATO)
+		self.results['pitch'] = {}
+		self.results['pitch']['ale']   = tmp * 0.75*1000*1000
+		self.results['pitch']['lager'] = tmp * 1.50*1000*1000
 
 	def printit(self):
 		self._keystats()
