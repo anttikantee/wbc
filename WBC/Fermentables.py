@@ -47,11 +47,14 @@ def get(name):
 # fermentables override built-in ones with the same name.  The logic
 # is to keep user recipes working even if we happen to add a fermentable
 # with the same name.
-def add(name, extract, wk, ebc, conversion = True):
+def _scanexisting(name):
 	f = find(name)
 	if not f is None:
 		Utils.warn('fermentable ' + name + ' already exists')
 		fermentables.remove(f)
+
+def add(name, extract, wk, ebc, conversion = True):
+	_scanexisting(name)
 	fermentables.append(Fermentable(name, extract, wk, ebc, conversion))
 
 ##
@@ -68,12 +71,27 @@ add('Avangard Munich light', 80.5, 250, 18)
 add('Avangard Munich dark', 80.5, 250, 30)
 add('Avangard Wheat', 83, 250, 4.5)
 
+add('Dingemans Special B', 72, 0, 310)
+
 add('Crisp Maris Otter', 81.5, 150, 3.5)
 
 # XXX: extract correct?
 add('Muntons Chocolate', 67, 0, 1000)
 
+# XXX: I was utterly unable to find a datasheet for whatever Muntons
+# "Whole Pale Malt Marris Otter" is.  So I'm just guessing it's
+# more or less "ale malt" from muntons.com
+add('Muntons Maris Otter', 81.5, 156, 5.8)
+
 add('Simpsons Golden Promise', 81, 140, 6.5)
+
+# Hats off to Thomas Fawcett & Sons for having useful data sheets
+# easily available.  I wish all maltsters were like them.  They even
+# have everything in IoB, ASBC and EBC numbers!
+# http://www.fawcett-maltsters.co.uk/spec.html
+# (well, ok, they don't apparently supply the diastatic power, but
+# until we hit base malts for them, doesn't really matter)
+add('Fawcett Brown', 70, 0, 188)
 
 add('Weyermann CaraAroma', 74, 0, 350)
 add('Weyermann CaraMunich 1', 75, 0, 90)
