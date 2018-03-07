@@ -381,11 +381,12 @@ class Recipe:
 
 		for x in self.results['mash']['steps']:
 			print u'{:7}'.format(unicode(x[0])) + ': add', x[1], \
-			    'of water at', unicode(x[2])
+			    'of water at', unicode(x[2]), \
+			    '(' + str(Mash.strikewater_ratio) + ' ratio)'
 
 		print 'Sparge water volume:', \
-		    self.results['mash']['sparge_water'], '(' \
-		    + unicode(Constants.spargewater_temp) + ')'
+		    self.results['mash']['sparge_water'], '@', \
+		    unicode(Constants.spargewater_temp)
 
 		if self.stolen_wort[0] > 0:
 			print
@@ -775,7 +776,7 @@ class Mash:
 
 	# 2.5kg water to 1kg of grain, should be configurable, especially
 	# for stepped infusions starting from a very low temp
-	__strikewater_ratio = 2.5
+	strikewater_ratio = 2.5
 
 	# infusion mash step state and calculator for the next.
 	#
@@ -893,7 +894,7 @@ class Mash:
 		res['total_water'] = self.mashwater_vol
 
 		step = self.__Step(fmass, self.fermentable_temp, 0, 0)
-		mass = self.__strikewater_ratio * fmass.valueas(Mass.KG)
+		mass = self.strikewater_ratio * fmass.valueas(Mass.KG)
 		totvol = self.mashwater_vol
 
 		for t in mashtemps:
