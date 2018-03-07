@@ -42,7 +42,7 @@ class Recipe:
 
 		self.fermentables_bymass = []
 		self.fermentables_bypercent = []
-		self.fermentables_therest = None
+		self.fermentables_therest = []
 
 		# final strength or mass of one fermentable
 		self.anchor = None
@@ -208,9 +208,7 @@ class Recipe:
 			raise PilotError('fermentables may be specified once')
 
 		if percent is self.THEREST:
-			if self.fermentables_therest is not None:
-				raise PilotError('can use "THEREST" only once')
-			self.fermentables_therest = (name, fermentable)
+			self.fermentables_therest.append((name, fermentable))
 		else:
 			self.fermentables_bypercent.append((name, fermentable,
 			    percent))
@@ -260,15 +258,17 @@ class Recipe:
 			return # all done already
 
 		totpers = sum(x[2] for x in self.fermentables_bypercent)
-		missing = 100 - totpers
+		missing = 100 - float(totpers)
 		if missing > 0:
-			if self.fermentables_therest is None:
+			ltr = len(self.fermentables_therest)
+			if ltr == 0:
 				raise PilotError('fermentable percentages add '
 				    + 'up to only ' + str(totpers)
 				    + '%, need 100%')
-			i = (self.fermentables_therest[0],
-			    self.fermentables_therest[1], missing)
-			self.fermentables_bypercent.append(i)
+			mp = missing / ltr
+			for tr in self.fermentables_therest:
+				i = (tr[0], tr[1], mp)
+				self.fermentables_bypercent.append(i)
 		assert (sum(x[2] for x in self.fermentables_bypercent) == 100)
 
 		if self.anchor is None:
