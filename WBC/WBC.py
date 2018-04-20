@@ -29,11 +29,15 @@ def checkconfig():
 	return True
 
 class Recipe:
+	# 2.5kg water to 1kg of grain by default
+	mashin_ratio_default = 2.5
+
 	def __init__(self, name, yeast, final_volume, mashtemps, boiltime = 60):
 		checktype(final_volume, Volume)
 		self.name = name
 		self.yeast = yeast
 		self.final_volume = final_volume
+		self.mashin_ratio = Recipe.mashin_ratio_default
 
 		self.hops_bymass = []
 		self.hops_byIBU = []
@@ -126,6 +130,9 @@ class Recipe:
 		m = Mass(vol * strength.valueas(Strength.SG), Mass.KG)
 		return Mass(m.valueas(Mass.G)
 		    * strength.valueas(Strength.PLATO)/100.0, Mass.G)
+
+	def mashin_ratio_set(self, ratio):
+		self.mashin_ratio = ratio
 
 	def hop_bymass(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])
@@ -335,7 +342,7 @@ class Recipe:
 		self.results['steal'] = steal
 
 		self.m = Mash(self.results['fermentables'],
-		    self.fermentables_temp, totvol)
+		    self.fermentables_temp, totvol, self.mashin_ratio)
 
 		totmass = self.grainmass()
 		v = self.__volume_at_stage(self.POSTBOIL)
@@ -384,7 +391,7 @@ class Recipe:
 			print u'{:7}'.format(unicode(x[0])) + ': add', x[1], \
 			    'of water at', unicode(x[2]),
 			if first:
-				print '(' + str(Mash.strikewater_ratio) \
+				print '(' + str(self.mashin_ratio) \
 				    + ' ratio)',
 				first = False
 			print
@@ -783,10 +790,6 @@ class Mash:
 	# grain dry volume, (pessimistic estimate, i.e. could be less)
 	__grain_literperkg = 0.7
 
-	# 2.5kg water to 1kg of grain, should be configurable, especially
-	# for stepped infusions starting from a very low temp
-	strikewater_ratio = 2.5
-
 	# infusion mash step state and calculator for the next.
 	#
 	# In the context of this class, we use the following terminology:
@@ -890,10 +893,12 @@ class Mash:
 			    _Temperature(self.step_watertemp))
 
 
-	def __init__(self, mashfermentables, fermentable_temp, mashwater_vol):
+	def __init__(self, mashfermentables, fermentable_temp, mashwater_vol,
+	    mashin_ratio):
 		self.mashfermentables = mashfermentables
 		self.fermentable_temp = fermentable_temp
 		self.mashwater_vol = mashwater_vol
+		self.mashin_ratio = mashin_ratio
 
 	def infusion_mash(self, mashtemps):
 		fmass = _Mass(sum(x[2] for x in self.mashfermentables))
@@ -903,7 +908,7 @@ class Mash:
 		res['total_water'] = self.mashwater_vol
 
 		step = self.__Step(fmass, self.fermentable_temp, 0, 0)
-		mass = self.strikewater_ratio * fmass.valueas(Mass.KG)
+		mass = self.mashin_ratio * fmass.valueas(Mass.KG)
 		totvol = self.mashwater_vol
 
 		for t in mashtemps:

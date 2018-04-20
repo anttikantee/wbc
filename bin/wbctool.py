@@ -210,6 +210,10 @@ def processfile(clist, filename):
 	for c in clist:
 		c[0](r, *c[1:])
 
+	mashin = d.get('mashin', None)
+	if mashin is not None:
+		r.mashin_ratio_set(mashin)
+
 	dofermentables(r, getdef_fatal(d, ['fermentables']))
 	dohops(r, d.get('hops', []))
 
