@@ -379,14 +379,23 @@ class Recipe:
 		print 'Mashing instructions'
 		self._prtsep()
 
+		first = True
 		for x in self.results['mash']['steps']:
 			print u'{:7}'.format(unicode(x[0])) + ': add', x[1], \
-			    'of water at', unicode(x[2]), \
-			    '(' + str(Mash.strikewater_ratio) + ' ratio)'
+			    'of water at', unicode(x[2]),
+			if first:
+				print '(' + str(Mash.strikewater_ratio) \
+				    + ' ratio)',
+				first = False
+			print
 
-		print 'Sparge water volume:', \
-		    self.results['mash']['sparge_water'], '@', \
-		    unicode(Constants.spargewater_temp)
+		print u'{:23}{:}'.format('Mashstep water volume:', \
+		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
+		    + unicode(Constants.sourcewater_temp))
+
+		print u'{:23}{:}'. format('Sparge water volume:', \
+		    unicode(self.results['mash']['sparge_water']) + ' @ '
+		    + unicode(Constants.spargewater_temp))
 
 		if self.stolen_wort[0] > 0:
 			print
@@ -911,6 +920,7 @@ class Mash:
 			    Constants.sourcewater_temp, temp)
 			res['steps'].append((t, actualvol, temp))
 
+		res['mashstep_water'] = _Volume(self.mashwater_vol - totvol)
 		res['sparge_water'] = \
 		    Brewutils.water_vol_at_temp(_Volume(totvol), \
 		    Constants.sourcewater_temp, Constants.spargewater_temp)
