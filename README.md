@@ -90,8 +90,9 @@ Avangard Munich Light                     556 g ( 10.0%)       394 g   1.8°P
 
 Mashing instructions
 ==============================================================================
-66.0°C : add 14.3l of water at 78.0°C
-Sparge water volume: 20.1l (82.0°C)
+66.0°C : add 14.3l of water at 78.0°C (2.5 ratio)
+Mashstep water volume: 13.9l @ 20.0°C
+Sparge water volume:   20.1l @ 82.0°C
 ==============================================================================
 
 Hops                              AA%                time    amount     IBUs
@@ -104,10 +105,9 @@ Hallertau (pellet)                3.8%             15 min    15.0 g     2.92
 
 Speculative apparent attenuation and resulting ABV
 ==============================================================================
- Strength    Atten.   ABV        Strength    Atten.   ABV       
-  7.0°P       60%     5.5%        4.4°P       75%     6.9%      
-  6.1°P       65%     6.0%        3.5°P       80%     7.4%      
-  5.2°P       70%     6.4%        2.6°P       85%     7.9%      
+  Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
+ 7.0°P    60%   5.5%       5.2°P    70%   6.4%       3.5°P    80%   7.4%      
+ 6.1°P    65%   6.0%       4.4°P    75%   6.9%       2.6°P    85%   7.9%      
 ==============================================================================
 
 ```
@@ -143,8 +143,9 @@ Avangard Munich Light                 1 3/16 lb ( 10.0%)    13.90 oz   1.007
 
 Mashing instructions
 ==============================================================================
-150.8°F: add 3.8gal of water at 172.3°F
-Sparge water volume: 5.3gal (179.6°F)
+150.8°F: add 3.8gal of water at 172.3°F (2.5 ratio)
+Mashstep water volume: 3.7gal @ 68.0°F
+Sparge water volume:   5.3gal @ 179.6°F
 ==============================================================================
 
 Hops                              AA%                time    amount     IBUs
@@ -157,10 +158,9 @@ Hallertau (pellet)                3.8%             15 min   0.53 oz     2.92
 
 Speculative apparent attenuation and resulting ABV
 ==============================================================================
- Strength    Atten.   ABV        Strength    Atten.   ABV       
-  1.028       60%     5.5%        1.017       75%     6.9%      
-  1.024       65%     6.0%        1.014       80%     7.4%      
-  1.021       70%     6.4%        1.010       85%     7.9%      
+  Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
+ 1.028    60%   5.5%       1.021    70%   6.4%       1.014    80%   7.4%      
+ 1.024    65%   6.0%       1.017    75%   6.9%       1.010    85%   7.9%      
 ==============================================================================
 
 ```
