@@ -611,10 +611,10 @@ class Recipe:
 	def _printattenuate(self):
 		print 'Speculative apparent attenuation and resulting ABV'
 		self._prtsep()
-		onefmt = u'{:^10}{:^12}{:10}'
+		onefmt = u'{:^8}{:^8}{:10}'
 		title = ''
-		for x in [1,2]:
-			title += onefmt.format('Strength', 'Atten.', 'ABV')
+		for x in range(3):
+			title += onefmt.format('Str.', 'Att.', 'ABV')
 		print title
 
 		reslst = []
@@ -622,9 +622,10 @@ class Recipe:
 			reslst.append((unicode(x[1]), str(x[0]) + '%', \
 			    '{:.1f}%'.format(x[2])))
 
-		for i in range(0, len(reslst)/2):
+		for i in range(0, len(reslst)/3):
 			line = onefmt.format(*reslst[i])
-			line += onefmt.format(*reslst[i + len(reslst)/2])
+			line += onefmt.format(*reslst[i + len(reslst)/3])
+			line += onefmt.format(*reslst[i + 2*len(reslst)/3])
 			print line
 		self._prtsep()
 		print
