@@ -465,6 +465,18 @@ class Recipe:
 			allhop.append([h[0], mass, h[2], missibus])
 			totibus += missibus
 
+		if self.hops_recipeBUGU is not None:
+			h = self.hops_recipeBUGU
+			time = gettime(h[2])
+			bugu = self.hops_recipeBUGU[1]
+			stren = self.results['final_strength']
+			ibus = stren.valueas(stren.SG_PTS) * bugu
+			missibus = ibus - totibus
+			mass = h[0].mass(sg, v_post, time,
+			    missibus)
+			allhop.append([h[0], mass, h[2], missibus])
+			totibus += missibus
+
 		# Sort the hop additions of the recipe.
 		#
 		# pass 1: sort within claases

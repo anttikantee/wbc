@@ -126,6 +126,10 @@ def parsehopunit(input):
 	if rv is not None:
 		return (Recipe.hop_recipeIBU, rv)
 
+	rv = parseunit(float, { 'Recipe BUGU': None }, input, fatal=False)
+	if rv is not None:
+		return (Recipe.hop_recipeBUGU, rv)
+
 	raise PilotError('invalid boilhop quantity: ' + str(input))
 
 def dohops(r, d_hops):
