@@ -512,6 +512,7 @@ class Recipe:
 		self._prtsep()
 		totmass = 0
 
+		prevstage = None
 		for h in self.results['hops']:
 			typ = ' (' + h[0].typestr + ')'
 			nam = h[0].name
@@ -520,11 +521,15 @@ class Recipe:
 			elif isinstance(h[2], int):
 				time = unicode(h[2]) + ' min'
 			else:
+				if prevstage is not None and \
+				    prevstage is not h[2].__class__:
+					self._prtsep('-')
 				time = unicode(h[2])
 			maxlen = (namelen-1) - len(typ)
 			if len(nam) > maxlen:
 				nam = nam[0:maxlen-4] + '...'
 
+			prevstage = h[2].__class__
 			totmass = h[1] + totmass
 
 			# printing IBUs with two decimal points, given all
