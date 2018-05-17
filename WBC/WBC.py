@@ -123,8 +123,8 @@ class Recipe:
 
 		return _Volume(v)
 
-	def _prtsep(self):
-		print '=' * 78
+	def _prtsep(self, char='='):
+		print char * 78
 
 	def __extract(self, vol, strength):
 		m = Mass(vol * strength.valueas(Strength.SG), Mass.KG)
