@@ -76,6 +76,12 @@ add('Briess pale', 78.5, 264, 7.8)
 # XXX: not sure diastatic power is correct (specs do say 140 degL)
 add('Briess smoked', 80.5, 474, 14.5)
 
+# Crisp
+add('Crisp Maris Otter', 81.5, 150, 3.5)
+# well, as usual, can't find this on the maltsters page, but pretty much
+# all vendors agree that it's 200-250 Lovibond, so I guess mostly correct
+add('Crisp Pale Chocolate', 77, 0, 600)
+
 # XXX: probably better diastatic power, but can't figure it out
 # from the datasheet at:
 # http://dingemansmout.be/sites/dingemansmout.be/files/downloads/ALE_MD_0.pdf
@@ -83,11 +89,10 @@ add('Dingemans Pale', 80, Constants.minconversion, 9)
 
 add('Dingemans Special B', 72, 0, 310)
 
-add('Crisp Maris Otter', 81.5, 150, 3.5)
-
 # XXX: extract correct?
 add('Muntons Chocolate', 67, 0, 1000)
 add('Muntons Crystal 150', 67, 0, 150)
+add('Muntons Black Malt', 67, 0, 1300)
 
 # XXX: I was utterly unable to find a datasheet for whatever Muntons
 # "Whole Pale Malt Marris Otter" is.  So I'm just guessing it's
@@ -122,7 +127,7 @@ add('Weyermann Carafa 2', 70, 0, 1100)
 # extract yields for non-malts (from 'How To Brew' [Palmer])
 add('Flaked wheat', 77, 0, 0)
 add('Flaked oats', 70, 0, 0)
-add('Roasted barley', 55, 0, 600)
+add('Roasted barley', 55, 0, 1400)
 
 # sugars ("self-converting")
 add('Table sugar', 100, Constants.minconversion, 0, False)
