@@ -174,8 +174,8 @@ def dohops(r, d_hops):
 	for h in d_hops.get('dryhop', []):
 		ar = h[2].split("->")
 		if len(ar) != 2:
-			raise PilotError("whirlpool hops must be specified as "
-			    + "\"time @ temperature\"")
+			raise PilotError("dryhops must be specified as "
+			    + "\"days_in -> days_out\"")
 		(fun, hu) = parsehopunit(h[1])
 		inday = parsedays(ar[0])
 		outday = parsedays(ar[1])
