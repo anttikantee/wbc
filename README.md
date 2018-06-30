@@ -164,3 +164,164 @@ Speculative apparent attenuation and resulting ABV
 ==============================================================================
 
 ```
+---
+
+recipe:
+```
+name:   Beer from IPAnema
+yeast:  US-05
+volume: 19.5l
+boil:   30min
+mashin: 3
+
+mashtemps: [ 66degC ]
+
+fermentables:
+        anchor: [ strength, 15degP ]
+
+        mash:
+                Briess Pale:     rest
+                Avangard Vienna:  18%
+
+hops:
+        defs:
+                mosaic:         [ Mosaic,     12.4%,   pellet  ]
+                citra:          [ Citra,      14.0%,   pellet  ]
+
+        boil:
+                - [ citra,      10g, 30 min ]
+                - [ mosaic,     10g, 30 min ]
+                - [ citra,      10g, 12 min ]
+                - [ mosaic,     10g, 12 min ]
+
+        steep:
+                - [ citra,      10g, 10min @ 90degC ]
+                - [ mosaic,     10g, 10min @ 90degC ]
+
+        dryhop:
+                - [ citra,      25g, keg ]
+                - [ mosaic,     25g, keg ]
+```
+translated with `wbctool -u metric -u plato`:
+```
+==============================================================================
+Name:              Beer from IPAnema
+Final volume:      19.5l              Boil:                30 min             
+IBU (Tinseth):     33.71              BUGU:                0.55               
+Color (EBC / SRM): 12.4 / 6.3         Water (20.0°C):      29.7l              
+Pitch rate, ale:   230 billion        Pitch rate, lager:   461 billion        
+
+Yeast:             US-05
+Water notes:       
+
+Preboil  volume  : 23.7l (70.0°C)     Measured:                               
+Preboil  strength: 13.8°P             Measured:                               
+Postboil volume  : 22.6l (100.0°C)    Measured:                               
+Postboil strength: 15.0°P             Measured:                               
+
+Kettle loss (est): 1.2l               Fermenter loss (est):1.0l               
+Mash eff (conf) :  88.0%              Brewhouse eff (est): 79.1%              
+
+NOTE: keg hops absorb: 0.3l => effective yield: 19.2l
+==============================================================================
+
+Fermentables                                      amount     extract  °P tot
+==============================================================================
+Briess Pale                             4.09 kg ( 82.0%)     2.83 kg  12.4°P
+Avangard Vienna                           899 g ( 18.0%)       633 g   2.9°P
+==============================================================================
+                                        4.99 kg (100.0%)     3.46 kg  15.0°P
+
+Mashing instructions
+==============================================================================
+66.0°C : add 15.3l of water at 76.4°C (3 ratio)
+Mashstep water volume: 15.0l @ 20.0°C
+Sparge water volume:   15.2l @ 82.0°C
+==============================================================================
+
+Hops                              AA%                time    amount     IBUs
+==============================================================================
+Citra (pellet)                    14.0%            30 min    10.0 g    11.57
+Mosaic (pellet)                   12.4%            30 min    10.0 g    10.24
+Citra (pellet)                    14.0%            12 min    10.0 g     6.31
+Mosaic (pellet)                   12.4%            12 min    10.0 g     5.59
+------------------------------------------------------------------------------
+Citra (pellet)                    14.0%    10min @ 90.0°C    10.0 g     0.00
+Mosaic (pellet)                   12.4%    10min @ 90.0°C    10.0 g     0.00
+------------------------------------------------------------------------------
+Mosaic (pellet)                   12.4%     dryhop in keg    25.0 g     0.00
+Citra (pellet)                    14.0%     dryhop in keg    25.0 g     0.00
+==============================================================================
+                                                              110 g    33.71
+
+Speculative apparent attenuation and resulting ABV
+==============================================================================
+  Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
+ 6.2°P    60%   4.8%       4.7°P    70%   5.7%       3.1°P    80%   6.5%      
+ 5.4°P    65%   5.3%       3.9°P    75%   6.1%       2.3°P    85%   6.9%      
+==============================================================================
+
+```
+
+translated with `wbctool -u us -u sg`:
+```
+==============================================================================
+Name:              Beer from IPAnema
+Final volume:      5.2gal             Boil:                30 min             
+IBU (Tinseth):     33.71              BUGU:                0.55               
+Color (EBC / SRM): 12.4 / 6.3         Water (68.0°F):      7.9gal             
+Pitch rate, ale:   230 billion        Pitch rate, lager:   461 billion        
+
+Yeast:             US-05
+Water notes:       
+
+Preboil  volume  : 6.3gal (158.0°F)   Measured:                               
+Preboil  strength: 1.056              Measured:                               
+Postboil volume  : 6.0gal (212.0°F)   Measured:                               
+Postboil strength: 1.061              Measured:                               
+
+Kettle loss (est): 0.3gal             Fermenter loss (est):0.3gal             
+Mash eff (conf) :  88.0%              Brewhouse eff (est): 79.1%              
+
+NOTE: keg hops absorb: 0.1gal => effective yield: 5.1gal
+==============================================================================
+
+Fermentables                                      amount     extract  SG tot
+==============================================================================
+Briess Pale                              9 0 lb ( 82.0%)   6 3/16 lb   1.050
+Avangard Vienna                      1 15/16 lb ( 18.0%)    1 3/8 lb   1.011
+==============================================================================
+                                        11 0 lb (100.0%)    7 5/8 lb   1.061
+
+Mashing instructions
+==============================================================================
+150.8°F: add 4.1gal of water at 169.6°F (3 ratio)
+Mashstep water volume: 4.0gal @ 68.0°F
+Sparge water volume:   4.0gal @ 179.6°F
+==============================================================================
+
+Hops                              AA%                time    amount     IBUs
+==============================================================================
+Citra (pellet)                    14.0%            30 min   0.35 oz    11.57
+Mosaic (pellet)                   12.4%            30 min   0.35 oz    10.24
+Citra (pellet)                    14.0%            12 min   0.35 oz     6.31
+Mosaic (pellet)                   12.4%            12 min   0.35 oz     5.59
+------------------------------------------------------------------------------
+Citra (pellet)                    14.0%   10min @ 194.0°F   0.35 oz     0.00
+Mosaic (pellet)                   12.4%   10min @ 194.0°F   0.35 oz     0.00
+------------------------------------------------------------------------------
+Mosaic (pellet)                   12.4%     dryhop in keg   0.88 oz     0.00
+Citra (pellet)                    14.0%     dryhop in keg   0.88 oz     0.00
+==============================================================================
+                                                            3.88 oz    33.71
+
+Speculative apparent attenuation and resulting ABV
+==============================================================================
+  Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
+ 1.024    60%   4.8%       1.018    70%   5.7%       1.012    80%   6.5%      
+ 1.021    65%   5.3%       1.015    75%   6.1%       1.009    85%   6.9%      
+==============================================================================
+
+```
+---
+
