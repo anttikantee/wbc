@@ -11,7 +11,7 @@ all:
 examples:
 	sed '/<!-- BEGIN EXAMPLE -->/q' < ${README} > ${RT}
 	for r in ${RECIPES}; do \
-		printf 'recipe:\n```\n' >> ${RT}; \
+		printf 'Example recipe\n---\n```\n' >> ${RT}; \
 		cat $${r} >> ${RT}; \
 		printf '```\ntranslated with `wbctool -u metric -u plato`:\n```\n' >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
@@ -21,5 +21,5 @@ examples:
 		    >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
 		    ./bin/wbctool.py -u us -u sg $${r} >> ${RT}; \
-		printf '```\n' >> ${RT} ; printf -- '---\n\n' >> ${RT}; done
+		printf '```\n\n' >> ${RT} ; done
 	mv ${RT} ${README}
