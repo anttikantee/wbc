@@ -1,0 +1,33 @@
+name:   Beer from IPAnema
+yeast:  US-05
+volume: 19.5l
+boil:   30min
+mashin: 3
+
+mashtemps: [ 66degC ]
+
+fermentables:
+        anchor: [ strength, 15degP ]
+
+        mash:
+                Briess Pale:     rest
+                Avangard Vienna:  18%
+
+hops:
+        defs:
+                mosaic:         [ Mosaic,     12.4%,   pellet  ]
+                citra:          [ Citra,      14.0%,   pellet  ]
+
+        boil:
+                - [ citra,      10g, 30 min ]
+                - [ mosaic,     10g, 30 min ]
+                - [ citra,      10g, 12 min ]
+                - [ mosaic,     10g, 12 min ]
+
+        steep:
+                - [ citra,      10g, 10min @ 90degC ]
+                - [ mosaic,     10g, 10min @ 90degC ]
+
+        dryhop:
+                - [ citra,      25g, keg ]
+                - [ mosaic,     25g, keg ]
