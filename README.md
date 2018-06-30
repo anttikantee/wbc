@@ -33,8 +33,9 @@ the right to rewrite the git history of this repo.
 
 Features will be added as I need them (if I need them).
 
-Example
--------
+Examples
+========
+
 <!-- BEGIN EXAMPLE -->
 recipe:
 ```
