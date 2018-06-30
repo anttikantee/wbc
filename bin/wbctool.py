@@ -172,13 +172,17 @@ def dohops(r, d_hops):
 		fun(r, hops[h[0]], hu, Hop.Steep(temp, time))
 
 	for h in d_hops.get('dryhop', []):
-		ar = h[2].split("->")
-		if len(ar) != 2:
-			raise PilotError("dryhops must be specified as "
-			    + "\"days_in -> days_out\"")
+		if h[2] == 'keg':
+			inday = outday = Hop.Dryhop.Keg
+		else:
+			ar = h[2].split("->")
+			if len(ar) != 2:
+				raise PilotError("dryhops must be specified as "
+				    + "\"days_in -> days_out\" or \"keg\"")
+			inday = parsedays(ar[0])
+			outday = parsedays(ar[1])
+
 		(fun, hu) = parsehopunit(h[1])
-		inday = parsedays(ar[0])
-		outday = parsedays(ar[1])
 		fun(r, hops[h[0]], hu, Hop.Dryhop(inday, outday))
 
 def dofermentables(r, ferms):

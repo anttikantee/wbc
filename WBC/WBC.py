@@ -57,7 +57,8 @@ class Recipe:
 
 		self.fermentables_temp = _Temperature(20)
 
-		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0)}
+		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
+		    'keg':_Volume(0)}
 
 		self.results = {}
 
@@ -496,12 +497,19 @@ class Recipe:
 
 		# calculate amount of wort that hops will drink
 		hd = {x: 0 for x in self.hopsdrunk}
+		kegdryhopvol = 0
 		for h in allhop:
 			if isinstance(h[2], Hop.Dryhop):
-				hd['fermenter'] += h[0].absorption(h[1])
+				if h[2].indays is not h[2].Keg:
+					hd['fermenter'] += h[0].absorption(h[1])
+				else:
+					hd['keg'] += h[0].absorption(h[1])
+					kegdryhopvol += h[0].volume(h[1])
 			else:
 				hd['kettle'] += h[0].absorption(h[1])
+
 		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
+		self.kegdryhopvol = _Volume(kegdryhopvol)
 
 	def _printboil(self):
 		# XXX: IBU sum might not be sum of displayed hop additions
@@ -615,6 +623,23 @@ class Recipe:
 		    str(100*getconfig('mash_efficiency')) + '%',
 		    'Brewhouse eff (est):', '{:.1f}%'.format(100 * beff))
 
+		if self.hopsdrunk['keg'] > 0:
+			print
+			print 'NOTE: keg hops absorb: ' \
+			    + str(self.hopsdrunk['keg']) \
+			    + ' => effective yield: ' \
+			    + str(_Volume(self.final_volume
+				  - self.hopsdrunk['keg']))
+
+			# warn about larger packaging volume iff keg dryhops
+			# volume exceeds 1dl
+			if self.kegdryhopvol > 0.1:
+				print 'NOTE: keg hop volume: ~' \
+				    + str(self.kegdryhopvol) \
+				    + ' => packaged volume: ' \
+				    + str(_Volume(self.final_volume
+				          + self.kegdryhopvol))
+
 		self._prtsep()
 		print
 
@@ -720,20 +745,42 @@ class Hop:
 				return 0
 
 	class Dryhop:
+		Keg =	object()
+
 		def __init__(self, indays, outdays):
-			if indays <= outdays:
-				raise PilotError('trying to take dryhops out ' \
-				    'before putting them in')
+			if indays == self.Keg or outdays == self.Keg:
+				# I guess someone *could* put hops into
+				# the fermenter for some days and transfer
+				# them into the keg.  We're not going to
+				# support such activities.
+				if indays is not outdays:
+					raise PilotError('when dryhopping in '\
+					    'keg, indays and outdays must be '\
+					    '"keg"')
+			else:
+				if indays <= outdays:
+					raise PilotError('trying to take ' \
+					    'dryhops out before putting ' \
+					    'them in')
 			self.indays = indays
 			self.outdays = outdays
 
 		def __str__(self):
-			return 'dryhop ' + str(self.indays) \
-			    + ' => ' + str(self.outdays)
+			if self.indays is self.Keg:
+				rv = 'in keg'
+			else:
+				rv = str(self.indays) \
+				    + ' => ' + str(self.outdays)
+			return 'dryhop ' + rv
 
 		def __cmp__(self, other):
 			if not isinstance(other, Hop.Dryhop):
 				return 0
+
+			if self.indays is self.Keg:
+				return -1
+			if other.indays is other.Keg:
+				return 1
 
 			if self.indays < other.indays:
 				return -1
@@ -803,6 +850,15 @@ class Hop:
 			assert(self.type is self.Leaf)
 			abs_c = Constants.leafhop_absorption
 		return _Volume(mass * abs_c)
+
+	def volume(self, mass):
+		checktype(mass, Mass)
+		if self.type is self.Pellet:
+			density = Constants.pellethop_density
+		else:
+			assert(self.type is self.Leaf)
+			density = Constants.leafhop_density
+		return _Volume(mass / density)
 
 class Mash:
 	# grain dry volume, (pessimistic estimate, i.e. could be less)
