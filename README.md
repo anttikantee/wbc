@@ -37,7 +37,8 @@ Examples
 ========
 
 <!-- BEGIN EXAMPLE -->
-recipe:
+Example recipe
+---
 ```
 name:   MarBock
 yeast:  WLP833
@@ -165,9 +166,9 @@ Speculative apparent attenuation and resulting ABV
 ==============================================================================
 
 ```
----
 
-recipe:
+Example recipe
+---
 ```
 name:   Beer from IPAnema
 yeast:  US-05
@@ -324,5 +325,4 @@ Speculative apparent attenuation and resulting ABV
 ==============================================================================
 
 ```
----
 
