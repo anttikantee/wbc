@@ -19,6 +19,7 @@
 from WBC.WBC import Recipe, Hop
 from WBC.Units import Mass, Temperature, Volume, Strength
 from WBC.Utils import PilotError, setconfig
+from WBC import Parse
 
 import getopt
 import sys
@@ -31,114 +32,13 @@ def getdef_fatal(defs, v):
 		defs = defs[x]
 	return defs
 
-def parseunit(cls, sfxmap, input, fatal = True, name = None):
-	inputstr = str(input).strip()
-	numstr = filter(lambda x: x.isdigit() or x == '.', inputstr)
-	alphastr = inputstr[len(numstr):].strip()
-
-	if name is None:
-		name = cls.__name__
-
-	if alphastr not in sfxmap:
-		if fatal:
-			raise PilotError('invalid suffix in: '
-			    + inputstr + ' (for ' + name + ')')
-		else:
-			return None
-	sfx = sfxmap[alphastr]
-	if sfx is None:
-		return cls(float(numstr))
-	else:
-		return cls(float(numstr), sfx)
-
-masssfx = {
-	'g'	: Mass.G,
-	'kg'	: Mass.KG,
-	'oz'	: Mass.OZ,
-	'lb'	: Mass.LB
-}
-def parsemass(input):
-	return parseunit(Mass, masssfx, input)
-
-def parsevolume(input):
-	suffixes = {
-		'gal'	: Volume.GALLON,
-		'l'	: Volume.LITER,
-	}
-	return parseunit(Volume, suffixes, input)
-
-def parsetemp(input):
-	suffixes = {
-		'degC'	: Temperature.degC,
-		'degF'	: Temperature.degF,
-	}
-	return parseunit(Temperature, suffixes, input)
-
-def parsekettletime(input):
-	suffixes = {
-		'min'	: None,
-	}
-	return parseunit(int, suffixes, input, name = 'kettletime')
-
-def parsedays(input):
-	suffixes = {
-		'day'	: None,
-	}
-	return parseunit(int, suffixes, input, name = 'days')
-
-percentsfxs = {
-	'%'	: None,
-}
-def parsepercent(input):
-	return parseunit(float, percentsfxs, input, name = 'percentage')
-
-def parsestrength(input):
-	suffixes = {
-		'degP'	: Strength.PLATO,
-		'SG'	: Strength.SG,
-		'pts'	: Strength.SG_PTS,
-	}
-	return parseunit(Strength, suffixes, input)
-
-def parsefermentableunit(input):
-	if input == 'rest':
-		return (Recipe.fermentable_bypercent, Recipe.THEREST)
-
-	rv = parseunit(float, percentsfxs, input, fatal = False)
-	if rv is not None:
-		return (Recipe.fermentable_bypercent, rv)
-	rv = parseunit(Mass, masssfx, input, fatal = False)
-	if rv is not None:
-		return (Recipe.fermentable_bymass, rv)
-
-	raise PilotError('invalid fermentable quantity: ' + str(input))
-
-def parsehopunit(input):
-	rv = parseunit(Mass, masssfx, input, fatal = False)
-	if rv is not None:
-		return (Recipe.hop_bymass, rv)
-
-	rv = parseunit(float, { 'IBU' : None }, input, fatal=False)
-	if rv is not None:
-		return (Recipe.hop_byIBU, rv)
-
-	rv = parseunit(float, { 'Recipe IBU':None }, input, fatal=False)
-	if rv is not None:
-		return (Recipe.hop_recipeIBU, rv)
-
-	rv = parseunit(float, { 'Recipe BUGU': None }, input, fatal=False)
-	if rv is not None:
-		return (Recipe.hop_recipeBUGU, rv)
-
-	raise PilotError('invalid boilhop quantity: ' + str(input))
-
 def dohops(r, d_hops):
 	hops = {}
 
 	def processhopdef(id, v):
 		typstr = v[2] if len(v) > 2 else 'pellet'
 		typ = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }[typstr]
-		aa = parsepercent(v[1])
+		aa = Parse.percent(v[1])
 		hops[id] = Hop(v[0], aa, typ)
 		return hops[id]
 
@@ -148,7 +48,7 @@ def dohops(r, d_hops):
 	def hoptime2time(v):
 		if v == 'FWH':
 			return Hop.FWH
-		return parsekettletime(v)
+		return Parse.kettletime(v)
 
 	def gethopinstance(v):
 		if isinstance(v, list):
@@ -157,7 +57,7 @@ def dohops(r, d_hops):
 			return hops[v]
 
 	for h in d_hops.get('boil', []):
-		(fun, hu) = parsehopunit(h[1])
+		(fun, hu) = Parse.hopunit(h[1])
 		fun(r, gethopinstance(h[0]), hu, hoptime2time(h[2]))
 
 	for h in d_hops.get('steep', []):
@@ -165,10 +65,10 @@ def dohops(r, d_hops):
 		if len(ar) != 2:
 			raise PilotError("whirlpool hops must be specified as "
 			    + "\"time @ temperature\"")
-		time = parsekettletime(ar[0])
-		temp = parsetemp(ar[1])
+		time = Parse.kettletime(ar[0])
+		temp = Parse.temp(ar[1])
 
-		(fun, hu) = parsehopunit(h[1])
+		(fun, hu) = Parse.hopunit(h[1])
 		fun(r, hops[h[0]], hu, Hop.Steep(temp, time))
 
 	for h in d_hops.get('dryhop', []):
@@ -179,16 +79,16 @@ def dohops(r, d_hops):
 			if len(ar) != 2:
 				raise PilotError("dryhops must be specified as "
 				    + "\"days_in -> days_out\" or \"keg\"")
-			inday = parsedays(ar[0])
-			outday = parsedays(ar[1])
+			inday = Parse.days(ar[0])
+			outday = Parse.days(ar[1])
 
-		(fun, hu) = parsehopunit(h[1])
+		(fun, hu) = Parse.hopunit(h[1])
 		fun(r, hops[h[0]], hu, Hop.Dryhop(inday, outday))
 
 def dofermentables(r, ferms):
 	fermtype = None
 	for f in ferms['mash']:
-		(fun, v) = parsefermentableunit(ferms['mash'][f])
+		(fun, v) = Parse.fermentableunit(ferms['mash'][f])
 		fun(r, f, v)
 
 	if fun == Recipe.fermentable_bypercent:
@@ -197,9 +97,9 @@ def dofermentables(r, ferms):
 			    "an anchor")
 		a = ferms['anchor']
 		if a[0] == 'strength':
-			r.anchor_bystrength(parsestrength(a[1]))
+			r.anchor_bystrength(Parse.strength(a[1]))
 		elif a[0] == 'mass':
-			r.anchor_bymass(a[1], parsemass(a[2]))
+			r.anchor_bymass(a[1], Parse.mass(a[2]))
 		else:
 			raise PilotError('unexpected fermentable anchor: '
 			    + a[0])
@@ -212,9 +112,9 @@ def processfile(clist, filename):
 	volume = getdef_fatal(d, ['volume'])
 	yeast = getdef_fatal(d, ['yeast'])
 
-	mashtemps = [parsetemp(x) for x in getdef_fatal(d, ['mashtemps'])]
-	bt = parsekettletime(d.get('boil', '60min'))
-	r = Recipe(name, yeast, parsevolume(volume), mashtemps, bt)
+	mashtemps = [Parse.temp(x) for x in getdef_fatal(d, ['mashtemps'])]
+	bt = Parse.kettletime(d.get('boil', '60min'))
+	r = Recipe(name, yeast, Parse.volume(volume), mashtemps, bt)
 	for c in clist:
 		c[0](r, *c[1:])
 
@@ -241,8 +141,8 @@ def processopts(opts):
 			optarg = a.split(',')
 			if len(optarg) != 2:
 				usage()
-			v = parsevolume(optarg[0])
-			s = parsestrength(optarg[1])
+			v = Parse.volume(optarg[0])
+			s = Parse.strength(optarg[1])
 			clist.append((Recipe.steal_preboil_wort, v, s))
 
 		elif o == '-u':
