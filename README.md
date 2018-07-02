@@ -12,26 +12,26 @@ becomes a matter of outsmarting the software.
 
 The main (and only?) features are:
 
+  * recipe specification is so compact that you can get an idea
+    of the beer with a single glance;
+    see [example](#example-recipe) [recipes](example-recipe-1)
   * input and output units configurable to both metric and cryptic,
     also SG and Plato
   * handle fermentable yields and estimated strength / ABV, and
     optionally convert grainbill percentages to masses (per target
     strength and volume)
   * calculate water temperatures and volumes for infusion mashes,
-    also multi-step (decoction mass calculations are planned)
+    also multi-step (decoction mass calculations are planned ... some day)
   * calculate IBUs and optionally calculate hop additions based on
     desired IBUs
-  * WIP: a recipe specification "grammar" and tools to process
-    that grammar
+
+The recipe interface might change in a way not backward compatible as
+the software reaches final gravity.
 
 The "documentation" is provided by the examples.  Yes, I agree,
 it's not real documentation, so we'll just use the "this software is
-self-documenting" bingo card.
-
-The interface for how recipes are specified might change.  I reserve
-the right to rewrite the git history of this repo.
-
-Features will be added as I need them (if I need them).
+self-documenting" bingo card.  I will write documentation once the
+interface will not change.
 
 Examples
 ========
