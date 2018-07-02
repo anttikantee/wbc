@@ -14,7 +14,7 @@ The main (and only?) features are:
 
   * recipe specification is so compact that you can get an idea
     of the beer with a single glance;
-    see [example](#example-recipe) [recipes](example-recipe-1)
+    see [example](#example-recipe) [recipes](#example-recipe-1)
   * input and output units configurable to both metric and cryptic,
     also SG and Plato
   * handle fermentable yields and estimated strength / ABV, and
