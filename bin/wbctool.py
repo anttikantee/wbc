@@ -104,13 +104,16 @@ def dofermentables(r, ferms):
 			raise PilotError('unexpected fermentable anchor: '
 			    + a[0])
 
-def processfile(clist, filename):
+def processfile(clist, odict, filename):
 	with open(filename, "r") as data:
 		d = yaml.safe_load(data.read())
 
 	name = getdef_fatal(d, ['name'])
 	volume = getdef_fatal(d, ['volume'])
 	yeast = getdef_fatal(d, ['yeast'])
+
+	if 'volume' in odict:
+		volume = odict['volume']
 
 	mashtemps = [Parse.temp(x) for x in getdef_fatal(d, ['mashtemps'])]
 	bt = Parse.kettletime(d.get('boil', '60min'))
@@ -129,11 +132,13 @@ def processfile(clist, filename):
 
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
-	    + ' [-u metric|us|plato|sg] [-s volume,strength] recipefile\n')
+	    + ' [-u metric|us|plato|sg] [-s volume,strength] [-v final vol] '
+	    + 'recipefile\n')
 	sys.exit(1)
 
 def processopts(opts):
 	clist = []
+	odict = {}
 	for o, a in opts:
 		if o == '-h':
 			usage()
@@ -153,15 +158,19 @@ def processopts(opts):
 			else:
 				usage()
 
-	return clist
+		elif o == '-v':
+			v = Parse.volume(a)
+			odict['volume'] = v
+
+	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'hs:u:')
+	opts, args = getopt.getopt(sys.argv[1:], 'hs:u:v:')
 	if len(args) != 1:
 		usage()
 
 	try:
-		clist = processopts(opts)
-		processfile(clist, args[0])
+		(clist, odict) = processopts(opts)
+		processfile(clist, odict, args[0])
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
