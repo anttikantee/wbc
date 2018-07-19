@@ -32,12 +32,16 @@ usage ()
 # you have got to the be kidding me
 export PYTHONIOENCODING=utf-8
 
+# assume this is run in the top level directory
+export PYTHONPATH=.
+
 [ $# -eq 1 ] || usage
 
 if [ "$1" = 'prep' ]; then
 	mkdir -p testdata || die cannot create testdata
-	for x in *.py; do
-		python $x > testdata/$x.out
+	for x in recipes/*.yaml; do
+		echo "Processing $x ..."
+		python ./bin/wbctool.py $x > testdata/$(basename $x).out
 	done
 elif [ $1 = 'test' ]; then
 	[ -n "$(ls testdata 2>/dev/null)" ] \
@@ -45,7 +49,9 @@ elif [ $1 = 'test' ]; then
 
 	rv=0
 	for x in testdata/*.out; do
-		python $(basename ${x%.out}) > $x.cmp
+		bn=$(basename ${x%.out})
+		echo "Testing ${bn} ..."
+		python ./bin/wbctool.py recipes/${bn} > $x.cmp
 		if ! diff -u $x $x.cmp; then
 			rv=1
 		fi
