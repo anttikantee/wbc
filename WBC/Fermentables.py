@@ -129,5 +129,8 @@ add('Flaked wheat', 77, 0, 0)
 add('Flaked oats', 70, 0, 0)
 add('Roasted barley', 55, 0, 1400)
 
+# just a guess, really (based on some random literature pieces)
+add('Rice', 70, 0, 1)
+
 # sugars ("self-converting")
 add('Table sugar', 100, Constants.minconversion, 0, False)
