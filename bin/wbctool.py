@@ -89,7 +89,15 @@ def dofermentables(r, ferms):
 	fermtype = None
 	for f in ferms['mash']:
 		(fun, v) = Parse.fermentableunit(ferms['mash'][f])
-		fun(r, f, v)
+		fun(r, f, v, Recipe.MASH)
+
+	for f in ferms.get('boil', []):
+		(fun, v) = Parse.fermentableunit(ferms['boil'][f])
+		fun(r, f, v, Recipe.BOIL)
+
+	for f in ferms.get('ferment', []):
+		(fun, v) = Parse.fermentableunit(ferms['ferment'][f])
+		fun(r, f, v, Recipe.FERMENT)
 
 	if fun == Recipe.fermentable_bypercent:
 		if 'anchor' not in ferms:

@@ -76,9 +76,10 @@ class Recipe:
 			    'Temperature or list of')
 		self.mashtemps = mashtemps
 
-	def __havefermentable(self, grain):
-		if grain in [x[0] for x in self.fermentables_bymass] or \
-		    grain in [x[0] for x in self.fermentables_bypercent]:
+	def __havefermentable(self, fermentable, when):
+		v = filter(lambda x: x[0] == fermentable and x[3] == when,
+		    self.fermentables_bymass + self.fermentables_bypercent)
+		if len(v) > 0:
 			return True
 		return False
 
@@ -93,6 +94,9 @@ class Recipe:
 
 	# fermentable additions
 	MASH=		object()
+	BOIL=		object()
+	FERMENT=	object()
+	fermstages=	[ MASH, BOIL, FERMENT ]
 
 	class Boil:
 		def __init__(self, time):
@@ -188,6 +192,26 @@ class Recipe:
 
 		self.__doanchor('mass', (fermentable, mass))
 
+	def __validate_ferm(self, name, fermentable, when):
+		if when not in [ self.MASH, self.BOIL, self.FERMENT ]:
+			raise PilotError('invalid fermentation stage')
+
+		if self.__havefermentable(name, when):
+			raise PilotError('fermentables may be specified max '
+			    + 'once per stage')
+
+		if fermentable.conversion and when != self.MASH:
+			raise PilotError('fermentable "' + name + '" needs '
+			    + 'a mash')
+
+		# we would throw an error here, but then again, if someone
+		# want to put sugars into their mash, it's not our business
+		# to tell them not to.
+		#
+		#if not fermentable.conversion and when == self.MASH:
+		#	raise PilotError('fermentable "' + name + '" does not '
+		#	    + 'need a mash')
+
 	def fermentable_bymass(self, name, mass, when=MASH):
 		checktype(mass, Mass)
 
@@ -196,13 +220,12 @@ class Recipe:
 			    'specified by percent or mass')
 
 		(name, fermentable) = Fermentables.get(name)
-		if self.__havefermentable(fermentable):
-			raise PilotError('grains must be specified only once')
+		self.__validate_ferm(name, fermentable, when)
 
-		self.fermentables_bymass.append((name, fermentable, mass))
+		self.fermentables_bymass.append((name, fermentable, mass, when))
 
 	# percent of fermentable's mass, not extract's mass
-	def fermentable_bypercent(self, name, percent):
+	def fermentable_bypercent(self, name, percent, when=MASH):
 		if percent is not self.THEREST and percent <= 0:
 			raise PilotError('grain percentage must be positive '\
 			  '(it is a fun thing!)')
@@ -212,14 +235,14 @@ class Recipe:
 			    'specified by percent or mass')
 
 		(name, fermentable) = Fermentables.get(name)
-		if self.__havefermentable(name):
-			raise PilotError('fermentables may be specified once')
+		self.__validate_ferm(name, fermentable, when)
 
 		if percent is self.THEREST:
-			self.fermentables_therest.append((name, fermentable))
+			self.fermentables_therest.append((name,
+			    fermentable, when))
 		else:
 			self.fermentables_bypercent.append((name, fermentable,
-			    percent))
+			    percent, when))
 			if sum(x[2] for x in self.fermentables_bypercent) > 100:
 				raise PilotError('captain, I cannot change the'\
 				    ' laws of math; 100% fermentables max!')
@@ -250,11 +273,22 @@ class Recipe:
 		return _Mass(what[2]
 		    * self.fermentable_percentage(what, theoretical)/100.0)
 
-	def total_yield(self, theoretical=False):
+	def _fermentables_atstage(self, when):
+		return filter(lambda x: x[3] == when,
+		    self.results['fermentables'])
+
+	def total_yield(self, stage, theoretical=False):
 		assert('fermentables' in self.results)
-		return _Mass(sum([self.fermentable_yield(x, theoretical) \
-		    for x in self.results['fermentables']])
-		  - self.stolen_wort[2])
+
+		def yield_at_stage(stage):
+			return sum([self.fermentable_yield(x, theoretical) \
+			    for x in self._fermentables_atstage(stage)])
+		m = yield_at_stage(self.MASH)
+		if stage == self.BOIL or stage == self.FERMENT:
+			m += yield_at_stage(self.BOIL)
+		if stage == self.FERMENT:
+			m += yield_at_stage(self.FERMENT)
+		return _Mass(m - self.stolen_wort[2])
 
 	# turn percentages into masses
 	def _dofermentables(self):
@@ -275,7 +309,7 @@ class Recipe:
 				    + '%, need 100%')
 			mp = missing / ltr
 			for tr in self.fermentables_therest:
-				i = (tr[0], tr[1], mp)
+				i = (tr[0], tr[1], mp, tr[2])
 				self.fermentables_bypercent.append(i)
 		assert (sum(x[2] for x in self.fermentables_bypercent) == 100)
 
@@ -301,6 +335,13 @@ class Recipe:
 			    for x in self.fermentables_bypercent])
 			totmass = _Mass(extract / thesum)
 
+			# Note: solution isn't 100% correct when we consider
+			# adding sugars into the fermentor: the same amount
+			# of sugar as into the boil will increase the strength
+			# more in the fermentor due to a smaller volume.
+			# But the math behind the correct calculation seems to
+			# get hairy fast, so we'll let it slip at least for now.
+
 		elif self.anchor[0] == 'mass':
 			# mass of one fermentable is set, others are
 			# simply scaled to that value
@@ -316,7 +357,7 @@ class Recipe:
 		# and finally set the masses of each individual fermentable
 		ferms = []
 		for x in self.fermentables_bypercent:
-			i = (x[0], x[1], _Mass(x[2]/100.0 * totmass))
+			i = (x[0], x[1], _Mass(x[2]/100.0 * totmass), x[3])
 			ferms.append(i)
 		self.results['fermentables'] = ferms
 
@@ -325,12 +366,9 @@ class Recipe:
 		prevol  = Brewutils.water_vol_at_temp(prevol1,
 		    Constants.sourcewater_temp, Constants.preboil_temp)
 		self.results['preboil_volume'] = prevol
-		prestren = Brewutils.solve_strength(self.total_yield(), prevol)
+		prestren = Brewutils.solve_strength(self.total_yield(self.MASH),
+		    prevol)
 		self.results['preboil_strength'] = prestren
-
-		v = self.__volume_at_stage(self.POSTBOIL)
-		self.results['final_strength'] \
-		    = Brewutils.solve_strength(self.total_yield(), v)
 
 		steal = {}
 		ratio = self.stolen_wort[1] / prestren
@@ -342,26 +380,26 @@ class Recipe:
 		    + steal['volume'])
 		self.results['steal'] = steal
 
-		self.m = Mash(self.results['fermentables'],
+		mf = self._fermentables_atstage(self.MASH)
+		self.mash = Mash(mf,
 		    self.fermentables_temp, totvol, self.mashin_ratio)
 
 		totmass = self.grainmass()
 		v = self.__volume_at_stage(self.POSTBOIL)
 
 		res = []
-		for g in sorted(self.results['fermentables'], \
-		    key=lambda x: x[2], reverse=True):
-			grain = g[1]
-			mass = g[2]
+		for f in sorted(mf, key=lambda x: x[2], reverse=True):
+			ferm = f[1]
+			mass = f[2]
 			ratio = mass / totmass
-			extract = self.fermentable_yield(g)
+			extract = self.fermentable_yield(f)
 			compext = _Mass(extract - self.stolen_wort[2] * ratio)
 			strength = Brewutils.solve_strength(compext, v)
 
-			res.append((g[0], g[2], 100*ratio, extract, strength))
+			res.append((f[0], f[2], 100*ratio, extract, strength))
 
 		self.results['mashfermentables'] = res
-		self.results['mash'] = self.m.infusion_mash(self.mashtemps)
+		self.results['mash'] = self.mash.infusion_mash(self.mashtemps)
 
 	def _printmash(self):
 		fmtstr = u'{:36}{:>20}{:>12}{:>8}'
@@ -371,13 +409,25 @@ class Recipe:
 
 		totextract = 0
 		totstrength = 0
-		for f in self.results['mashfermentables']:
-			pers = ' ({:5.1f}%)'.format(f[2])
-			print fmtstr.format(f[0],
-			    str(f[1]) + pers, str(f[3]), unicode(f[4]))
-			totextract += f[3]
-			totstrength += f[4]
+
+		for stage in [('mashfermentables', 'Mash'),
+		    ('boilfermentables', 'Boil'),
+		    ('fermfermentables', 'Ferment')]:
+			(what, name) = stage
+			if len(self.results.get(what, [])) > 0:
+				print name
+				self._prtsep('-')
+				for f in self.results[what]:
+					pers = ' ({:5.1f}%)'.format(f[2])
+					print fmtstr.format(f[0],
+					    str(f[1]) + pers, str(f[3]),
+					    unicode(f[4]))
+					totextract += f[3]
+					totstrength += f[4]
+				self._prtsep('-')
+
 		self._prtsep()
+
 		print fmtstr.format('', \
 		    str(self.grainmass()) + ' (100.0%)', \
 		    str(_Mass(totextract)),\
@@ -424,6 +474,30 @@ class Recipe:
 		self._prtsep()
 		print
 
+	def _doboil(self):
+		res = []
+
+		# hop calculations might need final strength
+		v = self.__volume_at_stage(self.FERMENTER)
+		self.results['final_strength'] \
+		    = Brewutils.solve_strength(self.total_yield(self.FERMENT),v)
+		v = self.__volume_at_stage(self.POSTBOIL)
+		self.results['postboil_strength'] \
+		    = Brewutils.solve_strength(self.total_yield(self.BOIL),v)
+
+		for f in sorted(self._fermentables_atstage(self.BOIL),
+		    key=lambda x: x[2], reverse=True):
+			ferm = f[1]
+			mass = f[2]
+			ratio = mass / self.grainmass()
+			extract = self.fermentable_yield(f)
+			strength = Brewutils.solve_strength(extract, v)
+
+			res.append((f[0], f[2], 100*ratio, extract, strength))
+
+		self.results['boilfermentables'] = res
+		self._dohops()
+
 	def _dohops(self):
 		allhop = []
 
@@ -432,7 +506,7 @@ class Recipe:
 
 		# ... and average strength during the boil.  *whee*
 		v_pre = self.__volume_at_stage(self.PREBOIL)
-		y = self.total_yield()
+		y = self.total_yield(self.BOIL)
 		sg = _Strength((Brewutils.solve_strength(y, v_pre)
 		    + Brewutils.solve_strength(y, v_post)) / 2)
 
@@ -603,7 +677,7 @@ class Recipe:
 		    + ' (' + unicode(Constants.postboil_temp) + ')', \
 		    'Measured:', '')
 		print twofmt.format('Postboil strength:', \
-		    unicode(self.results['final_strength']), \
+		    unicode(self.results['postboil_strength']), \
 		    'Measured:', '')
 
 		# various expected losses and brewhouse efficiency
@@ -616,7 +690,7 @@ class Recipe:
 		print twofmt.format('Kettle loss (est):', str(d1),
 		    'Fermenter loss (est):', str(d2))
 
-		maxyield = self.total_yield(theoretical=True)
+		maxyield = self.total_yield(self.FERMENT, theoretical=True)
 		maxstren = Brewutils.solve_strength(maxyield, self.final_volume)
 		beff = self.results['final_strength'] / maxstren
 		print twofmt.format('Mash eff (conf) :', \
@@ -642,6 +716,23 @@ class Recipe:
 
 		self._prtsep()
 		print
+
+	def _doferment(self):
+		res = []
+		v = self.__volume_at_stage(self.POSTBOIL)
+		for f in sorted(self._fermentables_atstage(self.FERMENT),
+		    key=lambda x: x[2], reverse=True):
+			ferm = f[1]
+			mass = f[2]
+			ratio = mass / self.grainmass()
+			extract = self.fermentable_yield(f)
+			strength = Brewutils.solve_strength(extract, v)
+
+			res.append((f[0], f[2], 100*ratio, extract, strength))
+
+		self.results['fermfermentables'] = res
+
+		self._doattenuate()
 
 	def _doattenuate(self, attenuation = (60, 86, 5)):
 		res = []
@@ -696,13 +787,14 @@ class Recipe:
 			self._dofermentables()
 			prevol = self.__volume_at_stage(self.MASHWATER)
 			self._domash()
-			self._dohops()
+
+			self._doboil()
 			if prevol+.01 >= self.__volume_at_stage(self.MASHWATER):
 				break
 		else:
 			raise Exception('recipe failed to converge ... panic?')
 
-		self._doattenuate()
+		self._doferment()
 
 		# calculate suggested pitch rates, using 0.75mil/ml/degP for
 		# ales and 1.5mil for lagers
