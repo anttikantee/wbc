@@ -227,19 +227,55 @@ class Strength(float):
 		abv = abw * fg.valueas(fg.SG) / 0.7907
 		return (fg, abv)
 
-	# I probably should've documented where I got this magic
-	# formula from.
+	# from:
+	# "Specific Gravity Measurement Methods and Applications in Brewing"
+	#
+	# it notes that plato_to_sg and sg_to_plato approximations do
+	# not actually invert each other, and continues to state:
+	# ""This is of no practical significance to anyone except those
+	# writing computer codes".  Unfortunately, no better method is
+	# given.  So, we'll just have to live with this conversion for now.
+	# Besides, we use multiple sg_to_plato polynomials anyway, so a
+	# single one wouldn't invert them anyway.
 	@staticmethod
 	def plato_to_sg(plato):
-		return 1 + (plato / (258.6 - ((plato/258.2)*227.1)))
+		return 1.0000131					 \
+		    + 0.00386777 		    * math.pow(plato, 1) \
+		    + 1.27447    * math.pow(10, -5) * math.pow(plato, 2) \
+		    + 6.34964    * math.pow(10, -8) * math.pow(plato, 3)
 
-	# ditto for this magic formula
+	# Ok, um, this is "real world".  We use three different
+	# conversion polynomials.  Each has its strengths and weaknesses.
+	# We try to pick the most accurate polynomial for the range.
+	# Ergo, there are discontinuity points in our translations.
+	# I'm not going to worry about that for now ... though I *am* worried
+	# that some of the iterative methods used in the program might hit
+	# some gap and fail to converge.
 	@staticmethod
 	def sg_to_plato(sg):
-		return -1*616.868			\
-		    + (1111.14 * math.pow(sg, 1))	\
-		    - (630.272 * math.pow(sg, 2))	\
-		    + (135.997 * math.pow(sg, 3))
+		# Fourth order polynomial with constraint 1.000 = 0degP.
+		# Inaccurate at 1.005
+		if sg < 1.0020:
+			return 2737.9302			\
+			    - (11754.5873 * math.pow(sg, 1))	\
+			    + (17868.5255 * math.pow(sg, 2))	\
+			    - (11682.9897 * math.pow(sg, 3))	\
+			    + (2831.1213  * math.pow(sg, 4))
+
+		# ASBC polynomial
+		elif sg < 1.088:
+			return -1*616.868			\
+			    + (1111.14 * math.pow(sg, 1))	\
+			    - (630.272 * math.pow(sg, 2))	\
+			    + (135.997 * math.pow(sg, 3))
+
+		# The jump between the previous and this one is quite
+		# significant ...
+		else:
+			return -1*585.23918			\
+			    + (1038.82303 * math.pow(sg, 1))	\
+			    - (577.93337  * math.pow(sg, 2))	\
+			    + (124.3964   * math.pow(sg, 3))
 
 	@staticmethod
 	def to_points(sg):
