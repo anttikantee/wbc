@@ -112,10 +112,11 @@ class Recipe:
 			v += self.hopsdrunk['fermenter']
 			v += 1
 
-		# assume 2% of boil volume plus hop crud lost in kettle
+		# assume 0.8% of boil plus 0.42l plus hop crud lost in kettle
+		# (no facts were harmed in coming up with this number)
 		if stage <= self.POSTBOIL:
-			v += self.hopsdrunk['kettle']
-			v *= 1.042
+			v += self.hopsdrunk['kettle'] + _Volume(0.42)
+			v *= 1.008
 
 		# preboil volume is postboil + boil loss
 		if stage <= self.PREBOIL:
