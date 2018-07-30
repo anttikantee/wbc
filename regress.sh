@@ -42,6 +42,7 @@ if [ "$1" = 'prep' ]; then
 	for x in recipes/*.yaml; do
 		echo "Processing $x ..."
 		python ./bin/wbctool.py $x > testdata/$(basename $x).out
+		[ $? -eq 0 ] || die Failed: $(cat testdata/$(basename $x).out)
 	done
 elif [ $1 = 'test' ]; then
 	[ -n "$(ls testdata 2>/dev/null)" ] \
