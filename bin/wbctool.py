@@ -182,3 +182,5 @@ if __name__ == '__main__':
 		processfile(clist, odict, args[0])
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
+		raise SystemExit, 1
+	sys.exit(0)
