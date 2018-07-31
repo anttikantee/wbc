@@ -107,10 +107,13 @@ class Recipe:
 
 		v = self.final_volume
 
-		# assume 1l lost in fermenter
+		# assume 0.8l static loss in fermentor, plus fermentor dryhops
+		# XXX: probably should be variable loss per fermentation size,
+		#      but I don't have any data on that, so this will do
+		#      for now
 		if stage <= self.FERMENTER:
 			v += self.hopsdrunk['fermenter']
-			v += 1
+			v += 0.8
 
 		# assume 0.8% of boil plus 0.42l plus hop crud lost in kettle
 		# (no facts were harmed in coming up with this number)
