@@ -120,7 +120,7 @@ class Recipe:
 
 		# preboil volume is postboil + boil loss
 		if stage <= self.PREBOIL:
-			v += getconfig('boiloff_rate') * (self.boiltime / 60.0)
+			v += getconfig('boiloff_perhour') * (self.boiltime/60.0)
 
 		if stage <= self.MASHWATER:
 			v += Constants.grain_absorption \

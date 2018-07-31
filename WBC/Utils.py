@@ -30,7 +30,7 @@ bcconfig['strength_input'] = 'sg'
 bcconfig['strength_output'] = 'plato'
 
 bcconfig['mash_efficiency'] = .88
-bcconfig['boiloff_rate'] = 3
+bcconfig['boiloff_perhour'] = 3.5
 bcconfig['mlt_loss'] = 1	# liters, constant irrespective of grains
 
 def getconfig(what):
