@@ -54,6 +54,7 @@ def mass(input):
 def volume(input):
 	suffixes = {
 		'gal'	: Volume.GALLON,
+		'qt'	: Volume.QUART,
 		'l'	: Volume.LITER,
 	}
 	return _unit(Volume, suffixes, input)

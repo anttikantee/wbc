@@ -24,6 +24,7 @@ import Constants
 class Volume(float):
 	DEFAULT	= object()
 	LITER	= object()
+	QUART	= object()
 	GALLON	= object()
 	def __new__(cls, value, unit=DEFAULT):
 		if unit is Volume.DEFAULT:
@@ -34,6 +35,8 @@ class Volume(float):
 
 		if unit is Volume.GALLON:
 			value = Constants.literspergallon * value
+		if unit is Volume.QUART:
+			value = (Constants.literspergallon/4) * value
 
 		return super(Volume, cls).__new__(cls, value)
 
