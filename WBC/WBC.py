@@ -140,8 +140,8 @@ class Recipe:
 		return Mass(m.valueas(Mass.G)
 		    * strength.valueas(Strength.PLATO)/100.0, Mass.G)
 
-	def mashin_ratio_set(self, ratio):
-		self.mashin_ratio = ratio
+	def mashin_ratio_set(self, mashin_vol, mashin_mass):
+		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
 
 	def hop_bymass(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])

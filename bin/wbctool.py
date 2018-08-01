@@ -131,7 +131,14 @@ def processfile(clist, odict, filename):
 
 	mashin = d.get('mashin', None)
 	if mashin is not None:
-		r.mashin_ratio_set(mashin)
+		mstr = str(mashin)
+		marr = mstr.split('/')
+		if len(marr) != 2:
+			raise PilotError('mashin ratio must be "vol / mass", '
+			    'you gave: ' + mstr)
+		mashin_vol = Parse.volume(marr[0])
+		mashin_mass = Parse.mass(marr[1])
+		r.mashin_ratio_set(mashin_vol, mashin_mass)
 
 	dofermentables(r, getdef_fatal(d, ['fermentables']))
 	dohops(r, d.get('hops', []))
