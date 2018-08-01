@@ -23,6 +23,10 @@ def _unit(cls, sfxmap, input, fatal = True, name = None):
 	numstr = filter(lambda x: x.isdigit() or x == '.', inputstr)
 	alphastr = inputstr[len(numstr):].strip()
 
+	# if unit is missing, default to 1
+	if numstr == "":
+		numstr = "1"
+
 	if name is None:
 		name = cls.__name__
 
