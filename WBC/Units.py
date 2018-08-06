@@ -53,6 +53,16 @@ class Volume(float):
 
 		return '{:.1f}{:s}'.format(v, sym)
 
+	def valueas(self, unit):
+		if unit is Volume.LITER:
+			return self
+		elif unit is Volume.QUART:
+			return self / (Constants.literspergallon / 4)
+		elif unit is Volume.GALLON:
+			return self / (Constants.literspergallon / 1)
+		else:
+			assert(False)
+
 class Temperature(float):
 	DEFAULT	= object()
 	degC	= object()
@@ -119,6 +129,10 @@ class Mass(float):
 			return self / 1000.0
 		elif unit is Mass.G:
 			return self
+		elif unit is Mass.LB:
+			return self / Constants.gramsperpound
+		elif unit is Mass.OZ:
+			return self / Constants.gramsperounce
 		else:
 			assert(False)
 
