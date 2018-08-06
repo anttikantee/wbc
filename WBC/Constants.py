@@ -16,9 +16,11 @@
 
 from Units import _Temperature
 
-gramsperpound	= 453.59237
 gramsperounce	= 28.349523
-literspergallon	= 3.7854118
+gramsperpound	= 16 * gramsperounce
+litersperquart	= 0.94635295
+literspergallon	= 4 * litersperquart
+
 ebcpersrm	= 1.97
 
 # need this much conversion power in the entire recipe (WK)

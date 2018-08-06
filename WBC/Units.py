@@ -36,7 +36,7 @@ class Volume(float):
 		if unit is Volume.GALLON:
 			value = Constants.literspergallon * value
 		if unit is Volume.QUART:
-			value = (Constants.literspergallon/4) * value
+			value = Constants.litersperquart * value
 
 		return super(Volume, cls).__new__(cls, value)
 
@@ -57,9 +57,9 @@ class Volume(float):
 		if unit is Volume.LITER:
 			return self
 		elif unit is Volume.QUART:
-			return self / (Constants.literspergallon / 4)
+			return self / Constants.litersperquart
 		elif unit is Volume.GALLON:
-			return self / (Constants.literspergallon / 1)
+			return self / Constants.literspergallon
 		else:
 			assert(False)
 
