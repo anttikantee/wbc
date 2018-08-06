@@ -441,15 +441,31 @@ class Recipe:
 		print 'Mashing instructions'
 		self._prtsep()
 
-		first = True
+		totvol = 0
+		mash_grainmass = _Mass(sum(x[2] \
+		    for x in self. _fermentables_atstage(self.MASH)))
 		for x in self.results['mash']['steps']:
-			print u'{:7}'.format(unicode(x[0])) + ': add', x[1], \
-			    'of water at', unicode(x[2]),
-			if first:
-				print '(' + str(self.mashin_ratio) \
-				    + ' ratio)',
-				first = False
-			print
+			print u'{:7}'.format(unicode(x[0])) + ': add', x[2], \
+			    'of water at', unicode(x[3]),
+
+			# print the water/grist ratio at the step.
+			#
+			# XXX: I'm unsure if we should print the user
+			# input for step 1, but then again, if someone
+			# wants to give mashin ratios as 3.4gal/17lb,
+			# maybe it's their problem, and we just support
+			# printing in metric or cryptic with the denominator
+			# normalized to 1
+			totvol = _Volume(totvol + x[1])
+			if getconfig('units_output') == 'metric':
+				ratio = totvol \
+				    / mash_grainmass.valueas(Mass.KG)
+				unit = 'l/kg'
+			else:
+				ratio = totvol.valueas(Volume.QUART) \
+				    / mash_grainmass.valueas(Mass.LB)
+				unit = 'qt/lb'
+			print '({:.2f} {:})'.format(ratio, unit)
 
 		print u'{:23}{:}'.format('Mashstep water volume:', \
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
@@ -1093,7 +1109,7 @@ class Mash:
 
 			actualvol = Brewutils.water_vol_at_temp(vol,
 			    Constants.sourcewater_temp, temp)
-			res['steps'].append((t, actualvol, temp))
+			res['steps'].append((t, vol, actualvol, temp))
 
 		res['mashstep_water'] = _Volume(self.mashwater_vol - totvol)
 		res['sparge_water'] = \
