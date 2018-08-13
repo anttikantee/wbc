@@ -35,6 +35,12 @@ grain_absorption = 1.1
 pellethop_absorption = 6
 leafhop_absorption = 10
 
+# specific volume of grains in l/kg.
+#
+# don't remember where I pulled this figure from, so should
+# check accuracy of it some day.
+grain_specificvolume = 0.7
+
 # hop densities, via http://www.ebc2017.com/inhalt/uploads/P023_Schuell.pdf
 # used for calculating hops volumes to that we know how much wort fits
 # into the keg.  frankly, the volume are so small that it doesn't matter

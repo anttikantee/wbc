@@ -465,7 +465,11 @@ class Recipe:
 				ratio = totvol.valueas(Volume.QUART) \
 				    / mash_grainmass.valueas(Mass.LB)
 				unit = 'qt/lb'
-			print '({:.2f} {:})'.format(ratio, unit)
+			mash_volume = _Volume(totvol
+			    + mash_grainmass.valueas(Mass.KG)
+			      * Constants.grain_specificvolume)
+			print '({:.2f} {:}, mash vol {:})'.format(ratio,
+			    unit, mash_volume)
 
 		print u'{:23}{:}'.format('Mashstep water volume:', \
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
@@ -973,9 +977,6 @@ class Hop:
 		return _Volume(mass / density)
 
 class Mash:
-	# grain dry volume, (pessimistic estimate, i.e. could be less)
-	__grain_literperkg = 0.7
-
 	# infusion mash step state and calculator for the next.
 	#
 	# In the context of this class, we use the following terminology:
