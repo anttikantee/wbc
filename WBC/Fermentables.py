@@ -18,6 +18,8 @@ import Constants
 import Utils
 from Units import Color
 
+import copy
+
 class Fermentable:
 	def __init__(self, name, extract, wk, color, conversion):
 		Utils.checktype(color, Color)
@@ -60,6 +62,15 @@ def add(name, extract, wk, ebc, conversion = True):
 	_scanexisting(name)
 	fermentables.append(Fermentable(name, extract, wk, ebc, conversion))
 
+def alias(name, toclone):
+	c = find(toclone)
+	if c is None:
+		raise PilotError('trying to alias nonexisting fermentable '
+		    + toclone)
+	n = copy.copy(c)
+	n.name = name
+	fermentables.append(n)
+
 ##
 ## "builtin" fermentables
 ##
@@ -94,7 +105,8 @@ add('Dingemans Special B', 72, 0, Color(310, Color.EBC))
 
 # XXX: extract correct?
 add('Muntons Chocolate', 67, 0, Color(1000, Color.EBC))
-add('Muntons Crystal 150', 67, 0, Color(150, Color.EBC))
+add('Muntons Crystal 150 EBC', 67, 0, Color(150, Color.EBC))
+alias('Muntons Crystal 60 L', 'Muntons Crystal 150 EBC')
 add('Muntons Black Malt', 67, 0, Color(1300, Color.EBC))
 
 # XXX: I was utterly unable to find a datasheet for whatever Muntons
