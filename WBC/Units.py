@@ -328,6 +328,50 @@ class Strength(float):
 			assert(getconfig('strength_output') == 'sg')
 			return '{:.3f}'.format(self.valueas(self.SG))
 
+class Color(float):
+	EBC		= object()
+	SRM		= object()
+	LOVIBOND	= object()
+
+	def __new__(cls, value, unit):
+		if unit is Color.SRM:
+			value = Color.SRMtoEBC(value)
+		elif unit is Color.LOVIBOND:
+			value = Color.LtoEBC(value)
+
+		return super(Color, cls).__new__(cls, value)
+
+	def __init__(self, value, unit):
+		super(Color, self).__init__(value)
+
+	def valueas(self, which):
+		if which is Color.EBC:
+			return self
+		elif which is Color.SRM:
+			return Color.EBCtoSRM(self)
+		elif which is Strength.LOVIBOND:
+			return Color.EBCtoL(self)
+		else:
+			raise Exception('invalid Color type')
+
+	# formulae from https://en.wikipedia.org/wiki/Standard_Reference_Method
+	@staticmethod
+	def SRMtoEBC(v):
+		return v * Constants.ebcpersrm
+
+	@staticmethod
+	def EBCtoSRM(v):
+		return v / Constants.ebcpersrm
+
+	@staticmethod
+	def LtoEBC(v):
+		return Color.SRMtoEBC(1.3546 * v - 0.76)
+
+	@staticmethod
+	def EBCtoL(v):
+		return (Color.EBCtoSRM(v) + 0.76) / 1.3456
+
+
 # shorthand names.  if they're confusing to you, use longhand instead.
 class M(Mass):
 	pass
