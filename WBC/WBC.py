@@ -660,13 +660,13 @@ class Recipe:
 		total_water = _Volume(self.results['mash']['total_water']
 		    + self.results['steal']['missing'])
 
-		# calculate EBC color, via MCU & Morey equation
-		# "European Color Units", equivalent of MCU
-		ecu = sum(f[2]*f[1].ebc for f in self.results['fermentables'])
-		mcu = ecu / (Constants.gramsperpound \
-		    * (postvol1/Constants.literspergallon)*Constants.ebcpersrm)
-		srm = 1.4922 * pow(mcu, 0.6859)
-		ebc = srm * Constants.ebcpersrm
+		# calculate color, via MCU & Morey equation
+		t = sum(f[2].valueas(Mass.LB) * f[1].color.valueas(Color.SRM) \
+		     for f in self.results['fermentables'])
+		mcu = t / postvol1.valueas(Volume.GALLON)
+		color = Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
+		srm = color.valueas(Color.SRM)
+		ebc = color.valueas(Color.EBC)
 
 		print onefmt.format('Name:', self.name)
 		print twofmt.format('Final volume:', str(self.final_volume), \
