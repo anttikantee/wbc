@@ -95,7 +95,7 @@ Avangard Munich Light                     544 g ( 10.0%)       385 g   1.8°P
 
 Mashing instructions
 ==============================================================================
-66.0°C : add 14.0l of water at 78.1°C (2.50 l/kg)
+66.0°C : add 14.0l of water at 78.1°C (2.50 l/kg, mash vol 17.4l)
 Mashstep water volume: 13.6l @ 20.0°C
 Sparge water volume:   20.5l @ 82.0°C
 ==============================================================================
@@ -151,7 +151,7 @@ Avangard Munich Light                 1 3/16 lb ( 10.0%)    13.58 oz   1.007
 
 Mashing instructions
 ==============================================================================
-150.8°F: add 3.7gal of water at 172.5°F (1.20 qt/lb)
+150.8°F: add 3.7gal of water at 172.5°F (1.20 qt/lb, mash vol 4.6gal)
 Mashstep water volume: 3.6gal @ 68.0°F
 Sparge water volume:   5.4gal @ 179.6°F
 ==============================================================================
@@ -245,7 +245,7 @@ Avangard Vienna                           878 g ( 18.0%)       618 g   2.9°P
 
 Mashing instructions
 ==============================================================================
-66.0°C : add 15.0l of water at 76.5°C (3.00 l/kg)
+66.0°C : add 15.0l of water at 76.5°C (3.00 l/kg, mash vol 18.1l)
 Mashstep water volume: 14.6l @ 20.0°C
 Sparge water volume:   15.1l @ 82.0°C
 ==============================================================================
@@ -309,7 +309,7 @@ Avangard Vienna                        1 7/8 lb ( 18.0%)   1 5/16 lb   1.011
 
 Mashing instructions
 ==============================================================================
-150.8°F: add 4.0gal of water at 169.8°F (1.44 qt/lb)
+150.8°F: add 4.0gal of water at 169.8°F (1.44 qt/lb, mash vol 4.8gal)
 Mashstep water volume: 3.9gal @ 68.0°F
 Sparge water volume:   4.0gal @ 179.6°F
 ==============================================================================
