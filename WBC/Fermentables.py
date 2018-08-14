@@ -115,6 +115,11 @@ add('Weyermann CaraMunich 3', 76, 0, 150)
 
 add('Weyermann Melanoidin', 75, 0, 70)
 
+# XXX: couldn't find diastatic power, so we'll just guess
+# (it's self-convering for sure, so err on the low side,
+# most likely is way too low)
+add('Weyermann Munich I', 78, Constants.minconversion, 16)
+
 add('Weyermann Chocolate Rye', 65, 0, 600)
 
 # I'm starting to hate listing malts.  It's a complete crapshoot
