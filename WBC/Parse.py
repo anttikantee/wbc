@@ -16,7 +16,7 @@
 
 from Units import Mass, Temperature, Volume, Strength
 from Utils import PilotError
-from WBC import Recipe
+from WBC import Recipe, Hop
 
 def _unit(cls, sfxmap, input, fatal = True, name = None):
 	inputstr = str(input).strip()
@@ -104,6 +104,14 @@ def fermentableunit(input):
 		return (Recipe.fermentable_bymass, rv)
 
 	raise PilotError('invalid fermentable quantity: ' + str(input))
+
+def hopboil(input):
+	suffixes = {
+		'min'	: None,
+	}
+	if input == 'FWH':
+		return Hop.Boil(Hop.Boil.FWH)
+	return _unit(Hop.Boil, suffixes, input)
 
 def hopunit(input):
 	rv = _unit(Mass, masssfx, input, fatal = False)

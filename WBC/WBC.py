@@ -534,27 +534,22 @@ class Recipe:
 		sg = _Strength((Brewutils.solve_strength(y, v_pre)
 		    + Brewutils.solve_strength(y, v_post)) / 2)
 
-		def gettime(mytime):
-			if mytime is Hop.FWH:
-				mytime = self.boiltime + 20
-			return mytime
-
 		# calculate IBU produced by "bymass" hops and add to printables
 		for h in self.hops_bymass:
-			time = gettime(h[2])
+			time = h[2].gettime(self.boiltime)
 			ibu = h[0].IBU(sg, v_post, time, h[1])
 			allhop.append([h[0], h[1], h[2], ibu])
 
 		# calculate mass of "byIBU" hops and add to printables
 		for h in self.hops_byIBU:
-			time = gettime(h[2])
+			time = h[2].gettime(self.boiltime)
 			mass = h[0].mass(sg, v_post, time, h[1])
 			allhop.append([h[0], mass, h[2], h[1]])
 
 		totibus = sum([x[3] for x in allhop])
 		if self.hops_recipeIBU is not None:
 			h = self.hops_recipeIBU
-			time = gettime(h[2])
+			time = h[2].gettime(self.boiltime)
 			missibus = self.hops_recipeIBU[1] - totibus
 			if missibus <= 0:
 				raise PilotError('total IBUs are greater than '\
@@ -566,7 +561,7 @@ class Recipe:
 
 		if self.hops_recipeBUGU is not None:
 			h = self.hops_recipeBUGU
-			time = gettime(h[2])
+			time = h[2].gettime(self.boiltime)
 			bugu = self.hops_recipeBUGU[1]
 			stren = self.results['final_strength']
 			ibus = stren.valueas(stren.SG_PTS) * bugu
@@ -578,15 +573,14 @@ class Recipe:
 
 		# Sort the hop additions of the recipe.
 		#
-		# pass 1: sort within claases
+		# pass 1: sort within classes
 		allhop = sorted(allhop, key=lambda x: x[2], reverse=True)
 
-		# pass 2: sort FWH -> boil -> whirlpool -> dryhop
+		# pass 2: sort boil -> steep -> dryhop
 		srtmap = {
 			Hop.Dryhop	: 0,
 			Hop.Steep	: 1,
-			int		: 2,
-			object		: 3
+			Hop.Boil	: 2,
 		}
 		self.results['hops'] = sorted(allhop, cmp=lambda x,y:
 		    srtmap[x[2].__class__] - srtmap[y[2].__class__],
@@ -622,15 +616,10 @@ class Recipe:
 		for h in self.results['hops']:
 			typ = ' (' + h[0].typestr + ')'
 			nam = h[0].name
-			if h[2] is Hop.FWH:
-				time = 'FWH'
-			elif isinstance(h[2], int):
-				time = unicode(h[2]) + ' min'
-			else:
-				if prevstage is not None and \
-				    prevstage is not h[2].__class__:
-					self._prtsep('-')
-				time = unicode(h[2])
+			time = unicode(h[2])
+			if prevstage is not None and \
+			    prevstage is not h[2].__class__:
+				self._prtsep('-')
 			maxlen = (namelen-1) - len(typ)
 			if len(nam) > maxlen:
 				nam = nam[0:maxlen-4] + '...'
@@ -839,10 +828,44 @@ class Recipe:
 		self.printit()
 
 class Hop:
-	FWH	= object()
-
 	Pellet	= object()
 	Leaf	= object()
+
+	class Boil:
+		FWH	= object()
+		def __init__(self, mins):
+			if mins < 0 and mins is not self.FWH:
+				raise PilotError('invalid boiltime format')
+			self.time = mins
+
+		def __str__(self):
+			if self.time is self.FWH:
+				return 'FWH'
+			return str(int(self.time)) + ' min'
+
+		def __cmp__(self, other):
+			if isinstance(other, Hop.Boil):
+				if self.time is self.FWH:
+					rv = 1
+				if other.time is self.FWH:
+					rv = -1
+
+				if   self.time < other.time: rv = -1
+				elif self.time > other.time: rv =  1
+				else:                        rv =  0
+			else:
+				rv = 0
+			return rv
+
+		def gettime(self, boiltime):
+			if self.time is self.FWH:
+				rv = boiltime + 20
+			else:
+				rv = self.time
+				if rv > boiltime:
+					raise PilotError('hop boiltime ('
+					    + str(rv) + ') > wort boiltime')
+			return int(rv)
 
 	class Steep:
 		def __init__(self, temp, mins):
@@ -859,6 +882,9 @@ class Hop:
 				return self.temp - other.temp
 			else:
 				return 0
+
+		def gettime(self, boiltime):
+			return 0
 
 	class Dryhop:
 		Keg =	object()
@@ -904,6 +930,9 @@ class Hop:
 				return -1
 			return 1
 
+		def gettime(self, boiltime):
+			return 0
+
 	def __init__(self, name, aapers, type = Pellet):
 		aalow = 1
 		aahigh = 100 # I guess some hop extracts are [close to] 100%
@@ -934,10 +963,6 @@ class Hop:
 		# gravity needs to be SG, not points (because sg is great
 		# for all calculations?)
 		SG = gravity.valueas(gravity.SG)
-
-		# hopping that our current formula doesn't support
-		if not isinstance(mins, int):
-			return 0
 
 		bignessfact = 1.65 * pow(0.000125, SG-1)
 		boilfact = (1 - pow(math.e, -0.04 * mins)) / 4.15

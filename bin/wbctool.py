@@ -45,11 +45,6 @@ def dohops(r, d_hops):
 	for hd in d_hops.get('defs', []):
 		processhopdef(hd, d_hops['defs'][hd])
 
-	def hoptime2time(v):
-		if v == 'FWH':
-			return Hop.FWH
-		return Parse.kettletime(v)
-
 	def gethopinstance(v):
 		if isinstance(v, list):
 			return processhopdef('n/a', v)
@@ -58,7 +53,7 @@ def dohops(r, d_hops):
 
 	for h in d_hops.get('boil', []):
 		(fun, hu) = Parse.hopunit(h[1])
-		fun(r, gethopinstance(h[0]), hu, hoptime2time(h[2]))
+		fun(r, gethopinstance(h[0]), hu, Parse.hopboil(h[2]))
 
 	for h in d_hops.get('steep', []):
 		ar = h[2].split("@")
