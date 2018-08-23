@@ -671,8 +671,16 @@ class Recipe:
 		print twofmt.format('IBU (Tinseth):', \
 		    '{:.2f}'.format(self.ibus), \
 		    'BUGU:', '{:.2f}'.format(bugu))
-		print twofmt.format('Color (EBC / SRM):', \
-		    '{:.1f}'.format(ebc) + ' / ' + '{:.1f}'.format(srm), \
+		if srm >= 10:
+			prec = '0'
+		else:
+			prec = '1'
+
+		ebcprec = '{:.' + prec + 'f}'
+		srmprec = '{:.' + prec + 'f}'
+		print twofmt.format('Color (Morey):', \
+		    ebcprec.format(ebc) \
+		    + ' EBC, ' + srmprec.format(srm) + ' SRM', \
 		    'Water (' + unicode(Constants.sourcewater_temp) + '):', \
 		    unicode(total_water))
 		bil = 1000*1000*1000
