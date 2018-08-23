@@ -138,12 +138,12 @@ def processfile(clist, odict, filename):
 	dofermentables(r, getdef_fatal(d, ['fermentables']))
 	dohops(r, d.get('hops', []))
 
-	r.do()
+	return r
 
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
-	    + ' [-u metric|us|plato|sg] [-s volume,strength] [-v final vol] '
-	    + 'recipefile\n')
+	    + ' [-u metric|us|plato|sg] [-s volume,strength]\n'
+	    + '\t[-v final volume] [-c] recipefile\n')
 	sys.exit(1)
 
 def processopts(opts):
@@ -175,13 +175,18 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'hs:u:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'chs:u:v:')
 	if len(args) != 1:
 		usage()
 
 	try:
 		(clist, odict) = processopts(opts)
-		processfile(clist, odict, args[0])
+		r = processfile(clist, odict, args[0])
+		r.calculate()
+		if '-c' in [x[0] for x in opts]:
+			r.printcsv()
+		else:
+			r.printit()
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
 		raise SystemExit, 1

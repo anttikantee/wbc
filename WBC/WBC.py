@@ -60,6 +60,8 @@ class Recipe:
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
 		    'keg':_Volume(0)}
 
+		self._calculated = False
+
 		self.results = {}
 
 		if isinstance(mashtemps, Temperature):
@@ -97,10 +99,11 @@ class Recipe:
 	BOIL=		object()
 	FERMENT=	object()
 	fermstages=	[ MASH, BOIL, FERMENT ]
-
-	class Boil:
-		def __init__(self, time):
-			self = time
+	fermstage2txt=	{
+		MASH : 'mash',
+		BOIL : 'boil',
+		FERMENT : 'ferment'
+	}
 
 	def __volume_at_stage(self, stage):
 		assert(stage >= self.MASHWATER and stage <= self.FINAL)
@@ -361,7 +364,9 @@ class Recipe:
 		# and finally set the masses of each individual fermentable
 		ferms = []
 		for x in self.fermentables_bypercent:
-			i = (x[0], x[1], _Mass(x[2]/100.0 * totmass), x[3])
+			# limit mass to 0.1g accuracy
+			m = int(10 * (x[2]/100.0 * totmass)) / 10.0
+			i = (x[0], x[1], _Mass(m), x[3])
 			ferms.append(i)
 		self.results['fermentables'] = ferms
 
@@ -817,11 +822,43 @@ class Recipe:
 		self.results['pitch']['ale']   = tmp * 0.75*1000*1000
 		self.results['pitch']['lager'] = tmp * 1.50*1000*1000
 
+		self._calculated = True
+
+	def _assertcalculate(self):
+		if not self._calculated:
+			raise PilotError('must calculate recipe first')
+
 	def printit(self):
+		self._assertcalculate()
 		self._keystats()
 		self._printmash()
 		self._printboil()
 		self._printattenuate()
+
+	# dump the recipe as a CSV, which has all of the quantities
+	# resolved, and contains enough information to recalculate
+	# the recipe.  uses are both for tracking brewhouse resource
+	# usage, and reverse engineering various parameters (e.g.
+	# figure out true mash efficiency)
+	def printcsv(self):
+		self._assertcalculate()
+		print 'wbcdata|1'
+		print 'boiltime|' + str(self.boiltime) + ' min'
+
+		print '# fermentable|name|mass|when'
+		for g in self.results['fermentables']:
+			print 'fermentable|{:}|{:}|{:}'\
+			    .format(g[1].name, float(g[2]),
+			      self.fermstage2txt[g[3]])
+
+		print '# hop|name|type|aa%|mass|timeclass|timespec'
+		for h in self.results['hops']:
+			timeclass = str(h[2].__class__).split('.')[-1].lower()
+			timespec = unicode(h[2]).replace(unichr(0x00b0), "deg")
+			timespec = str(timespec)
+			print u'hop|{:}|{:}|{:}%|{:}|{:}|{:}'\
+			    .format(h[0].name, h[0].typestr,
+			      h[0].aapers, float(h[1]), timeclass, timespec)
 
 	def do(self):
 		self.calculate()
@@ -981,7 +1018,10 @@ class Hop:
 		checktype(gravity, Strength)
 
 		util = self.__util(gravity, mins)
-		return _Mass((IBU * volume) / (util * self.aapers/100.0 * 1000))
+
+		# calculate mass, limit to 0.01g granularity
+		m = (IBU * volume) / (util * self.aapers/100.0 * 1000)
+		return _Mass(int(100*m)/100.0)
 
 	def absorption(self, mass):
 		checktype(mass, Mass)
