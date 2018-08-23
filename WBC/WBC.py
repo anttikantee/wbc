@@ -55,7 +55,8 @@ class Recipe:
 
 		self.boiltime = boiltime
 
-		self.fermentables_temp = _Temperature(20)
+		# overridable by calling ambient_temperature()
+		self.ambient_temperature = _Temperature(20)
 
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
 		    'keg':_Volume(0)}
@@ -254,9 +255,9 @@ class Recipe:
 				raise PilotError('captain, I cannot change the'\
 				    ' laws of math; 100% fermentables max!')
 
-	def fermentables_settemp(self, temp):
-		checktype(degc, Temperature)
-		self.fermentables_temp = temp
+	def ambient_temperature(self, temp):
+		checktype(temp, Temperature)
+		self.ambient_temperature = temp
 
 	# indicate that we want to "borrow" some wort at the preboil stage
 	# for e.g. building starters.
@@ -391,7 +392,7 @@ class Recipe:
 
 		mf = self._fermentables_atstage(self.MASH)
 		self.mash = Mash(mf,
-		    self.fermentables_temp, totvol, self.mashin_ratio)
+		    self.ambient_temperature, totvol, self.mashin_ratio)
 
 		totmass = self.grainmass()
 		v = self.__volume_at_stage(self.POSTBOIL)
@@ -443,7 +444,8 @@ class Recipe:
 		    unicode(_Strength(totstrength)))
 
 		print
-		print 'Mashing instructions'
+		print 'Mashing instructions (for ambient temperature', \
+		    unicode(self.ambient_temperature) + ')'
 		self._prtsep()
 
 		totvol = 0
@@ -1055,25 +1057,21 @@ class Mash:
 		# XXX: should be configurable
 		__mlt_capa = Mass(1.5, Mass.KG)
 
-		# assume MLT temp is ~20degC.  if you're brewing inside,
-		# it's accurate enough
-		__mlt_temp = _Temperature(20)
-
 		# relative to capa of equivalent mass of water
 		__grain_relativecapa = 0.38
 
-		def __init__(self, grain_mass, grain_temp,
+		def __init__(self, grain_mass, ambient_temp,
 		    water_volume, water_temp):
 			hts = {}
 
 			hts['mlt'] = {}
 			hts['mlt']['capa'] = self.__mlt_capa.valueas(Mass.KG)
-			hts['mlt']['temp'] = self.__mlt_temp
+			hts['mlt']['temp'] = ambient_temp
 
 			hts['grain'] = {}
 			hts['grain']['capa'] = self.__grain_relativecapa \
 			    * grain_mass.valueas(Mass.KG)
-			hts['grain']['temp'] = grain_temp
+			hts['grain']['temp'] = ambient_temp
 
 			hts['water'] = {}
 			hts['water']['capa'] = water_volume
@@ -1145,10 +1143,10 @@ class Mash:
 			    _Temperature(self.step_watertemp))
 
 
-	def __init__(self, mashfermentables, fermentable_temp, mashwater_vol,
+	def __init__(self, mashfermentables, ambient_temp, mashwater_vol,
 	    mashin_ratio):
 		self.mashfermentables = mashfermentables
-		self.fermentable_temp = fermentable_temp
+		self.ambient_temp = ambient_temp
 		self.mashwater_vol = mashwater_vol
 		self.mashin_ratio = mashin_ratio
 
@@ -1159,7 +1157,7 @@ class Mash:
 		res['steps'] = []
 		res['total_water'] = self.mashwater_vol
 
-		step = self.__Step(fmass, self.fermentable_temp, 0, 0)
+		step = self.__Step(fmass, self.ambient_temp, 0, 0)
 		mass = self.mashin_ratio * fmass.valueas(Mass.KG)
 		totvol = self.mashwater_vol
 

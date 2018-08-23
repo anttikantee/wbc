@@ -152,6 +152,9 @@ def processopts(opts):
 	for o, a in opts:
 		if o == '-h':
 			usage()
+		elif o == '-a':
+			t = Parse.temp(a)
+			clist.append((Recipe.ambient_temperature, t))
 		elif o == '-s':
 			optarg = a.split(',')
 			if len(optarg) != 2:
@@ -175,7 +178,7 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'chs:u:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'a:chs:u:v:')
 	if len(args) != 1:
 		usage()
 
