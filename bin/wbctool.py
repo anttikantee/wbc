@@ -107,8 +107,9 @@ def dofermentables(r, ferms):
 			raise PilotError('unexpected fermentable anchor: '
 			    + a[0])
 
-def processfile(clist, odict, filename):
-	with open(filename, "r") as data:
+def processfile(clist, odict, args):
+	with open(args[0], "r") if (len(args) > 0 and args[0] is not "-") \
+	    else sys.stdin as data:
 		d = yaml.safe_load(data.read())
 
 	name = getdef_fatal(d, ['name'])
@@ -179,12 +180,12 @@ def processopts(opts):
 
 if __name__ == '__main__':
 	opts, args = getopt.getopt(sys.argv[1:], 'a:chs:u:v:')
-	if len(args) != 1:
+	if len(args) > 1:
 		usage()
 
 	try:
 		(clist, odict) = processopts(opts)
-		r = processfile(clist, odict, args[0])
+		r = processfile(clist, odict, args)
 		r.calculate()
 		if '-c' in [x[0] for x in opts]:
 			r.printcsv()
