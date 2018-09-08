@@ -53,6 +53,7 @@ def mass(input):
 
 def volume(input):
 	suffixes = {
+		'bbl'	: Volume.BARREL,
 		'gal'	: Volume.GALLON,
 		'qt'	: Volume.QUART,
 		'l'	: Volume.LITER,

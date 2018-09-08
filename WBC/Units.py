@@ -26,6 +26,8 @@ class Volume(float):
 	LITER	= object()
 	QUART	= object()
 	GALLON	= object()
+	BARREL	= object()
+
 	def __new__(cls, value, unit=DEFAULT):
 		if unit is Volume.DEFAULT:
 			if getconfig('units_input') == 'metric':
@@ -33,6 +35,9 @@ class Volume(float):
 			else:
 				unit = Volume.GALLON
 
+		if unit is Volume.BARREL:
+			value = Constants.gallonsperbarrel * value
+			unit = Volume.GALLON
 		if unit is Volume.GALLON:
 			value = Constants.literspergallon * value
 		if unit is Volume.QUART:

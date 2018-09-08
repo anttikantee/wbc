@@ -20,6 +20,7 @@ gramsperounce	= 28.349523
 gramsperpound	= 16 * gramsperounce
 litersperquart	= 0.94635295
 literspergallon	= 4 * litersperquart
+gallonsperbarrel= 42
 
 ebcpersrm	= 1.97
 
