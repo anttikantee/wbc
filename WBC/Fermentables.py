@@ -103,6 +103,12 @@ add('Dingemans Pale', 80, Constants.minconversion, Color(9, Color.EBC))
 
 add('Dingemans Special B', 72, 0, Color(310, Color.EBC))
 
+# found a data sheet with 81% extract min for fine grind, so
+# guessing the coarse grind from that.
+# you're not going to use this for a significant amount of the grainbill,
+# even if the guess is a bit wrong, not the end of the world.
+add('Meussdoerffer Sour Malt', 78, 0, Color(2, Color.LOVIBOND))
+
 # XXX: extract correct?
 add('Muntons Chocolate', 67, 0, Color(1000, Color.EBC))
 add('Muntons Crystal 150 EBC', 67, 0, Color(150, Color.EBC))
@@ -123,6 +129,11 @@ add('Simpsons Golden Promise', 81, 140, Color(6.5, Color.EBC))
 # (well, ok, they don't apparently supply the diastatic power, but
 # until we hit base malts for them, doesn't really matter)
 add('Fawcett Brown', 70, 0, Color(188, Color.EBC))
+
+# XXX: no idea about the extract, but since it's supposed just regular
+# pale malt with lactic acid, we'll go with 75%.  it's not used in such
+# high amounts that it should matter if we're off even by 50%
+add('Weyermann Acidulated Malt', 75, 0, Color(4.5, Color.EBC))
 
 add('Weyermann CaraAroma', 74, 0, Color(350, Color.EBC))
 add('Weyermann CaraMunich 1', 75, 0, Color(90, Color.EBC))
