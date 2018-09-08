@@ -32,11 +32,17 @@ class Recipe:
 	# 2.5kg water to 1kg of grain by default
 	mashin_ratio_default = 2.5
 
-	def __init__(self, name, yeast, final_volume, mashtemps, boiltime = 60):
-		checktype(final_volume, Volume)
+	def __init__(self, name, yeast, volume, mashtemps, boiltime = 60):
+
+		# volume may be None if the recipe contains only relative units
+		# XXXTODO: not all specifications take relative units currently
+		if volume is not None:
+			checktype(volume, Volume)
+
 		self.name = name
 		self.yeast = yeast
-		self.final_volume = final_volume
+		self.volume_inherent = volume
+		self.volume_final = None
 		self.mashin_ratio = Recipe.mashin_ratio_default
 
 		self.hops_bymass = []
@@ -106,10 +112,15 @@ class Recipe:
 		FERMENT : 'ferment'
 	}
 
+	def __final_volume(self):
+		if self.volume_final is not None:
+			return self.volume_final
+		return self.volume_inherent
+
 	def __volume_at_stage(self, stage):
 		assert(stage >= self.MASHWATER and stage <= self.FINAL)
 
-		v = self.final_volume
+		v = self.__final_volume()
 
 		# assume 0.8l static loss in fermentor, plus fermentor dryhops
 		# XXX: probably should be variable loss per fermentation size,
@@ -144,6 +155,19 @@ class Recipe:
 		return Mass(m.valueas(Mass.G)
 		    * strength.valueas(Strength.PLATO)/100.0, Mass.G)
 
+	def __scale(self, what):
+		if self.volume_inherent is None or self.volume_final is None:
+			return what
+
+		assert(isinstance(what, Mass))
+
+		scale = self.volume_final / self.volume_inherent
+		return _Mass(scale * what)
+
+	def set_final_volume(self, volume_final):
+		checktype(volume_final, Volume)
+		self.volume_final = volume_final
+
 	def mashin_ratio_set(self, mashin_vol, mashin_mass):
 		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
 
@@ -154,14 +178,14 @@ class Recipe:
 	# mass per final volume
 	def hop_bymassvolratio(self, hop, mass, vol, time):
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
-		hopmass = _Mass(mass * self.final_volume / vol)
+		hopmass = _Mass(mass * self.__final_volume() / vol)
 		self.hops_bymass.append([hop, hopmass, time])
 
 	# alpha acid mass per final volume
 	def hop_byAAvolratio(self, hop, mass, vol, time):
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
 		hopmass = _Mass((mass / (hop.aapers/100.0))
-		    * (self.final_volume / vol))
+		    * (self.__final_volume() / vol))
 		self.hops_bymass.append([hop, hopmass, time])
 
 	def hop_byIBU(self, hop, IBU, time):
@@ -304,7 +328,16 @@ class Recipe:
 		# target strength.
 
 		if len(self.fermentables_bymass) > 0:
-			self.results['fermentables'] = self.fermentables_bymass
+			if self.volume_inherent is None:
+				raise PilotError("recipe with absolute "
+				    + "fermentable mass "
+				    + "does not have an inherent volume")
+
+			# if we're scaling the recipe, we just need to
+			# scale the grains
+			self.results['fermentables'] = \
+			    [(x[0], x[1], self.__scale(x[2]), x[3]) \
+			      for x in self.fermentables_bymass]
 			return # all done already
 
 		totpers = sum(x[2] for x in self.fermentables_bypercent)
@@ -543,9 +576,13 @@ class Recipe:
 
 		# calculate IBU produced by "bymass" hops and add to printables
 		for h in self.hops_bymass:
+			if self.volume_inherent is None:
+				raise PilotError("recipe with absolute hop "
+				    + "mass does not have an inherent volume")
 			time = h[2].gettime(self.boiltime)
-			ibu = h[0].IBU(sg, v_post, time, h[1])
-			allhop.append([h[0], h[1], h[2], ibu])
+			mass = self.__scale(h[1])
+			ibu = h[0].IBU(sg, v_post, time, mass)
+			allhop.append([h[0], mass, h[2], ibu])
 
 		# calculate mass of "byIBU" hops and add to printables
 		for h in self.hops_byIBU:
@@ -665,7 +702,8 @@ class Recipe:
 		ebc = color.valueas(Color.EBC)
 
 		print onefmt.format('Name:', self.name)
-		print twofmt.format('Final volume:', str(self.final_volume), \
+		print twofmt.format('Final volume:',
+		    str(self.__final_volume()),
 		    'Boil:', str(self.boiltime) + ' min')
 		bugu = self.ibus / self.results['final_strength']
 		print twofmt.format('IBU (Tinseth):', \
@@ -719,7 +757,8 @@ class Recipe:
 		    'Fermenter loss (est):', str(d2))
 
 		maxyield = self.total_yield(self.FERMENT, theoretical=True)
-		maxstren = Brewutils.solve_strength(maxyield, self.final_volume)
+		maxstren = Brewutils.solve_strength(maxyield,
+		    self.__final_volume())
 		beff = self.results['final_strength'] / maxstren
 		print twofmt.format('Mash eff (conf) :', \
 		    str(100*getconfig('mash_efficiency')) + '%',
@@ -730,7 +769,7 @@ class Recipe:
 			print 'NOTE: keg hops absorb: ' \
 			    + str(self.hopsdrunk['keg']) \
 			    + ' => effective yield: ' \
-			    + str(_Volume(self.final_volume
+			    + str(_Volume(self.__final_volume()
 				  - self.hopsdrunk['keg']))
 
 			# warn about larger packaging volume iff keg dryhops
@@ -739,7 +778,7 @@ class Recipe:
 				print 'NOTE: keg hop volume: ~' \
 				    + str(self.kegdryhopvol) \
 				    + ' => packaged volume: ' \
-				    + str(_Volume(self.final_volume
+				    + str(_Volume(self.__final_volume()
 				          + self.kegdryhopvol))
 
 		self._prtsep()
@@ -792,6 +831,9 @@ class Recipe:
 		print
 
 	def calculate(self):
+		if self.__final_volume() is None:
+			raise PilotError("final volume is not set")
+
 		# ok, so the problem is that the amount of hops affects the
 		# kettle crud, meaning we have non-constants loss between
 		# postboil and the fermenter.  that loss, in turn, affects

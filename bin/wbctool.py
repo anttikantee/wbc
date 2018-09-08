@@ -113,15 +113,19 @@ def processfile(clist, odict, args):
 		d = yaml.safe_load(data.read())
 
 	name = getdef_fatal(d, ['name'])
-	volume = getdef_fatal(d, ['volume'])
 	yeast = getdef_fatal(d, ['yeast'])
 
-	if 'volume' in odict:
-		volume = odict['volume']
+	volume = d.get('volume', None)
+	if volume is not None:
+		volume = Parse.volume(volume)
 
 	mashtemps = [Parse.temp(x) for x in getdef_fatal(d, ['mashtemps'])]
 	bt = Parse.kettletime(d.get('boil', '60min'))
-	r = Recipe(name, yeast, Parse.volume(volume), mashtemps, bt)
+	r = Recipe(name, yeast, volume, mashtemps, bt)
+
+	if 'volume' in odict:
+		r.set_final_volume(odict['volume'])
+
 	for c in clist:
 		c[0](r, *c[1:])
 
