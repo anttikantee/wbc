@@ -35,6 +35,14 @@ export PYTHONIOENCODING=utf-8
 # assume this is run in the top level directory
 export PYTHONPATH=.
 
+FATAL=:
+while getopts 'f' opt; do
+	case "$opt" in
+		f) FATAL='exit 1';;
+	esac
+done
+shift $((${OPTIND} - 1))
+
 [ $# -eq 1 ] || usage
 
 if [ "$1" = 'prep' ]; then
@@ -56,6 +64,7 @@ elif [ $1 = 'test' ]; then
 		if ! diff -u $x $x.cmp; then
 			rv=1
 		fi
+		[ ${rv} -eq 0 ] || ${FATAL}
 	done
 
 	[ ${rv} -eq 0 ] || die output differs
