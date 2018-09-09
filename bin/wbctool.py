@@ -16,7 +16,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe, Hop
+from WBC.WBC import Recipe, Hop, Mash
 from WBC.Units import Mass, Temperature, Volume, Strength
 from WBC.Utils import PilotError, setconfig
 from WBC import Parse
@@ -107,6 +107,36 @@ def dofermentables(r, ferms):
 			raise PilotError('unexpected fermentable anchor: '
 			    + a[0])
 
+def domashparams(r, mashparams):
+	for p in mashparams:
+		value = mashparams[p]
+		if p == 'mashin':
+			mstr = str(value)
+			marr = mstr.split('/')
+			if len(marr) != 2:
+				raise PilotError('mashin ratio must be '
+				    '"vol / mass", you gave: ' + mstr)
+			mashin_vol = Parse.volume(marr[0])
+			mashin_mass = Parse.mass(marr[1])
+			r.mash.set_mashin_ratio(mashin_vol, mashin_mass)
+
+		elif p == 'method':
+			m = Parse.mashmethod(value)
+			r.mash.set_method(m)
+
+		elif p == 'temperature' or p == 'temperatures':
+			if isinstance(value, str):
+				mashtemps = [Parse.temp(value)]
+			elif isinstance(value, list):
+				mashtemps = [Parse.temp(x) for x in value]
+			else:
+				raise PilotError('mash temperature must be '
+				    'given as a string or list of strings')
+			r.mash.set_mash_temperature(mashtemps)
+
+		else:
+			raise PilotError('unknown mash parameter: ' + str(p))
+
 def processfile(clist, odict, args):
 	with open(args[0], "r") if (len(args) > 0 and args[0] is not "-") \
 	    else sys.stdin as data:
@@ -119,9 +149,8 @@ def processfile(clist, odict, args):
 	if volume is not None:
 		volume = Parse.volume(volume)
 
-	mashtemps = [Parse.temp(x) for x in getdef_fatal(d, ['mashtemps'])]
 	bt = Parse.kettletime(d.get('boil', '60min'))
-	r = Recipe(name, yeast, volume, mashtemps, bt)
+	r = Recipe(name, yeast, volume, bt)
 
 	if 'volume' in odict:
 		r.set_final_volume(odict['volume'])
@@ -129,17 +158,7 @@ def processfile(clist, odict, args):
 	for c in clist:
 		c[0](r, *c[1:])
 
-	mashin = d.get('mashin', None)
-	if mashin is not None:
-		mstr = str(mashin)
-		marr = mstr.split('/')
-		if len(marr) != 2:
-			raise PilotError('mashin ratio must be "vol / mass", '
-			    'you gave: ' + mstr)
-		mashin_vol = Parse.volume(marr[0])
-		mashin_mass = Parse.mass(marr[1])
-		r.mashin_ratio_set(mashin_vol, mashin_mass)
-
+	domashparams(r, getdef_fatal(d, ['mashparams']))
 	dofermentables(r, getdef_fatal(d, ['fermentables']))
 	dohops(r, d.get('hops', []))
 

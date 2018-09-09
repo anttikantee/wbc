@@ -29,10 +29,8 @@ def checkconfig():
 	return True
 
 class Recipe:
-	# 2.5kg water to 1kg of grain by default
-	mashin_ratio_default = 2.5
 
-	def __init__(self, name, yeast, volume, mashtemps, boiltime = 60):
+	def __init__(self, name, yeast, volume, boiltime = 60):
 
 		# volume may be None if the recipe contains only relative units
 		# XXXTODO: not all specifications take relative units currently
@@ -43,7 +41,6 @@ class Recipe:
 		self.yeast = yeast
 		self.volume_inherent = volume
 		self.volume_final = None
-		self.mashin_ratio = Recipe.mashin_ratio_default
 
 		self.hops_bymass = []
 		self.hops_byIBU = []
@@ -71,19 +68,7 @@ class Recipe:
 
 		self.results = {}
 
-		if isinstance(mashtemps, Temperature):
-			mashtemps = [mashtemps]
-		elif mashtemps.__class__ is list:
-			curtemp = 0
-			for x in mashtemps:
-				checktype(x, Temperature)
-				if x < curtemp:
-					raise PilotError('mashtemps must be ' \
-					    'given in ascending order')
-		else:
-			raise PilotError('mashtemps must be given as ' \
-			    'Temperature or list of')
-		self.mashtemps = mashtemps
+		self.mash = Mash()
 
 	def __havefermentable(self, fermentable, when):
 		v = filter(lambda x: x[0] == fermentable and x[3] == when,
@@ -167,9 +152,6 @@ class Recipe:
 	def set_final_volume(self, volume_final):
 		checktype(volume_final, Volume)
 		self.volume_final = volume_final
-
-	def mashin_ratio_set(self, mashin_vol, mashin_mass):
-		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
 
 	def hop_bymass(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])
@@ -424,8 +406,7 @@ class Recipe:
 		self.results['steal'] = steal
 
 		mf = self._fermentables_atstage(self.MASH)
-		self.mash = Mash(mf,
-		    self.ambient_temperature, totvol, self.mashin_ratio)
+		self.mash.set_fermentables(mf)
 
 		totmass = self.grainmass()
 		v = self.__volume_at_stage(self.POSTBOIL)
@@ -442,7 +423,8 @@ class Recipe:
 			res.append((f[0], f[2], 100*ratio, extract, strength))
 
 		self.results['mashfermentables'] = res
-		self.results['mash'] = self.mash.infusion_mash(self.mashtemps)
+		self.results['mash'] \
+		    = self.mash.infusion_mash(self.ambient_temperature, totvol)
 
 	def _printmash(self):
 		fmtstr = u'{:36}{:>20}{:>12}{:>8}'
@@ -1094,6 +1076,14 @@ class Hop:
 		return _Volume(mass / density)
 
 class Mash:
+	# 2.5kg water to 1kg of grain by default
+	mashin_ratio_default = 2.5
+
+	INFUSION=	object()
+
+	#DECOCTION=	object()
+	#DIRECT_HEAT=	object()
+
 	# infusion mash step state and calculator for the next.
 	#
 	# In the context of this class, we use the following terminology:
@@ -1192,24 +1182,29 @@ class Mash:
 			return (_Volume(self.step_watermass),
 			    _Temperature(self.step_watertemp))
 
+	def __init__(self):
+		self.mashin_ratio = Mash.mashin_ratio_default
 
-	def __init__(self, mashfermentables, ambient_temp, mashwater_vol,
-	    mashin_ratio):
-		self.mashfermentables = mashfermentables
-		self.ambient_temp = ambient_temp
-		self.mashwater_vol = mashwater_vol
-		self.mashin_ratio = mashin_ratio
+		self.fermentables = []
+		self.temperature = None
 
-	def infusion_mash(self, mashtemps):
-		fmass = _Mass(sum(x[2] for x in self.mashfermentables))
+	def infusion_mash(self, ambient_temp, watervol):
+		if self.temperature is None:
+			raise PilotError('trying to mash without temperature')
+		mashtemps = self.temperature
+
+		if len(self.fermentables) == 0:
+			raise PilotError('trying to mash without fermentables')
+
+		fmass = _Mass(sum(x[2] for x in self.fermentables))
 
 		res = {}
 		res['steps'] = []
-		res['total_water'] = self.mashwater_vol
+		res['total_water'] = watervol
 
-		step = self.__Step(fmass, self.ambient_temp, 0, 0)
+		step = self.__Step(fmass, ambient_temp, 0, 0)
 		mass = self.mashin_ratio * fmass.valueas(Mass.KG)
-		totvol = self.mashwater_vol
+		totvol = watervol
 
 		for t in mashtemps:
 			step = step.up(t, mass)
@@ -1225,12 +1220,38 @@ class Mash:
 			    Constants.sourcewater_temp, temp)
 			res['steps'].append((t, vol, actualvol, temp))
 
-		res['mashstep_water'] = _Volume(self.mashwater_vol - totvol)
+		res['mashstep_water'] = _Volume(watervol - totvol)
 		res['sparge_water'] = \
 		    Brewutils.water_vol_at_temp(_Volume(totvol), \
 		    Constants.sourcewater_temp, Constants.spargewater_temp)
 
 		return res
+
+	def set_fermentables(self, fermentables):
+		self.fermentables = fermentables
+
+	def set_mash_temperature(self, mashtemps):
+		if isinstance(mashtemps, Temperature):
+			mashtemps = [mashtemps]
+		elif mashtemps.__class__ is list:
+			curtemp = 0
+			for x in mashtemps:
+				checktype(x, Temperature)
+				if x < curtemp:
+					raise PilotError('mashtemps must be ' \
+					    'given in ascending order')
+		else:
+			raise PilotError('mash temperatures must be given as ' \
+			    'Temperature or list of')
+		self.temperature = mashtemps
+
+	def set_mashin_ratio(self, mashin_vol, mashin_mass):
+		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
+
+	# mostly a placeholder
+	def set_method(self, m):
+		if m is not Mash.INFUSION:
+			raise PilotError('unsupported mash method')
 
 	# parti-gyle calculations was actually the reason I initially
 	# started writing WBC, but parti-gyle is now bitrotted a bit

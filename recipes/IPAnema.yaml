@@ -4,7 +4,9 @@ volume: 19.5l
 boil:   30min
 mashin: 3l/kg
 
-mashtemps: [ 66degC ]
+mashparams:
+        temperature: 66degC
+        mashin:      3l/kg
 
 fermentables:
         anchor: [ strength, 15degP ]

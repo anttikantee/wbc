@@ -16,7 +16,7 @@
 
 from Units import Mass, Temperature, Volume, Strength
 from Utils import PilotError
-from WBC import Recipe, Hop
+from WBC import Recipe, Hop, Mash
 
 def _unit(cls, sfxmap, input, fatal = True, name = None):
 	inputstr = str(input).strip()
@@ -92,6 +92,14 @@ def strength(input):
 		'pts'	: Strength.SG_PTS,
 	}
 	return _unit(Strength, suffixes, input)
+
+def mashmethod(input):
+	methods = {
+		'infusion'	: Mash.INFUSION,
+	}
+	if input in methods:
+		return methods[input]
+	raise PilotError('unsupported mash method: ' + str(input))
 
 def fermentableunit(input):
 	if input == 'rest':

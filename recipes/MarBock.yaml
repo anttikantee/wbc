@@ -3,7 +3,7 @@ yeast:  WLP833
 volume: 19.5l
 boil:   90min
 
-mashtemps: [ 66degC ]
+mashparams: { temperature: 66degC }
 
 fermentables:
     anchor: [ strength, 16.8 degP ]

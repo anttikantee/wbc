@@ -2,7 +2,8 @@ name:   NENEIPA
 yeast:  WLP095 + US-05
 volume: 19.5l
 
-mashtemps: [ 65degC ]
+mashparams:
+        temperature: 65degC
 
 fermentables:
         mash:
