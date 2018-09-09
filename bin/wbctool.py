@@ -159,7 +159,7 @@ def processopts(opts):
 			usage()
 		elif o == '-a':
 			t = Parse.temp(a)
-			clist.append((Recipe.ambient_temperature, t))
+			clist.append((Recipe.set_ambient_temperature, t))
 		elif o == '-s':
 			optarg = a.split(',')
 			if len(optarg) != 2:

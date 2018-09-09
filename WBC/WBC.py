@@ -279,7 +279,7 @@ class Recipe:
 				raise PilotError('captain, I cannot change the'\
 				    ' laws of math; 100% fermentables max!')
 
-	def ambient_temperature(self, temp):
+	def set_ambient_temperature(self, temp):
 		checktype(temp, Temperature)
 		self.ambient_temperature = temp
 
