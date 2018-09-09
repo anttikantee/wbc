@@ -45,7 +45,7 @@ yeast:  WLP833
 volume: 19.5l
 boil:   90min
 
-mashtemps: [ 66degC ]
+mashparams: { temperature: 66degC }
 
 fermentables:
     anchor: [ strength, 16.8 degP ]
@@ -67,7 +67,7 @@ translated with `wbctool -u metric -u plato`:
 Name:              MarBock
 Final volume:      19.5l              Boil:                90 min             
 IBU (Tinseth):     36.00              BUGU:                0.50               
-Color (EBC / SRM): 10.7 / 5.4         Water (20.0°C):      33.6l              
+Color (Morey):     10.7 EBC, 5.4 SRM  Water (20.0°C):      33.6l              
 Pitch rate, ale:   267 billion        Pitch rate, lager:   535 billion        
 
 Yeast:             WLP833
@@ -93,7 +93,7 @@ Avangard Munich Light                     544 g ( 10.0%)       385 g   1.8°P
 ==============================================================================
                                         5.44 kg (100.0%)     3.83 kg  16.9°P
 
-Mashing instructions
+Mashing instructions (for ambient temperature 20.0°C)
 ==============================================================================
 66.0°C : add 14.0l of water at 78.1°C (2.50 l/kg, mash vol 17.4l)
 Mashstep water volume: 13.6l @ 20.0°C
@@ -123,7 +123,7 @@ translated with `wbctool -u us -u sg`:
 Name:              MarBock
 Final volume:      5.2gal             Boil:                90 min             
 IBU (Tinseth):     36.00              BUGU:                0.50               
-Color (EBC / SRM): 10.7 / 5.4         Water (68.0°F):      8.9gal             
+Color (Morey):     10.7 EBC, 5.4 SRM  Water (68.0°F):      8.9gal             
 Pitch rate, ale:   267 billion        Pitch rate, lager:   535 billion        
 
 Yeast:             WLP833
@@ -149,7 +149,7 @@ Avangard Munich Light                 1 3/16 lb ( 10.0%)    13.58 oz   1.007
 ==============================================================================
                                     11 15/16 lb (100.0%)   8 7/16 lb   1.069
 
-Mashing instructions
+Mashing instructions (for ambient temperature 68.0°F)
 ==============================================================================
 150.8°F: add 3.7gal of water at 172.5°F (1.20 qt/lb, mash vol 4.6gal)
 Mashstep water volume: 3.6gal @ 68.0°F
@@ -182,7 +182,9 @@ volume: 19.5l
 boil:   30min
 mashin: 3l/kg
 
-mashtemps: [ 66degC ]
+mashparams:
+        temperature: 66degC
+        mashin:      3l/kg
 
 fermentables:
         anchor: [ strength, 15degP ]
@@ -216,7 +218,7 @@ translated with `wbctool -u metric -u plato`:
 Name:              Beer from IPAnema
 Final volume:      19.5l              Boil:                30 min             
 IBU (Tinseth):     34.60              BUGU:                0.54               
-Color (EBC / SRM): 12.4 / 6.3         Water (20.0°C):      29.4l              
+Color (Morey):     12.4 EBC, 6.3 SRM  Water (20.0°C):      29.4l              
 Pitch rate, ale:   238 billion        Pitch rate, lager:   476 billion        
 
 Yeast:             US-05
@@ -243,7 +245,7 @@ Avangard Vienna                           878 g ( 18.0%)       618 g   2.9°P
 ==============================================================================
                                         4.88 kg (100.0%)     3.38 kg  15.0°P
 
-Mashing instructions
+Mashing instructions (for ambient temperature 20.0°C)
 ==============================================================================
 66.0°C : add 15.0l of water at 76.5°C (3.00 l/kg, mash vol 18.1l)
 Mashstep water volume: 14.6l @ 20.0°C
@@ -280,7 +282,7 @@ translated with `wbctool -u us -u sg`:
 Name:              Beer from IPAnema
 Final volume:      5.2gal             Boil:                30 min             
 IBU (Tinseth):     34.60              BUGU:                0.54               
-Color (EBC / SRM): 12.4 / 6.3         Water (68.0°F):      7.8gal             
+Color (Morey):     12.4 EBC, 6.3 SRM  Water (68.0°F):      7.8gal             
 Pitch rate, ale:   238 billion        Pitch rate, lager:   476 billion        
 
 Yeast:             US-05
@@ -307,7 +309,7 @@ Avangard Vienna                        1 7/8 lb ( 18.0%)   1 5/16 lb   1.011
 ==============================================================================
                                       10 3/4 lb (100.0%)   7 7/16 lb   1.061
 
-Mashing instructions
+Mashing instructions (for ambient temperature 68.0°F)
 ==============================================================================
 150.8°F: add 4.0gal of water at 169.8°F (1.44 qt/lb, mash vol 4.8gal)
 Mashstep water volume: 3.9gal @ 68.0°F
