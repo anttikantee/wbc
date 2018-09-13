@@ -874,10 +874,20 @@ class Recipe:
 	# the recipe.  uses are both for tracking brewhouse resource
 	# usage, and reverse engineering various parameters (e.g.
 	# figure out true mash efficiency)
+	#
+	# ok, it's really a PSV (pipe-separated values), but aaaanyhooo
+	#
+	# the format is not meant to be human-readable, only readable
+	# by semi-humans
 	def printcsv(self):
 		self._assertcalculate()
 		print 'wbcdata|1'
-		print 'boiltime|' + str(self.boiltime) + ' min'
+		print '# recipe|name|yeast|boiltime|volume'
+		print 'recipe|' + self.name + '|' + self.yeast + '|' \
+		    + str(self.boiltime) \
+		    + '|' + str(float(self.__final_volume()))
+
+		self.mash.printcsv()
 
 		print '# fermentable|name|mass|when'
 		for g in self.results['fermentables']:
@@ -890,7 +900,12 @@ class Recipe:
 			timeclass = str(h[2].__class__).split('.')[-1].lower()
 			timespec = unicode(h[2]).replace(unichr(0x00b0), "deg")
 			timespec = str(timespec)
-			print u'hop|{:}|{:}|{:}%|{:}|{:}|{:}'\
+
+			# XXX: silly
+			if timespec == 'dryhop in keg':
+				timespec = 'keg'
+
+			print u'hop|{:}|{:}|{:}|{:}|{:}|{:}'\
 			    .format(h[0].name, h[0].typestr,
 			      h[0].aapers, float(h[1]), timeclass, timespec)
 
@@ -1015,7 +1030,7 @@ class Hop:
 		elif type is Hop.Leaf:
 			self.typestr = 'leaf'
 		else:
-			raise PilotError('invalid hop type')
+			raise PilotError('invalid hop type: ' + type)
 
 		if aapers < aalow or aapers > aahigh:
 			raise PilotError('Alpha acid percentage must be ' \
@@ -1227,6 +1242,13 @@ class Mash:
 
 		return res
 
+	def printcsv(self):
+		print '# mash|method|mashin ratio|mashtemp1|mashtemp2...'
+		mashtemps = ''
+		for t in self.temperature:
+			mashtemps = mashtemps + '|infusion|' + str(float(t))
+		print 'mash|' + str(self.mashin_ratio) + mashtemps
+
 	def set_fermentables(self, fermentables):
 		self.fermentables = fermentables
 
@@ -1246,6 +1268,8 @@ class Mash:
 		self.temperature = mashtemps
 
 	def set_mashin_ratio(self, mashin_vol, mashin_mass):
+		checktype(mashin_vol, Volume)
+		checktype(mashin_mass, Mass)
 		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
 
 	# mostly a placeholder

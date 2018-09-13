@@ -18,12 +18,14 @@
 
 from WBC.WBC import Recipe, Hop, Mash
 from WBC.Units import Mass, Temperature, Volume, Strength
+from WBC.Units import _Mass, _Temperature, _Volume
 from WBC.Utils import PilotError, setconfig
 from WBC import Parse
 
 import getopt
 import sys
-import yaml
+
+hoptypes = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }
 
 def getdef_fatal(defs, v):
 	for x in v:
@@ -32,18 +34,44 @@ def getdef_fatal(defs, v):
 		defs = defs[x]
 	return defs
 
+def doboilhop(r, hop, amountspec, timespec):
+	(fun, hu) = Parse.hopunit(amountspec)
+	fun(r, hop, hu, Parse.hopboil(timespec))
+
+def dosteephop(r, hop, amountspec, timespec):
+	ar = timespec.split("@")
+	if len(ar) != 2:
+		raise PilotError("whirlpool hops must be specified as "
+		    + "\"time @ temperature\"")
+	time = Parse.kettletime(ar[0])
+	temp = Parse.temp(ar[1])
+
+	(fun, hu) = Parse.hopunit(amountspec)
+	fun(r, hop, hu, Hop.Steep(temp, time))
+
+def dodryhop(r, hop, amountspec, timespec):
+	if timespec == 'keg':
+		inday = outday = Hop.Dryhop.Keg
+	else:
+		ar = timespec.split("->")
+		if len(ar) != 2:
+			raise PilotError("dryhops must be specified as "
+			    + "\"days_in -> days_out\" or \"keg\"")
+		inday = Parse.days(ar[0])
+		outday = Parse.days(ar[1])
+
+	(fun, hu) = Parse.hopunit(amountspec)
+	fun(r, hop, hu, Hop.Dryhop(inday, outday))
+
 def dohops(r, d_hops):
 	hops = {}
 
 	def processhopdef(id, v):
 		typstr = v[2] if len(v) > 2 else 'pellet'
-		typ = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }[typstr]
+		typ = hoptypes[typstr]
 		aa = Parse.percent(v[1])
 		hops[id] = Hop(v[0], aa, typ)
 		return hops[id]
-
-	for hd in d_hops.get('defs', []):
-		processhopdef(hd, d_hops['defs'][hd])
 
 	def gethopinstance(v):
 		if isinstance(v, list):
@@ -51,34 +79,17 @@ def dohops(r, d_hops):
 		else:
 			return hops[v]
 
+	for hd in d_hops.get('defs', []):
+		processhopdef(hd, d_hops['defs'][hd])
+
 	for h in d_hops.get('boil', []):
-		(fun, hu) = Parse.hopunit(h[1])
-		fun(r, gethopinstance(h[0]), hu, Parse.hopboil(h[2]))
+		doboilhop(r, gethopinstance(h[0]), h[1], h[2])
 
 	for h in d_hops.get('steep', []):
-		ar = h[2].split("@")
-		if len(ar) != 2:
-			raise PilotError("whirlpool hops must be specified as "
-			    + "\"time @ temperature\"")
-		time = Parse.kettletime(ar[0])
-		temp = Parse.temp(ar[1])
-
-		(fun, hu) = Parse.hopunit(h[1])
-		fun(r, hops[h[0]], hu, Hop.Steep(temp, time))
+		dosteephop(r, gethopinstance(h[0]), h[1], h[2])
 
 	for h in d_hops.get('dryhop', []):
-		if h[2] == 'keg':
-			inday = outday = Hop.Dryhop.Keg
-		else:
-			ar = h[2].split("->")
-			if len(ar) != 2:
-				raise PilotError("dryhops must be specified as "
-				    + "\"days_in -> days_out\" or \"keg\"")
-			inday = Parse.days(ar[0])
-			outday = Parse.days(ar[1])
-
-		(fun, hu) = Parse.hopunit(h[1])
-		fun(r, hops[h[0]], hu, Hop.Dryhop(inday, outday))
+		dodryhop(r, gethopinstance(h[0]), h[1], h[2])
 
 def dofermentables(r, ferms):
 	fermtype = None
@@ -137,10 +148,11 @@ def domashparams(r, mashparams):
 		else:
 			raise PilotError('unknown mash parameter: ' + str(p))
 
-def processfile(clist, odict, args):
-	with open(args[0], "r") if (len(args) > 0 and args[0] is not "-") \
-	    else sys.stdin as data:
-		d = yaml.safe_load(data.read())
+def processyaml(clist, odict, data):
+	# importing yaml is unfathomably slow, so do it only if we need it
+	import yaml
+
+	d = yaml.safe_load(data.read())
 
 	name = getdef_fatal(d, ['name'])
 	yeast = getdef_fatal(d, ['yeast'])
@@ -164,10 +176,54 @@ def processfile(clist, odict, args):
 
 	return r
 
+def processcsv(clist, odict, data):
+	import csv
+
+	reader = csv.reader(data, delimiter='|')
+	dataver = -1
+	r = None
+	for row in reader:
+		if row[0][0] is "#":
+			continue
+
+		if row[0] == "wbcdata":
+			dataver = int(row[1])
+		if dataver != 1:
+			raise PilotError("unsupported wbcdata version")
+
+		if row[0] == "recipe":
+			r = Recipe(row[1], row[2], _Volume(row[4]),
+			    int(row[3]))
+
+		elif row[0] == "mash":
+			r.mash.set_mashin_ratio(_Volume(row[1]), _Mass(1000))
+			mashtemps = [_Temperature(x) for x in row[2:]]
+			r.mash.set_mash_temperature(mashtemps)
+
+		elif row[0] == "fermentable":
+			stagemap = {
+				'mash'    : Recipe.MASH,
+				'boil'    : Recipe.BOIL,
+				'ferment' : Recipe.FERMENT,
+			}
+			r.fermentable_bymass(row[1],
+			    Mass(row[2], Mass.G), stagemap[row[3]])
+
+		elif row[0] == "hop":
+			hopfunmap = {
+				'boil'   : doboilhop,
+				'steep'  : dosteephop,
+				'dryhop' : dodryhop,
+			}
+			h = Hop(row[1], float(row[3]), hoptypes[row[2]])
+			hopfunmap[row[5]](r, h, row[4] + 'g', row[6])
+	return r
+
+
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
 	    + ' [-u metric|us|plato|sg] [-s volume,strength]\n'
-	    + '\t[-v final volume] [-c] recipefile\n')
+	    + '\t[-v final volume] [-c] [-d] recipefile\n')
 	sys.exit(1)
 
 def processopts(opts):
@@ -202,15 +258,22 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'a:chs:u:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'a:cdhs:u:v:')
 	if len(args) > 1:
 		usage()
 
 	try:
 		(clist, odict) = processopts(opts)
-		r = processfile(clist, odict, args)
+		flags = [x[0] for x in opts]
+		with open(args[0], "r") \
+		    if (len(args) > 0 and args[0] is not "-") \
+		    else sys.stdin as data:
+			if '-d' in flags:
+				r = processcsv(clist, odict, data)
+			else:
+				r = processyaml(clist, odict, data)
 		r.calculate()
-		if '-c' in [x[0] for x in opts]:
+		if '-c' in flags:
 			r.printcsv()
 		else:
 			r.printit()
