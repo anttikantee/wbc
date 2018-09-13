@@ -4,11 +4,11 @@ WBC Brew-Calculator
 _If you need a full-fledged-and-belled-and-whistled brewing software,
 look elsewhere._
 
-WBC is a set of routines which calculate various things required for
-brewing and dump out a brewday summary.  The goal of WBC is to replace
-pen-and-paper manual approximations.  The goal of WBC is not to think
-for the brewer and not to be so sophisticated that the user experience
-becomes a matter of outsmarting the software.
+WBC is homebrew software which takes in a recipe and dumps out a
+printable brewday summary, as demonstrated by the [examples](#examples).
+The goal of WBC is to replace pen-and-paper calculations.  The goal of
+WBC is not to think for the brewer and not to be so sophisticated that
+the user experience becomes a matter of outsmarting the software.
 
 The main (and only?) features are:
 
@@ -24,6 +24,12 @@ The main (and only?) features are:
     also multi-step (decoction mass calculations are planned ... some day)
   * calculate IBUs and optionally calculate hop additions based on
     desired IBUs
+  * a machine-readable compiled format -- if the recipe is what
+    you want to brew, the compiled format is the ingredients you used
+    to achieve what you wanted.  This data can be used to track
+    ingredient usage, or be fed back into the software to see how the
+    ingredients would have turned out with different system parameters
+    (e.g. mash efficiency and/or boiloff rate)
 
 The recipe interface might change in a way not backward compatible as
 the software reaches final gravity.
