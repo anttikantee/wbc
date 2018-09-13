@@ -148,6 +148,13 @@ def domashparams(r, mashparams):
 		else:
 			raise PilotError('unknown mash parameter: ' + str(p))
 
+def applyparams(r, clist, odict):
+	for c in clist:
+		c[0](r, *c[1:])
+
+	if 'volume' in odict:
+		r.set_final_volume(odict['volume'])
+
 def processyaml(clist, odict, data):
 	# importing yaml is unfathomably slow, so do it only if we need it
 	import yaml
@@ -169,11 +176,7 @@ def processyaml(clist, odict, data):
 	bt = Parse.kettletime(d.get('boil', '60min'))
 	r = Recipe(name, yeast, volume, bt)
 
-	if 'volume' in odict:
-		r.set_final_volume(odict['volume'])
-
-	for c in clist:
-		c[0](r, *c[1:])
+	applyparams(r, clist, odict)
 
 	domashparams(r, getdef_fatal(d, ['mashparams']))
 	dofermentables(r, getdef_fatal(d, ['fermentables']))
@@ -199,6 +202,7 @@ def processcsv(clist, odict, data):
 		if row[0] == "recipe":
 			r = Recipe(row[1], row[2], _Volume(row[4]),
 			    int(row[3]))
+			applyparams(r, clist, odict)
 
 		elif row[0] == "mash":
 			r.mash.set_mashin_ratio(_Volume(row[1]), _Mass(1000))
