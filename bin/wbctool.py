@@ -152,7 +152,12 @@ def processyaml(clist, odict, data):
 	# importing yaml is unfathomably slow, so do it only if we need it
 	import yaml
 
-	d = yaml.safe_load(data.read())
+	try:
+		d = yaml.safe_load(data.read())
+	except yaml.parser.ParserError, e:
+		print '>> failed to parse yaml recipe:'
+		print e
+		raise SystemExit, 1
 
 	name = getdef_fatal(d, ['name'])
 	yeast = getdef_fatal(d, ['yeast'])
