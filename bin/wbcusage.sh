@@ -33,7 +33,7 @@ END {
 
 	for (h in hops) {
 		split(h, ar, "\034")
-		name = sprintf("%-28s %-6s %s", ar[1], ar[3], ar[2])
+		name = sprintf("%-34s %5s  %s", ar[1], ar[3] "%", ar[2])
 		printf("h|%s|%.2f\n", name, hops[h])
 	}
 }' "$@" | sort -t'|' -k 3rn \
