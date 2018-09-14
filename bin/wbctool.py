@@ -27,13 +27,6 @@ import sys
 
 hoptypes = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }
 
-def getdef_fatal(defs, v):
-	for x in v:
-		if x not in defs:
-			raise PilotError('mandatory element missing: ' + str(v))
-		defs = defs[x]
-	return defs
-
 def doboilhop(r, hop, amountspec, timespec):
 	(fun, hu) = Parse.hopunit(amountspec)
 	fun(r, hop, hu, Parse.hopboil(timespec))
@@ -166,21 +159,40 @@ def processyaml(clist, odict, data):
 		print e
 		raise SystemExit, 1
 
-	name = getdef_fatal(d, ['name'])
-	yeast = getdef_fatal(d, ['yeast'])
+	def getdef(x):
+		if x not in d:
+			raise PilotError('mandatory element missing: ' + str(v))
+		rv = d[x]
+		del d[x]
+		return rv
 
-	volume = d.get('volume', None)
-	if volume is not None:
-		volume = Parse.volume(volume)
+	name = getdef('name')
+	yeast = getdef('yeast')
 
-	bt = Parse.kettletime(d.get('boil', '60min'))
-	r = Recipe(name, yeast, volume, bt)
+	if 'volume' in d:
+		volume = Parse.volume(getdef('volume'))
+	else:
+		volume = None
+
+	if 'boil' in d:
+		boiltime = getdef('boil')
+	else:
+		boiltime = '60min'
+
+	r = Recipe(name, yeast, volume, Parse.kettletime(boiltime))
 
 	applyparams(r, clist, odict)
 
-	domashparams(r, getdef_fatal(d, ['mashparams']))
-	dofermentables(r, getdef_fatal(d, ['fermentables']))
-	dohops(r, d.get('hops', []))
+	for p in d:
+		v = d[p]
+		if p == 'mashparams':
+			domashparams(r, v)
+		elif p == 'fermentables':
+			dofermentables(r, v)
+		elif p == 'hops':
+			dohops(r, v)
+		else:
+			raise PilotError('invalid recipe field: ' + p)
 
 	return r
 
