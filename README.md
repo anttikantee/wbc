@@ -186,7 +186,6 @@ name:   Beer from IPAnema
 yeast:  US-05
 volume: 19.5l
 boil:   30min
-mashin: 3l/kg
 
 mashparams:
         temperature: 66degC
