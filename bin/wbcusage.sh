@@ -24,6 +24,9 @@ $1 == "fermentable" {
 $1 == "hop" {
 	hops[$2, $3, $4] += $5
 }
+$1 == "recipe" {
+	volume += $5
+}
 
 END {
 	for (f in fermentables) {
@@ -36,6 +39,7 @@ END {
 		name = sprintf("%-34s %5s  %s", ar[1], ar[3] "%", ar[2])
 		printf("h|%s|%.2f\n", name, hops[h])
 	}
+	printf("v|%f\n", volume)
 }' "$@" | sort -t'|' -k 3rn \
   | awk -F'|' '
 $1 == "f" {
@@ -45,6 +49,9 @@ $1 == "f" {
 $1 == "h" {
 	hopname[++j] = $2
 	hopmass[j] = $3
+}
+$1 == "v" {
+	volume = $2
 }
 
 # no support for funnyunits for now
@@ -74,4 +81,8 @@ END {
 		printf("%-60s%s\n", hopname[x], scale(hopmass[x]))
 	}
 	printf("=\n%-60s%s\n", "Total", scale(tothop))
+
+	# some additional "interesting" statistics
+	printf("\n===\n")
+	printf("%-60s%8.1f l\n", "Total volume brewed:", volume)
 }'
