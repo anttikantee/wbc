@@ -416,24 +416,25 @@ class Recipe:
 			ferm = f[1]
 			mass = f[2]
 			ratio = mass / totmass
-			extract = self.fermentable_yield(f)
-			compext = _Mass(extract - self.stolen_wort[2] * ratio)
-			strength = Brewutils.solve_strength(compext, v)
+			ext_pred = self.fermentable_yield(f)
+			ext_theor = self.fermentable_yield(f,
+			    theoretical=True)
 
-			res.append((f[0], f[2], 100*ratio, extract, strength))
+			res.append((f[0], f[2], 100*ratio, ext_theor, ext_pred))
 
 		self.results['mashfermentables'] = res
 		self.results['mash'] \
 		    = self.mash.infusion_mash(self.ambient_temperature, totvol)
 
 	def _printmash(self):
-		fmtstr = u'{:36}{:>20}{:>12}{:>8}'
+		fmtstr = u'{:32}{:>20}{:>12}{:>12}'
 		print fmtstr.format("Fermentables",
-		    "amount", "extract", Strength.name() + " tot")
+		    "amount", "ext (100%)", "ext ("
+		    + str(int(100 * getconfig('mash_efficiency'))) + "%)")
 		self._prtsep()
 
 		totextract = 0
-		totstrength = 0
+		maxextract = 0
 
 		for stage in [('mashfermentables', 'Mash'),
 		    ('boilfermentables', 'Boil'),
@@ -448,7 +449,7 @@ class Recipe:
 					    str(f[1]) + pers, str(f[3]),
 					    unicode(f[4]))
 					totextract += f[3]
-					totstrength += f[4]
+					maxextract += f[4]
 				self._prtsep('-')
 
 		self._prtsep()
@@ -456,7 +457,7 @@ class Recipe:
 		print fmtstr.format('', \
 		    str(self.grainmass()) + ' (100.0%)', \
 		    str(_Mass(totextract)),\
-		    unicode(_Strength(totstrength)))
+		    str(_Mass(maxextract)))
 
 		print
 		print 'Mashing instructions (for ambient temperature', \
@@ -536,10 +537,10 @@ class Recipe:
 			ferm = f[1]
 			mass = f[2]
 			ratio = mass / self.grainmass()
-			extract = self.fermentable_yield(f)
-			strength = Brewutils.solve_strength(extract, v)
+			ext_pred = self.fermentable_yield(f)
+			ext_theo = self.fermentable_yield(f, theoretical=True)
 
-			res.append((f[0], f[2], 100*ratio, extract, strength))
+			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
 
 		self.results['boilfermentables'] = res
 		self._dohops()
@@ -774,10 +775,10 @@ class Recipe:
 			ferm = f[1]
 			mass = f[2]
 			ratio = mass / self.grainmass()
-			extract = self.fermentable_yield(f)
-			strength = Brewutils.solve_strength(extract, v)
+			ext_pred = self.fermentable_yield(f)
+			ext_theo = self.fermentable_yield(f, theoretical=True)
 
-			res.append((f[0], f[2], 100*ratio, extract, strength))
+			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
 
 		self.results['fermfermentables'] = res
 
