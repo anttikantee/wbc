@@ -1107,6 +1107,8 @@ class Mash:
 	#	temp: temperature
 	#	heat: total heat of the component, i.e. capa * temp
 	#
+	# the new temperature is the existing heat plus the new heat,
+	# divided by the total heat capacity.
 	class __Step:
 		# MLT heat capacity is equal to given mass of water
 		# XXX: should be configurable
@@ -1115,8 +1117,27 @@ class Mash:
 		# relative to capa of equivalent mass of water
 		__grain_relativecapa = 0.38
 
-		def __init__(self, grain_mass, ambient_temp,
-		    water_volume, water_temp):
+		def _setvalues(self, nwater_capa, nwater_temp, newtemp):
+			hts = self.hts
+
+			hts['water']['capa'] += nwater_capa
+			hts['mlt']['temp'] = newtemp
+			hts['grain']['temp'] = newtemp
+			hts['water']['temp'] = newtemp
+
+			self.step_watermass = nwater_capa
+			self.step_watertemp = nwater_temp
+
+		def _heat(self, what):
+			ho = self.hts[what]
+			return ho['temp'] * ho['capa']
+
+		def _capa(self, what):
+			ho = self.hts[what]
+			return ho['capa']
+
+		def __init__(self, grain_mass, ambient_temp, target_temp,
+		     water_capa):
 			hts = {}
 
 			hts['mlt'] = {}
@@ -1129,69 +1150,42 @@ class Mash:
 			hts['grain']['temp'] = ambient_temp
 
 			hts['water'] = {}
-			hts['water']['capa'] = water_volume
-			hts['water']['temp'] = water_temp
+			hts['water']['capa'] = 0
+			hts['water']['temp'] = 0
 
 			self.hts = hts
 
-		def heat(self, what):
-			ho = self.hts[what]
-			return ho['temp'] * ho['capa']
+			_c = self._capa
+			_h = self._heat
 
-		def capa(self, what):
-			ho = self.hts[what]
-			return ho['capa']
+			# see what temp the strike water needs to be at
+			# for the whole equation to settle
+			water_temp = (target_temp			\
+			      * (water_capa + _c('mlt') + _c('grain'))	\
+			    - (_h('mlt') + _h('grain')))		\
+			  / water_capa
 
-		def up(self, target_temp, minwater):
-			def nextstep(parent, nwater_capa, nwater_temp, newtemp):
-				nextstep = copy.deepcopy(parent)
+			if water_temp > 100:
+				raise PilotError('could not satisfy mashin '
+				    + 'temperarture with available water. '
+				    + 'check mashin ratio.')
 
-				hts = nextstep.hts
+			self._setvalues(water_capa, water_temp, target_temp)
 
-				hts['water']['capa'] += nwater_capa
-				hts['mlt']['temp'] = newtemp
-				hts['grain']['temp'] = newtemp
-				hts['water']['temp'] = newtemp
+		def stepup(self, target_temp):
+			_c = self._capa
+			_h = self._heat
 
-				nextstep.step_watermass = nwater_capa
-				nextstep.step_watertemp = nwater_temp
-
-				return nextstep
-
-			# the new temperature is the existing
-			# heat plus the new heat, divided by the
-			# total heat capacity.
-
-			nwater_capa = minwater
-			if nwater_capa is None:
-				nwater_capa = _Volume(0.1)
-
-			capa = self.capa
-			heat = self.heat
-
-			# step 1: see if where we can go with "minwater".
-			# if we reach the target with <boiling water, we're
-			# done.
-			nwater_temp = (target_temp \
-			      * (nwater_capa + capa('mlt')		    \
-				  + capa('grain') + capa('water'))	    \
-			    - (heat('mlt') + heat('grain') + heat('water')))\
-			  / nwater_capa
-
-			if nwater_temp <= 100:
-				return nextstep(self, nwater_capa,
-				    nwater_temp, target_temp)
-
-			# step 2: if we couldn't, set temperature to boiling
-			# and see how much water we need.
+			# see how much boiling water we need to raise the
+			# temp up to the new target
 			boiltemp = _Temperature(100)
 			nw = (target_temp \
-			      * (capa('mlt') \
-				  + capa('grain') + capa('water'))\
-			    - (heat('mlt')+heat('grain')+heat('water')))\
+			      * (_c('mlt') \
+				  + _c('grain') + _c('water'))\
+			    - (_h('mlt') + _h('grain') + _h('water')))\
 			  / (boiltemp - target_temp)
 
-			return nextstep(self, nw, boiltemp, target_temp)
+			self._setvalues(nw, boiltemp, target_temp)
 
 		def waterstats(self):
 			return (_Volume(self.step_watermass),
@@ -1207,6 +1201,7 @@ class Mash:
 		if self.temperature is None:
 			raise PilotError('trying to mash without temperature')
 		mashtemps = self.temperature
+		assert(len(mashtemps) >= 1)
 
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
@@ -1217,14 +1212,11 @@ class Mash:
 		res['steps'] = []
 		res['total_water'] = watervol
 
-		step = self.__Step(fmass, ambient_temp, 0, 0)
-		mass = self.mashin_ratio * fmass.valueas(Mass.KG)
+		wmass = self.mashin_ratio * fmass.valueas(Mass.KG)
+		step = self.__Step(fmass, ambient_temp, mashtemps[0], wmass)
 		totvol = watervol
 
-		for t in mashtemps:
-			step = step.up(t, mass)
-			if mass:
-				mass = None
+		for i, t in enumerate(mashtemps):
 			(vol, temp) = step.waterstats()
 			totvol -= vol
 			if totvol < 0:
@@ -1234,6 +1226,8 @@ class Mash:
 			actualvol = Brewutils.water_vol_at_temp(vol,
 			    Constants.sourcewater_temp, temp)
 			res['steps'].append((t, vol, actualvol, temp))
+			if i+1 < len(mashtemps):
+				step.stepup(mashtemps[i+1])
 
 		res['mashstep_water'] = _Volume(watervol - totvol)
 		res['sparge_water'] = \
@@ -1257,6 +1251,9 @@ class Mash:
 			mashtemps = [mashtemps]
 		elif mashtemps.__class__ is list:
 			curtemp = 0
+			if len(mashtemps) == 0:
+				raise PilotError('must give at least one '
+				    + 'mashing temperature')
 			for x in mashtemps:
 				checktype(x, Temperature)
 				if x < curtemp:
