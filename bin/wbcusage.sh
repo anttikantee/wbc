@@ -54,7 +54,7 @@ function scale(v) {
 		sfx = "kg"
 		prec = ".3"
 	} else {
-		sfx = "g"
+		sfx = " g"
 		prec = ".1"
 	}
 	return sprintf("%8" prec "f %s", v, sfx)
