@@ -17,7 +17,8 @@
 import fractions
 import math
 
-from Utils import checktype, checktypes, getconfig, PilotError
+from Utils import checktype, checktypes, PilotError
+from Sysparams import getparam
 
 import Constants
 
@@ -44,7 +45,7 @@ class Volume(float):
 		super(Volume, self).__init__(value)
 
 	def __str__(self):
-		if getconfig('units_output') == 'metric':
+		if getparam('units_output') == 'metric':
 			v = self
 			sym = 'l'
 		else:
@@ -78,7 +79,7 @@ class Temperature(float):
 		super(Temperature, self).__init__(value)
 
 	def __str__(self):
-		if getconfig('units_output') == 'metric':
+		if getparam('units_output') == 'metric':
 			t = self
 			sym = 'C'
 		else:
@@ -134,7 +135,7 @@ class Mass(float):
 	# output either in "small" units (g/oz) or "large" ones,
 	# depending on input unit
 	def __str__(self):
-		if getconfig('units_output') == 'metric':
+		if getparam('units_output') == 'metric':
 			if self < 1000:
 				if self < 100:
 					dec = '1'
@@ -291,10 +292,10 @@ class Strength(float):
 
 	@staticmethod
 	def name():
-		if getconfig('strength_output') == 'plato':
+		if getparam('strength_output') == 'plato':
 			return unicode(unichr(0x00b0) + 'P')
 		else:
-			assert(getconfig('strength_output') == 'sg')
+			assert(getparam('strength_output') == 'sg')
 			return 'SG'
 
 	def valueas(self, which):
@@ -308,11 +309,11 @@ class Strength(float):
 			raise Exception('invalid Strength type')
 
 	def __str__(self):
-		if getconfig('strength_output') == 'plato':
+		if getparam('strength_output') == 'plato':
 			return u'{:.1f}{:}'.format(self.valueas(self.PLATO), \
 			    Strength.name())
 		else:
-			assert(getconfig('strength_output') == 'sg')
+			assert(getparam('strength_output') == 'sg')
 			return '{:.3f}'.format(self.valueas(self.SG))
 
 class Color(float):

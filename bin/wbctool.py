@@ -19,7 +19,8 @@
 from WBC.WBC import Recipe, Hop, Mash
 from WBC.Units import Mass, Temperature, Volume, Strength
 from WBC.Units import _Mass, _Temperature, _Volume
-from WBC.Utils import PilotError, setconfig
+from WBC.Utils import PilotError
+from WBC.Sysparams import setparam
 from WBC import Parse
 
 import getopt
@@ -179,7 +180,8 @@ def processyaml(clist, odict, data):
 	else:
 		boiltime = '60min'
 
-	r = Recipe(name, yeast, volume, Parse.kettletime(boiltime))
+	paramsfile = odict.get('wbcparams', None)
+	r = Recipe(paramsfile, name, yeast, volume, Parse.kettletime(boiltime))
 
 	applyparams(r, clist, odict)
 
@@ -198,6 +200,8 @@ def processyaml(clist, odict, data):
 
 def processcsv(clist, odict, data):
 	import csv
+
+	paramsfile = odict.get('wbcparams', None)
 
 	reader = csv.reader(data, delimiter='|')
 	dataver = -1
@@ -244,7 +248,8 @@ def processcsv(clist, odict, data):
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
 	    + ' [-u metric|us|plato|sg] [-s volume,strength]\n'
-	    + '\t[-v final volume] [-c] [-d] recipefile\n')
+	    + '\t[-v final volume] [-c] [-d]\n'
+	    + '\t[-p paramsfile] recipefile\n')
 	sys.exit(1)
 
 def processopts(opts):
@@ -256,6 +261,10 @@ def processopts(opts):
 		elif o == '-a':
 			t = Parse.temp(a)
 			clist.append((Recipe.set_ambient_temperature, t))
+
+		elif o == '-p':
+			odict['wbcparams'] = a
+
 		elif o == '-s':
 			optarg = a.split(',')
 			if len(optarg) != 2:
@@ -266,9 +275,11 @@ def processopts(opts):
 
 		elif o == '-u':
 			if a == 'us' or a == 'metric':
-				setconfig('units_output', a)
+				clist.append((Recipe.setparam,
+				    'units_output', a))
 			elif a == 'plato' or a == 'sg':
-				setconfig('strength_output', a)
+				clist.append((Recipe.setparam,
+				    'strength_output', a))
 			else:
 				usage()
 
@@ -279,7 +290,7 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'a:cdhs:u:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'a:cdhp:s:u:v:')
 	if len(args) > 1:
 		usage()
 

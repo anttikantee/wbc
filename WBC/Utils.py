@@ -14,28 +14,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-# well this config really shouldn't be here ... but for whatever reason it is
-global bcconfig
-bcconfig = {}
-bcconfig['units_output'] = 'metric'
-#bcconfig['units_output'] = 'us'
-
-#bcconfig['strength_output'] = 'sg'
-bcconfig['strength_output'] = 'plato'
-
-bcconfig['mash_efficiency'] = .88
-bcconfig['boiloff_perhour'] = 3.5
-bcconfig['mlt_loss'] = 1	# liters, constant irrespective of grains
-
-def getconfig(what):
-	global bcconfig
-	return bcconfig[what]
-
-def setconfig(what, value):
-	global bcconfig
-	if what not in bcconfig:
-		raise PilotError('invalid config knob')
-	bcconfig[what] = value
+import sys
 
 class PilotError(Exception):
 	pass
@@ -49,4 +28,7 @@ def checktypes(lst):
 		checktype(*chk)
 
 def warn(msg):
-	print 'WARNING: ' + msg
+	sys.stderr.write('WARNING: ' + msg)
+
+def notice(msg):
+	sys.stderr.write('>> ' + msg)

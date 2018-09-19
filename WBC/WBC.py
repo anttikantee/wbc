@@ -18,6 +18,8 @@ import copy
 
 import Constants
 import Fermentables
+import Sysparams
+from Sysparams import getparam
 
 from Utils import *
 from Units import *
@@ -29,13 +31,13 @@ def checkconfig():
 	return True
 
 class Recipe:
-
-	def __init__(self, name, yeast, volume, boiltime = 60):
-
+	def __init__(self, sysparamsfile, name, yeast, volume, boiltime = 60):
 		# volume may be None if the recipe contains only relative units
 		# XXXTODO: not all specifications take relative units currently
 		if volume is not None:
 			checktype(volume, Volume)
+
+		Sysparams.processfile(sysparamsfile)
 
 		self.name = name
 		self.yeast = yeast
@@ -123,12 +125,12 @@ class Recipe:
 
 		# preboil volume is postboil + boil loss
 		if stage <= self.PREBOIL:
-			v += getconfig('boiloff_perhour') * (self.boiltime/60.0)
+			v += getparam('boiloff_perhour') * (self.boiltime/60.0)
 
 		if stage <= self.MASHWATER:
 			v += Constants.grain_absorption \
 			    * self.grainmass().valueas(Mass.KG) \
-			    + getconfig('mlt_loss')
+			    + getparam('mlt_loss')
 
 		return _Volume(v)
 
@@ -148,6 +150,10 @@ class Recipe:
 
 		scale = self.volume_final / self.volume_inherent
 		return _Mass(scale * what)
+
+	# XXX: do we really need this?
+	def setparam(self, what, value):
+		Sysparams.setparam(what, value)
 
 	def set_final_volume(self, volume_final):
 		checktype(volume_final, Volume)
@@ -280,7 +286,7 @@ class Recipe:
 	def fermentable_percentage(self, what, theoretical=False):
 		percent = what[1].extract
 		if what[1].conversion and not theoretical:
-			percent *= getconfig('mash_efficiency')
+			percent *= getparam('mash_efficiency')
 		return percent
 
 	def fermentable_yield(self, what, theoretical=False):
@@ -430,7 +436,7 @@ class Recipe:
 		fmtstr = u'{:32}{:>20}{:>12}{:>12}'
 		print fmtstr.format("Fermentables",
 		    "amount", "ext (100%)", "ext ("
-		    + str(int(100 * getconfig('mash_efficiency'))) + "%)")
+		    + str(int(100 * getparam('mash_efficiency'))) + "%)")
 		self._prtsep()
 
 		totextract = 0
@@ -480,7 +486,7 @@ class Recipe:
 			# printing in metric or cryptic with the denominator
 			# normalized to 1
 			totvol = _Volume(totvol + x[1])
-			if getconfig('units_output') == 'metric':
+			if getparam('units_output') == 'metric':
 				ratio = totvol \
 				    / mash_grainmass.valueas(Mass.KG)
 				unit = 'l/kg'
@@ -744,7 +750,7 @@ class Recipe:
 		    self.__final_volume())
 		beff = self.results['final_strength'] / maxstren
 		print twofmt.format('Mash eff (conf) :', \
-		    str(100*getconfig('mash_efficiency')) + '%',
+		    str(100*getparam('mash_efficiency')) + '%',
 		    'Brewhouse eff (est):', '{:.1f}%'.format(100 * beff))
 
 		if self.hopsdrunk['keg'] > 0:
@@ -1111,10 +1117,6 @@ class Mash:
 	# the new temperature is the existing heat plus the new heat,
 	# divided by the total heat capacity.
 	class __Step:
-		# MLT heat capacity is equal to given mass of water
-		# XXX: should be configurable
-		__mlt_capa = Mass(1.5, Mass.KG)
-
 		# relative to capa of equivalent mass of water
 		__grain_relativecapa = 0.38
 
@@ -1142,7 +1144,7 @@ class Mash:
 			hts = {}
 
 			hts['mlt'] = {}
-			hts['mlt']['capa'] = self.__mlt_capa.valueas(Mass.KG)
+			hts['mlt']['capa'] = getparam('mlt_heatcapacity')
 			hts['mlt']['temp'] = ambient_temp
 
 			hts['grain'] = {}

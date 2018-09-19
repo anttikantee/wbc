@@ -13,13 +13,17 @@ examples:
 	for r in ${RECIPES}; do \
 		printf 'Example recipe\n---\n```\n' >> ${RT}; \
 		cat $${r} >> ${RT}; \
-		printf '```\ntranslated with `wbctool -u metric -u plato`:\n```\n' >> ${RT}; \
+		printf '```\n' >> ${RT}; \
+		printf 'translated with `wbctool -u metric -u plato`:\n```\n' \
+		    >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
-		    ./bin/wbctool.py -u metric -u plato $${r} >> ${RT}; \
+		    ./bin/wbctool.py -p ./WBCparams-example \
+		    -u metric -u plato $${r} >> ${RT}; \
 		printf '```\n\n' >> ${RT}; \
 		printf 'translated with `wbctool -u us -u sg`:\n```\n' \
 		    >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
-		    ./bin/wbctool.py -u us -u sg $${r} >> ${RT}; \
+		    ./bin/wbctool.py -p ./WBCparams-example \
+		    -u us -u sg $${r} >> ${RT}; \
 		printf '```\n\n' >> ${RT} ; done
 	mv ${RT} ${README}
