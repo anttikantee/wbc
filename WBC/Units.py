@@ -17,35 +17,30 @@
 import fractions
 import math
 
-from Utils import checktype, checktypes, getconfig
+from Utils import checktype, checktypes, getconfig, PilotError
 
 import Constants
 
 class Volume(float):
-	DEFAULT	= object()
 	LITER	= object()
 	QUART	= object()
 	GALLON	= object()
 	BARREL	= object()
 
-	def __new__(cls, value, unit=DEFAULT):
-		if unit is Volume.DEFAULT:
-			if getconfig('units_input') == 'metric':
-				unit = Volume.LITER
-			else:
-				unit = Volume.GALLON
-
+	def __new__(cls, value, unit):
 		if unit is Volume.BARREL:
 			value = Constants.gallonsperbarrel * value
 			unit = Volume.GALLON
-		if unit is Volume.GALLON:
+		elif unit is Volume.GALLON:
 			value = Constants.literspergallon * value
-		if unit is Volume.QUART:
+		elif unit is Volume.QUART:
 			value = Constants.litersperquart * value
+		elif unit is not Volume.LITER:
+			raise PilotError('invalid Volume unit')
 
 		return super(Volume, cls).__new__(cls, value)
 
-	def __init__(self, value, unit=DEFAULT):
+	def __init__(self, value, unit):
 		super(Volume, self).__init__(value)
 
 	def __str__(self):
@@ -69,22 +64,17 @@ class Volume(float):
 			assert(False)
 
 class Temperature(float):
-	DEFAULT	= object()
 	degC	= object()
 	degF	= object()
-	def __new__(cls, value, unit=DEFAULT):
-		if unit is Temperature.DEFAULT:
-			if getconfig('units_input') == 'metric':
-				unit = Temperature.degC
-			else:
-				unit = Temperature.degF
-
+	def __new__(cls, value, unit):
 		if unit is Temperature.degF:
 			value = Temperature.FtoC(value)
+		elif unit is not Temperature.degC:
+			raise PilotError('invalid Temperature unit')
 
 		return super(Temperature, cls).__new__(cls, value)
 
-	def __init__(self, value, unit=DEFAULT):
+	def __init__(self, value, unit):
 		super(Temperature, self).__init__(value)
 
 	def __str__(self):
@@ -186,16 +176,8 @@ class Strength(float):
 	PLATO	= object()
 	SG	= object()
 	SG_PTS	= object()
-	DEFAULT	= object()
 
-	def __new__(self, v, which=DEFAULT):
-		if which is self.DEFAULT:
-			which = {
-			    'sg'	: self.SG,
-			    'sg_pts'	: self.SG_PTS,
-			    'plato'	: self.PLATO,
-			}[getconfig('strength_input')]
-
+	def __new__(self, v, which):
 		if which is Strength.SG:
 			return float.__new__(self, self.to_points(v))
 		elif which is Strength.SG_PTS:
@@ -204,7 +186,7 @@ class Strength(float):
 			v = self.to_points(self.plato_to_sg(v))
 			return float.__new__(self, v)
 		else:
-			raise Exception('invalid Strength type')
+			raise Exception('invalid Strength unit')
 
 	# I did not trust the various ABV "magic number" formulae on the
 	# internet because they lacked explanation.  So, I did a long

@@ -17,14 +17,8 @@
 # well this config really shouldn't be here ... but for whatever reason it is
 global bcconfig
 bcconfig = {}
-bcconfig['units_input'] = 'metric'
-#bcconfig['units_input'] = 'us'
-
 bcconfig['units_output'] = 'metric'
 #bcconfig['units_output'] = 'us'
-
-bcconfig['strength_input'] = 'sg'
-#bcconfig['strength_input'] = 'plato'
 
 #bcconfig['strength_output'] = 'sg'
 bcconfig['strength_output'] = 'plato'
