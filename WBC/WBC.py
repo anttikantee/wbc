@@ -432,6 +432,14 @@ class Recipe:
 		self.results['mash'] \
 		    = self.mash.infusion_mash(self.ambient_temperature, totvol)
 
+		theor_yield = self.total_yield(self.MASH,
+		    theoretical=True).valueas(Mass.KG)
+		# FIXXXME: actually volume, so off-by-very-little
+		watermass = self.results['mash']['mashstep_water']
+		fw = 100 * (theor_yield / (theor_yield + watermass))
+		self.results['mash_first_wort_max'] \
+		    = Strength(fw, Strength.PLATO)
+
 	def _printmash(self):
 		fmtstr = u'{:32}{:>20}{:>12}{:>12}'
 		print fmtstr.format("Fermentables",
@@ -504,9 +512,17 @@ class Recipe:
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
 		    + unicode(Constants.sourcewater_temp))
 
-		print u'{:23}{:}'. format('Sparge water volume:', \
+		print u'{:23}{:}'.format('Sparge water volume:', \
 		    unicode(self.results['mash']['sparge_water']) + ' @ '
 		    + unicode(Constants.spargewater_temp))
+
+		fw = self.results['mash_first_wort_max']
+		fwstrs = []
+		for x in [.85, .90, .95, .98]:
+			fwstrs.append(unicode(_Strength(fw * x)) \
+			    + ' (' + str(int(100 * x)) + '%)')
+		print u'{:23}{:}'. format('First wort (conv. %):', \
+		    ', '.join(fwstrs))
 
 		if self.stolen_wort[0] > 0:
 			print
