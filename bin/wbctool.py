@@ -116,14 +116,21 @@ def domashparams(r, mashparams):
 	for p in mashparams:
 		value = mashparams[p]
 		if p == 'mashin':
-			mstr = str(value)
-			marr = mstr.split('/')
-			if len(marr) != 2:
-				raise PilotError('mashin ratio must be '
-				    '"vol / mass", you gave: ' + mstr)
-			mashin_vol = Parse.volume(marr[0])
-			mashin_mass = Parse.mass(marr[1])
-			r.mash.set_mashin_ratio(mashin_vol, mashin_mass)
+			if '%' in value:
+				v = Parse.percent(value)
+				r.mash.set_mashin_percent(v)
+			elif '/' in value:
+				mstr = str(value)
+				marr = mstr.split('/')
+				if len(marr) != 2:
+					raise PilotError('mashin ratio must be '
+					    '"vol / mass", you gave: ' + mstr)
+				mashin_vol = Parse.volume(marr[0])
+				mashin_mass = Parse.mass(marr[1])
+				r.mash.set_mashin_ratio(mashin_vol, mashin_mass)
+			else:
+				raise PilotError('invalid mashin ratio: '
+				    + value)
 
 		elif p == 'method':
 			m = Parse.mashmethod(value)

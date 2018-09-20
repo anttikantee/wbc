@@ -1099,7 +1099,7 @@ class Hop:
 
 class Mash:
 	# 2.5kg water to 1kg of grain by default
-	mashin_ratio_default = 2.5
+	__mashin_ratio_default = 2.5
 
 	INFUSION=	object()
 
@@ -1218,7 +1218,8 @@ class Mash:
 			    _Temperature(self.step_watertemp))
 
 	def __init__(self):
-		self.mashin_ratio = Mash.mashin_ratio_default
+		self.mashin_ratio = None
+		self.mashin_percent = None
 
 		self.fermentables = []
 		self.temperature = None
@@ -1232,13 +1233,21 @@ class Mash:
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
 
+		assert(not(self.mashin_ratio is not None
+		    and self.mashin_percent is not None))
+		if self.mashin_ratio is None and self.mashin_percent is None:
+			self.mashin_ratio = self.__mashin_ratio_default
+
 		fmass = _Mass(sum(x[2] for x in self.fermentables))
 
 		res = {}
 		res['steps'] = []
 		res['total_water'] = watervol
 
-		wmass = self.mashin_ratio * fmass.valueas(Mass.KG)
+		if self.mashin_ratio is not None:
+			wmass = self.mashin_ratio * fmass.valueas(Mass.KG)
+		else:
+			wmass = (self.mashin_percent/100.0) * watervol
 		step = self.__Step(fmass, ambient_temp, mashtemps[0], wmass)
 		totvol = watervol
 
@@ -1290,10 +1299,25 @@ class Mash:
 			    'Temperature or list of')
 		self.temperature = mashtemps
 
+	# set ratio of strike water to grist in mash
 	def set_mashin_ratio(self, mashin_vol, mashin_mass):
+		if self.mashin_percent is not None:
+			raise PilotError('cannot set both mashin ratio '
+			    + 'and percent')
+
 		checktype(mashin_vol, Volume)
 		checktype(mashin_mass, Mass)
 		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
+
+	# set percentage of total water used as strike water (rest is
+	# for sparging etc.)
+	def set_mashin_percent(self, percent):
+		if self.mashin_ratio is not None:
+			raise PilotError('cannot set both mashin ratio '
+			    + 'and percent')
+		if percent <= 0 or percent> 100:
+			raise PilotError('mashin percent must be >0 and <= 100')
+		self.mashin_percent = percent
 
 	# mostly a placeholder
 	def set_method(self, m):
