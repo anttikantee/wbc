@@ -1115,7 +1115,8 @@ class Mash:
 	#	heat: total heat of the component, i.e. capa * temp
 	#
 	# the new temperature is the existing heat plus the new heat,
-	# divided by the total heat capacity.
+	# divided by the total heat capacity.  The calculations used
+	# below derive from that equation.
 	class __Step:
 		# relative to capa of equivalent mass of water
 		__grain_relativecapa = 0.38
@@ -1141,11 +1142,11 @@ class Mash:
 
 		def __init__(self, grain_mass, ambient_temp, target_temp,
 		     water_capa):
-			hts = {}
+			self.hts = {}
+			hts = self.hts
 
 			hts['mlt'] = {}
 			hts['mlt']['capa'] = getparam('mlt_heatcapacity')
-			hts['mlt']['temp'] = ambient_temp
 
 			hts['grain'] = {}
 			hts['grain']['capa'] = self.__grain_relativecapa \
@@ -1156,17 +1157,39 @@ class Mash:
 			hts['water']['capa'] = 0
 			hts['water']['temp'] = 0
 
-			self.hts = hts
-
 			_c = self._capa
 			_h = self._heat
 
+			# if we're using a transfer MLT, assume it's
+			# at ambient temp.  else, for direct heated
+			# ones, assume that the water is in there which
+			# means that the MLT will be at strike water
+			# temperature.
+			#
+			# in other words, in the transfer model (e.g. cooler),
+			# the MLT will consume heat.  in the direct heat
+			# model, it will contribute heat (well, assuming
+			# you're not brewing in an oven or something weird ...
+			# the math holds nonetheless, just not the
+			# clarification in the above comment)
+			p = getparam('mlt_heat')
+			if p == 'transfer':
+				hts['mlt']['temp'] = ambient_temp
+				heatsource_capa = water_capa
+				heatsink = _h('mlt') + _h('grain')
+			elif p == 'direct':
+				hts['mlt']['temp'] = target_temp
+				heatsource_capa = water_capa + _c('mlt')
+				heatsink = _h('grain')
+			else:
+				raise PilotError('invalid mlt_heat value: ' + p)
+
+			newcapa = water_capa + _c('mlt') + _c('grain')
+
 			# see what temp the strike water needs to be at
 			# for the whole equation to settle
-			water_temp = (target_temp			\
-			      * (water_capa + _c('mlt') + _c('grain'))	\
-			    - (_h('mlt') + _h('grain')))		\
-			  / water_capa
+			water_temp = (target_temp * newcapa - heatsink) \
+			  / heatsource_capa
 
 			if water_temp > 100:
 				raise PilotError('could not satisfy mashin '
