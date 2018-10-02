@@ -223,13 +223,13 @@ def processcsv(clist, odict, data):
 			raise PilotError("unsupported wbcdata version")
 
 		if row[0] == "recipe":
-			r = Recipe(row[1], row[2], _Volume(row[4]),
+			r = Recipe(paramsfile, row[1], row[2], _Volume(row[4]),
 			    int(row[3]))
 			applyparams(r, clist, odict)
 
 		elif row[0] == "mash":
 			r.mash.set_mashin_ratio(_Volume(row[1]), _Mass(1000))
-			mashtemps = [_Temperature(x) for x in row[2:]]
+			mashtemps = [_Temperature(x) for x in row[3:]]
 			r.mash.set_mash_temperature(mashtemps)
 
 		elif row[0] == "fermentable":
