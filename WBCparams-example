@@ -6,3 +6,4 @@ mash_efficiency	=	.88
 boiloff_perhour	=	3.5
 mlt_loss	=	1
 mlt_heatcapacity=	1.5
+mlt_heat	=	transfer
