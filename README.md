@@ -96,6 +96,7 @@ Avangard Pilsner                    4.08 kg ( 75.0%)     3.26 kg     2.87 kg
 Avangard Vienna                       815 g ( 15.0%)       652 g       574 g
 Avangard Munich Light                 544 g ( 10.0%)       438 g       385 g
 ------------------------------------------------------------------------------
+                                    5.44 kg (100.0%)     4.35 kg     3.83 kg
 ==============================================================================
                                     5.44 kg (100.0%)     4.35 kg     3.83 kg
 
@@ -104,6 +105,7 @@ Mashing instructions (for ambient temperature 20.0°C)
 66.0°C : add 14.0l of water at 78.1°C (2.50 l/kg, mash vol 17.4l)
 Mashstep water volume: 13.6l @ 20.0°C
 Sparge water volume:   20.5l @ 82.0°C
+First wort (conv. %):  20.9°P (85%), 22.0°P (90%), 23.1°P (95%), 23.8°P (98%)
 ==============================================================================
 
 Hops                              AA%                time    amount     IBUs
@@ -152,6 +154,7 @@ Avangard Pilsner                 8 15/16 lb ( 75.0%)   7 3/16 lb   6 5/16 lb
 Avangard Vienna                    1 3/4 lb ( 15.0%)   1 7/16 lb    1 1/4 lb
 Avangard Munich Light             1 3/16 lb ( 10.0%)    15.44 oz    13.58 oz
 ------------------------------------------------------------------------------
+                                11 15/16 lb (100.0%)   9 9/16 lb   8 7/16 lb
 ==============================================================================
                                 11 15/16 lb (100.0%)   9 9/16 lb   8 7/16 lb
 
@@ -160,6 +163,7 @@ Mashing instructions (for ambient temperature 68.0°F)
 150.8°F: add 3.7gal of water at 172.5°F (1.20 qt/lb, mash vol 4.6gal)
 Mashstep water volume: 3.6gal @ 68.0°F
 Sparge water volume:   5.4gal @ 179.6°F
+First wort (conv. %):  1.087 (85%), 1.092 (90%), 1.097 (95%), 1.100 (98%)
 ==============================================================================
 
 Hops                              AA%                time    amount     IBUs
@@ -247,6 +251,7 @@ Mash
 Briess Pale                         4.00 kg ( 82.0%)     3.14 kg     2.76 kg
 Avangard Vienna                       878 g ( 18.0%)       703 g       618 g
 ------------------------------------------------------------------------------
+                                    4.88 kg (100.0%)     3.84 kg     3.38 kg
 ==============================================================================
                                     4.88 kg (100.0%)     3.84 kg     3.38 kg
 
@@ -255,6 +260,7 @@ Mashing instructions (for ambient temperature 20.0°C)
 66.0°C : add 15.0l of water at 76.5°C (3.00 l/kg, mash vol 18.1l)
 Mashstep water volume: 14.6l @ 20.0°C
 Sparge water volume:   15.1l @ 82.0°C
+First wort (conv. %):  17.9°P (85%), 18.9°P (90%), 19.8°P (95%), 20.4°P (98%)
 ==============================================================================
 
 Hops                              AA%                time    amount     IBUs
@@ -311,6 +317,7 @@ Mash
 Briess Pale                      8 13/16 lb ( 82.0%)    6 7/8 lb   6 1/16 lb
 Avangard Vienna                    1 7/8 lb ( 18.0%)    1 1/2 lb   1 5/16 lb
 ------------------------------------------------------------------------------
+                                  10 3/4 lb (100.0%)   8 7/16 lb   7 7/16 lb
 ==============================================================================
                                   10 3/4 lb (100.0%)   8 7/16 lb   7 7/16 lb
 
@@ -319,6 +326,7 @@ Mashing instructions (for ambient temperature 68.0°F)
 150.8°F: add 4.0gal of water at 169.8°F (1.44 qt/lb, mash vol 4.8gal)
 Mashstep water volume: 3.9gal @ 68.0°F
 Sparge water volume:   4.0gal @ 179.6°F
+First wort (conv. %):  1.074 (85%), 1.078 (90%), 1.082 (95%), 1.085 (98%)
 ==============================================================================
 
 Hops                              AA%                time    amount     IBUs
