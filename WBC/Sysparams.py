@@ -20,7 +20,9 @@ wbcparams = {}
 needparams = \
 	[ 'units_output', 'strength_output', 'mash_efficiency',
 	  'boiloff_perhour', 'mlt_loss', 'mlt_heatcapacity', 'mlt_heat']
-for x in needparams:
+optparams = \
+	[ 'grain_absorption' ]
+for x in needparams + optparams:
 	wbcparams[x] = None
 
 from Utils import PilotError, notice
@@ -33,7 +35,8 @@ def getparam(what):
 
 # XXX: should actually parse the values properly and check that they make sense
 floatparams = \
-	[ 'mash_efficiency', 'boiloff_perhour', 'mlt_loss', 'mlt_heatcapacity' ]
+	[ 'mash_efficiency', 'boiloff_perhour', 'mlt_loss', 'mlt_heatcapacity',
+	  'grain_absorption' ]
 def setparam(what, value):
 	global wbcparams
 	if what not in wbcparams:
