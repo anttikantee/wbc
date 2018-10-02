@@ -131,8 +131,8 @@ class Recipe:
 			absorp = getparam('grain_absorption')
 			if absorp is None:
 				absorp = Constants.grain_absorption
-			v += absorp * self.grainmass().valueas(Mass.KG) \
-			    + getparam('mlt_loss')
+			m = self._fermentables_allmass().valueas(Mass.KG)
+			v += absorp * m + getparam('mlt_loss')
 
 		return _Volume(v)
 
@@ -281,10 +281,6 @@ class Recipe:
 		extract = self.__extract(vol, strength)
 		self.stolen_wort = (vol, strength, extract)
 
-	def grainmass(self):
-		assert('fermentables' in self.results)
-		return _Mass(sum(x[2] for x in self.results['fermentables']))
-
 	def fermentable_percentage(self, what, theoretical=False):
 		percent = what[1].extract
 		if what[1].conversion and not theoretical:
@@ -296,8 +292,20 @@ class Recipe:
 		    * self.fermentable_percentage(what, theoretical)/100.0)
 
 	def _fermentables_atstage(self, when):
+		assert('fermentables' in self.results)
 		return filter(lambda x: x[3] == when,
 		    self.results['fermentables'])
+
+	def _fermentables_allstage(self):
+		assert('fermentables' in self.results)
+		return self.results['fermentables']
+
+	def _fermentables_mass(self, fermlist):
+		return _Mass(sum(x[2] for x in fermlist))
+
+	def _fermentables_allmass(self):
+		assert('fermentables' in self.results)
+		return _Mass(sum(x[2] for x in self.results['fermentables']))
 
 	def total_yield(self, stage, theoretical=False):
 		assert('fermentables' in self.results)
@@ -416,14 +424,13 @@ class Recipe:
 		mf = self._fermentables_atstage(self.MASH)
 		self.mash.set_fermentables(mf)
 
-		totmass = self.grainmass()
 		v = self.__volume_at_stage(self.POSTBOIL)
 
 		res = []
 		for f in sorted(mf, key=lambda x: x[2], reverse=True):
 			ferm = f[1]
 			mass = f[2]
-			ratio = mass / totmass
+			ratio = mass / self._fermentables_allmass()
 			ext_pred = self.fermentable_yield(f)
 			ext_theor = self.fermentable_yield(f,
 			    theoretical=True)
@@ -456,6 +463,7 @@ class Recipe:
 		    ('boilfermentables', 'Boil'),
 		    ('fermfermentables', 'Ferment')]:
 			(what, name) = stage
+			stagem = stagep = stagetote = stagemaxe = 0
 			if len(self.results.get(what, [])) > 0:
 				print name
 				self._prtsep('-')
@@ -463,15 +471,24 @@ class Recipe:
 					pers = ' ({:5.1f}%)'.format(f[2])
 					print fmtstr.format(f[0],
 					    str(f[1]) + pers, str(f[3]),
-					    unicode(f[4]))
-					totextract += f[3]
-					maxextract += f[4]
+					    str(f[4]))
+					stagem += f[1]
+					stagep += f[2]
+					stagetote += f[3]
+					stagemaxe += f[4]
 				self._prtsep('-')
+				pers = ' ({:5.1f}%)'.format(stagep)
+				print fmtstr.format('',
+				    str(_Mass(stagem)) + pers,
+				    str(_Mass(stagetote)),
+				    str(_Mass(stagemaxe)))
+			totextract += stagetote
+			maxextract += stagemaxe
 
 		self._prtsep()
 
 		print fmtstr.format('', \
-		    str(self.grainmass()) + ' (100.0%)', \
+		    str(self._fermentables_allmass()) + ' (100.0%)', \
 		    str(_Mass(totextract)),\
 		    str(_Mass(maxextract)))
 
@@ -481,8 +498,8 @@ class Recipe:
 		self._prtsep()
 
 		totvol = 0
-		mash_grainmass = _Mass(sum(x[2] \
-		    for x in self. _fermentables_atstage(self.MASH)))
+		mf = self._fermentables_atstage(self.MASH)
+		mash_grainmass = self._fermentables_mass(mf)
 		for x in self.results['mash']['steps']:
 			print u'{:7}'.format(unicode(x[0])) + ': add', x[2], \
 			    'of water at', unicode(x[3]),
@@ -560,7 +577,7 @@ class Recipe:
 		    key=lambda x: x[2], reverse=True):
 			ferm = f[1]
 			mass = f[2]
-			ratio = mass / self.grainmass()
+			ratio = mass / self._fermentables_allmass()
 			ext_pred = self.fermentable_yield(f)
 			ext_theo = self.fermentable_yield(f, theoretical=True)
 
@@ -798,7 +815,7 @@ class Recipe:
 		    key=lambda x: x[2], reverse=True):
 			ferm = f[1]
 			mass = f[2]
-			ratio = mass / self.grainmass()
+			ratio = mass / self._fermentables_allmass()
 			ext_pred = self.fermentable_yield(f)
 			ext_theo = self.fermentable_yield(f, theoretical=True)
 
