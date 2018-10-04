@@ -537,7 +537,7 @@ class Recipe:
 
 		fw = self.results['mash_first_wort_max']
 		fwstrs = []
-		for x in [.85, .90, .95, .98]:
+		for x in [.85, .90, .95, 1.0]:
 			fwstrs.append(unicode(_Strength(fw * x)) \
 			    + ' (' + str(int(100 * x)) + '%)')
 		print u'{:23}{:}'. format('First wort (conv. %):', \
