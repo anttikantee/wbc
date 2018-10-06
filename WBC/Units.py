@@ -22,7 +22,13 @@ from Sysparams import getparam
 
 import Constants
 
-class Volume(float):
+class WBCUnit(float):
+	def __new__(cls, value, unit):
+		rv = super(WBCUnit, cls).__new__(cls, value)
+		rv.inputunit = unit
+		return rv
+
+class Volume(WBCUnit):
 	LITER	= object()
 	QUART	= object()
 	GALLON	= object()
@@ -39,7 +45,7 @@ class Volume(float):
 		elif unit is not Volume.LITER:
 			raise PilotError('invalid Volume unit')
 
-		return super(Volume, cls).__new__(cls, value)
+		return super(Volume, cls).__new__(cls, value, unit)
 
 	def __init__(self, value, unit):
 		super(Volume, self).__init__(value)
@@ -64,16 +70,17 @@ class Volume(float):
 		else:
 			assert(False)
 
-class Temperature(float):
+class Temperature(WBCUnit):
 	degC	= object()
 	degF	= object()
+
 	def __new__(cls, value, unit):
 		if unit is Temperature.degF:
 			value = Temperature.FtoC(value)
 		elif unit is not Temperature.degC:
 			raise PilotError('invalid Temperature unit')
 
-		return super(Temperature, cls).__new__(cls, value)
+		return super(Temperature, cls).__new__(cls, value, unit)
 
 	def __init__(self, value, unit):
 		super(Temperature, self).__init__(value)
@@ -96,7 +103,7 @@ class Temperature(float):
 	def CtoF(temp):
 		return 1.8*temp + 32
 
-class Mass(float):
+class Mass(WBCUnit):
 	G	= object()
 	KG	= object()
 	OZ	= object()
@@ -111,7 +118,7 @@ class Mass(float):
 		else:
 			assert(unit is Mass.G)
 
-		return super(Mass, cls).__new__(cls, value)
+		return super(Mass, cls).__new__(cls, value, unit)
 
 	def __init__(self, value, unit):
 		if unit is Mass.OZ:
@@ -173,21 +180,20 @@ class Mass(float):
 				    + str(fractions.Fraction(frac/16.0)) + ' lb'
 
 
-class Strength(float):
+class Strength(WBCUnit):
 	PLATO	= object()
 	SG	= object()
 	SG_PTS	= object()
 
-	def __new__(self, v, which):
-		if which is Strength.SG:
-			return float.__new__(self, self.to_points(v))
-		elif which is Strength.SG_PTS:
-			return float.__new__(self, v)
-		elif which is Strength.PLATO:
-			v = self.to_points(self.plato_to_sg(v))
-			return float.__new__(self, v)
-		else:
+	def __new__(cls, value, unit):
+		if unit is Strength.SG:
+			value = cls.to_points(value)
+		elif unit is Strength.PLATO:
+			value = cls.to_points(cls.plato_to_sg(value))
+		elif unit is not Strength.SG_PTS:
 			raise Exception('invalid Strength unit')
+
+		return super(Strength, cls).__new__(cls, value, unit)
 
 	# I did not trust the various ABV "magic number" formulae on the
 	# internet because they lacked explanation.  So, I did a long
