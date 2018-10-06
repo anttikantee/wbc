@@ -296,14 +296,6 @@ class Strength(WBCUnit):
 	def from_points(points):
 		return (points / 1000 + 1)
 
-	@staticmethod
-	def name():
-		if getparam('strength_output') == 'plato':
-			return unicode(unichr(0x00b0) + 'P')
-		else:
-			assert(getparam('strength_output') == 'sg')
-			return 'SG'
-
 	def valueas(self, which):
 		if which is Strength.SG:
 			return self.from_points(self)
@@ -314,13 +306,21 @@ class Strength(WBCUnit):
 		else:
 			raise Exception('invalid Strength type')
 
+	def stras(self, unit):
+		if unit == self.PLATO:
+			return u'{:.1f}{:}'.format(self.valueas(self.PLATO), \
+			    unicode(unichr(0x00b0) + 'P'))
+		elif unit == self.SG:
+			return '{:.3f}'.format(self.valueas(self.SG))
+		else:
+			raise PilotError('invalid Strength unit')
+
 	def __str__(self):
 		if getparam('strength_output') == 'plato':
-			return u'{:.1f}{:}'.format(self.valueas(self.PLATO), \
-			    Strength.name())
+			return self.stras(self.PLATO)
 		else:
 			assert(getparam('strength_output') == 'sg')
-			return '{:.3f}'.format(self.valueas(self.SG))
+			return self.stras(self.SG)
 
 class Color(float):
 	EBC		= object()
