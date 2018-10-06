@@ -25,7 +25,7 @@ import sys
 
 def usage():
         sys.stderr.write('usage: ' + sys.argv[0]
-            + ' original_strength final_strength\n')
+            + ' original_strength final_strength|apparent_attenuation%\n')
         sys.exit(1)
 
 if __name__ == '__main__':
@@ -35,8 +35,12 @@ if __name__ == '__main__':
 		usage()
 
 	s_orig = Parse.strength(args[0])
-	s_fin  = Parse.strength(args[1])
-	attn = 1 - s_fin/s_orig
+
+	if '%' in args[1]:
+		attn = Parse.percent(args[1]) / 100.0
+	else:
+		s_fin  = Parse.strength(args[1])
+		attn = 1 - s_fin/s_orig
 
 	(x, abv) = s_orig.attenuate(attn)
 	print 'ABV: {:.1f}%, Apparent attenuation: {:.0f}%'\
