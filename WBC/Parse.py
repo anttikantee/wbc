@@ -18,6 +18,8 @@ from Units import Mass, Temperature, Volume, Strength
 from Utils import PilotError
 from WBC import Recipe, Hop, Mash
 
+import re
+
 def _unit(cls, sfxmap, input, fatal = True, name = None):
 	inputstr = str(input).strip()
 	numstr = filter(lambda x: x.isdigit() or x == '.', inputstr)
@@ -91,6 +93,8 @@ def strength(input):
 		'SG'	: Strength.SG,
 		'pts'	: Strength.SG_PTS,
 	}
+	if re.match(r'^\s*1\.[01][0-9][0-9]\s*$', input):
+		return Strength(float(input), Strength.SG)
 	return _unit(Strength, suffixes, input)
 
 def mashmethod(input):
