@@ -17,7 +17,7 @@
 #
 
 from WBC.WBC import Recipe
-from WBC.Units import Mass, Temperature, Volume, Strength
+from WBC.Units import Mass, Temperature, Volume, Strength, _Strength
 from WBC import Parse
 
 import getopt
@@ -38,10 +38,21 @@ if __name__ == '__main__':
 
 	if '%' in args[1]:
 		attn = Parse.percent(args[1]) / 100.0
+		s_fin  = _Strength(100 * int(s_orig * (1-attn)) / 100)
+		s_fin_unit = s_orig.inputunit
 	else:
 		s_fin  = Parse.strength(args[1])
+		s_fin_unit = s_fin.inputunit
 		attn = 1 - s_fin/s_orig
 
 	(x, abv) = s_orig.attenuate(attn)
-	print 'ABV: {:.1f}%, Apparent attenuation: {:.0f}%'\
-	    .format(abv, 100*attn)
+
+	def printline(fname, value):
+		print u'{:21}:{:>8}'.format(fname, value)
+
+	printline('Orig. Strength', s_orig.stras(s_orig.inputunit))
+	printline('Final Strength', s_fin.stras(s_fin_unit))
+	printline('Apparent attenuation', '{:.1f}%'.format(100*attn))
+	printline('Real attenuation', '{:.1f}%'.format(81.92*attn))
+	print
+	printline('ABV', '{:.1f}%'.format(abv))
