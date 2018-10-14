@@ -225,6 +225,8 @@ class Strength(WBCUnit):
 	#    and Commercially Produced Beers
 	#        Anthony J. Cutaia, Anna-Jean Reid and R. Alex Speers
 	#
+	# the formula for remaining RE is from the same paper (used below)
+	#
 	# Now, of course, the following routine gives wildly different
 	# values for ABV from all other methods on the interwebs (by some
 	# tenths of a percent-unit), but we'll live with it.
@@ -235,15 +237,28 @@ class Strength(WBCUnit):
 		abw = 0.38726*(oe-ae) + 0.00307*(math.pow(oe-ae, 2))
 		abv = abw * to.valueas(to.SG) / 0.7907
 
+		# calculate remaining real extract
+		#
+		# sometimes you're just really thankful for computers
+		re = 0.496815689*abw + 1.001534136*ae - 0.000591051*abw*ae \
+		    - 0.000294307*pow(ae, 2) - 0.0084747*pow(abw, 2) \
+		    + 0.000183564*pow(abw, 3) + 0.000011151*pow(ae, 3) \
+		    + 0.000002452*pow(abw, 2) * pow(ae, 2)
+		re = Strength(re, Strength.PLATO)
+
 		# if original percentage was given, return it back
 		# (we could always calculate it, but might be off
 		# by some decimal)
 		if aa is None:
 			aa = 100 * (1 - ae/oe)
 
+		ra = 100*(1-re.valueas(re.PLATO)/self.valueas(self.PLATO))
+
 		return {
 			'ae': to,
+			're': re,
 			'aa': aa,
+			'ra': ra,
 			'abv': abv,
 			'abw': abw,
 		}
