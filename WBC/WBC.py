@@ -500,7 +500,11 @@ class Recipe:
 		totvol = 0
 		mf = self._fermentables_atstage(self.MASH)
 		mash_grainmass = self._fermentables_mass(mf)
-		for x in self.results['mash']['steps']:
+		for i, x in enumerate(self.results['mash']['steps']):
+			if getparam('mlt_heat') == 'direct' and i != 0:
+				print u'{:7}'. format(unicode(x[0])) \
+				    + ': apply heat'
+				continue
 			print u'{:7}'.format(unicode(x[0])) + ': add', x[2], \
 			    'of water at', unicode(x[3]),
 
@@ -1287,18 +1291,29 @@ class Mash:
 		step = self.__Step(fmass, ambient_temp, mashtemps[0], wmass)
 		totvol = watervol
 
-		for i, t in enumerate(mashtemps):
+		if getparam('mlt_heat') == 'transfer':
+			for i, t in enumerate(mashtemps):
+				(vol, temp) = step.waterstats()
+				totvol -= vol
+				if totvol < 0:
+					raise PilotError('cannot satisfy '
+					    + 'tranfer infusion steps '
+					    + ' with given parameters '
+					    + '(ran out of water)')
+
+				actualvol = Brewutils.water_vol_at_temp(vol,
+				    Constants.sourcewater_temp, temp)
+				res['steps'].append((t, vol, actualvol, temp))
+				if i+1 < len(mashtemps):
+					step.stepup(mashtemps[i+1])
+		else:
+			assert(getparam('mlt_heat') == 'direct')
 			(vol, temp) = step.waterstats()
 			totvol -= vol
-			if totvol < 0:
-				raise PilotError('cannot satisfy infusion steps'
-				    ' with given parameters (ran out of water)')
-
 			actualvol = Brewutils.water_vol_at_temp(vol,
-			    Constants.sourcewater_temp, temp)
-			res['steps'].append((t, vol, actualvol, temp))
-			if i+1 < len(mashtemps):
-				step.stepup(mashtemps[i+1])
+				    Constants.sourcewater_temp, temp)
+			for i, t in enumerate(mashtemps):
+				res['steps'].append((t, vol, actualvol, temp))
 
 		res['mashstep_water'] = _Volume(watervol - totvol)
 		res['sparge_water'] = \
