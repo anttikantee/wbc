@@ -37,22 +37,20 @@ if __name__ == '__main__':
 	s_orig = Parse.strength(args[0])
 
 	if '%' in args[1]:
-		attn = Parse.percent(args[1]) / 100.0
-		s_fin  = _Strength(100 * int(s_orig * (1-attn)) / 100)
+		attn = Parse.percent(args[1])
 		s_fin_unit = s_orig.inputunit
+		r = s_orig.attenuate_bypercent(attn)
 	else:
 		s_fin  = Parse.strength(args[1])
 		s_fin_unit = s_fin.inputunit
-		attn = 1 - s_fin/s_orig
-
-	(x, abv) = s_orig.attenuate(attn)
+		r = s_orig.attenuate_bystrength(s_fin)
 
 	def printline(fname, value):
 		print u'{:21}:{:>8}'.format(fname, value)
 
 	printline('Orig. Strength', s_orig.stras(s_orig.inputunit))
-	printline('Final Strength', s_fin.stras(s_fin_unit))
-	printline('Apparent attenuation', '{:.1f}%'.format(100*attn))
-	printline('Real attenuation', '{:.1f}%'.format(81.92*attn))
+	printline('Final Strength', r['ae'].stras(s_fin_unit))
+	printline('Apparent attenuation', '{:.1f}%'.format(r['aa']))
+	printline('Real attenuation', '{:.1f}%'.format(.8192*r['aa']))
 	print
-	printline('ABV', '{:.1f}%'.format(abv))
+	printline('ABV', '{:.1f}%'.format(r['abv']))

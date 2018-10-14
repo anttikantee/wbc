@@ -229,14 +229,35 @@ class Strength(WBCUnit):
 	# values for ABV from all other methods on the interwebs (by some
 	# tenths of a percent-unit), but we'll live with it.
 	#
-	def attenuate(self, aa):
+	def _attenuate(self, to, aa):
 		oe = self.valueas(self.PLATO)
-		ae = oe * (1-aa)
-		fg = Strength(self * (1-aa), self.SG_PTS)
-
+		ae = to.valueas(self.PLATO)
 		abw = 0.38726*(oe-ae) + 0.00307*(math.pow(oe-ae, 2))
-		abv = abw * fg.valueas(fg.SG) / 0.7907
-		return (fg, abv)
+		abv = abw * to.valueas(to.SG) / 0.7907
+
+		# if original percentage was given, return it back
+		# (we could always calculate it, but might be off
+		# by some decimal)
+		if aa is None:
+			aa = 100 * (1 - ae/oe)
+
+		return {
+			'ae': to,
+			'aa': aa,
+			'abv': abv,
+			'abw': abw,
+		}
+
+	def attenuate_bypercent(self, aa):
+		# use attenuation for gravity, not strength
+		fg = Strength(self * (1-aa/100.0), self.SG_PTS)
+
+		return self._attenuate(fg, aa)
+
+	def attenuate_bystrength(self, strength):
+		checktype(strength, Strength)
+
+		return self._attenuate(strength, None)
 
 	# from:
 	# "Specific Gravity Measurement Methods and Applications in Brewing"

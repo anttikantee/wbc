@@ -827,9 +827,10 @@ class Recipe:
 
 	def _doattenuate(self, attenuation = (60, 86, 5)):
 		res = []
+		fin = self.results['final_strength']
 		for x in range(*attenuation):
-			t = self.results['final_strength'].attenuate(x/100.0)
-			res.append((x, t[0], t[1]))
+			t = fin.attenuate_bypercent(x)
+			res.append((x, t['ae'], t['abv']))
 		self.results['attenuation'] = res
 
 	def _printattenuate(self):
