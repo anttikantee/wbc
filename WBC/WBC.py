@@ -282,6 +282,10 @@ class Recipe:
 		self.stolen_wort = (vol, strength, extract)
 
 	def fermentable_percentage(self, what, theoretical=False):
+		if what[1].extract_legacy is True:
+			warn('fermentable "' + what[1].name + '" uses '
+			    + 'legacy extract specification\n')
+			what[1].extract_legacy = False
 		percent = what[1].extract
 		if what[1].conversion and not theoretical:
 			percent *= getparam('mash_efficiency')

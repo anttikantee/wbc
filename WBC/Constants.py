@@ -24,6 +24,9 @@ gallonsperbarrel= 42
 
 ebcpersrm	= 1.97
 
+# in case the maltster doesn't report a fine-coarse difference, use 1.5%
+fine_coarse_diff= 1.5
+
 # need this much conversion power in the entire recipe (WK)
 minconversion	= 94
 
