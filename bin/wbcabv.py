@@ -38,20 +38,28 @@ if __name__ == '__main__':
 
 	if '%' in args[1]:
 		attn = Parse.percent(args[1])
-		s_fin_unit = s_orig.inputunit
 		r = s_orig.attenuate_bypercent(attn)
 	else:
 		s_fin  = Parse.strength(args[1])
-		s_fin_unit = s_fin.inputunit
 		r = s_orig.attenuate_bystrength(s_fin)
 
 	def printline(fname, value):
-		print u'{:28}:{:>10}'.format(fname, value)
+		print u'{:28}:{:>12}'.format(fname, value)
 
-	printline('Original Strength', s_orig.stras(s_orig.inputunit))
-	printline('Final Strength (apparent)', r['ae'].stras(s_fin_unit))
+	def printline2(fname, value1, value2):
+		print u'{:28}:{:>12}{:>12}'.format(fname, value1, value2)
+
+	printline2('Original Strength',
+	    s_orig.stras(Strength.PLATO), s_orig.stras(Strength.SG))
+	printline2('Final Strength (apparent)',
+	    r['ae'].stras(Strength.PLATO), r['ae'].stras(Strength.SG))
+	print
+	re_gl = r['re_gl']
+	re_ozqt = Mass(re_gl, Mass.G).valueas(Mass.OZ) / Volume(1, Volume.QUART)
+	printline2('Remaining Extract (w/v)',
+	    '{:.1f} g/l'.format(re_gl), '{:.1f} oz/qt'.format(re_ozqt))
 	printline('Remaining Extract (w/w)', r['re'].stras(Strength.PLATO))
-	printline('Remaining Extract (w/v)', '{:.1f} g/l'.format(r['re_gl']))
+	print
 	printline('Apparent attenuation (/sg)', '{:.1f}%'.format(r['aa']))
 	printline('Real attenuation (/plato)', '{:.1f}%'.format(r['ra']))
 	print
