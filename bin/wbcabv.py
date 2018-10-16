@@ -46,11 +46,12 @@ if __name__ == '__main__':
 		r = s_orig.attenuate_bystrength(s_fin)
 
 	def printline(fname, value):
-		print u'{:28}:{:>8}'.format(fname, value)
+		print u'{:28}:{:>10}'.format(fname, value)
 
 	printline('Original Strength', s_orig.stras(s_orig.inputunit))
 	printline('Final Strength (apparent)', r['ae'].stras(s_fin_unit))
-	printline('Real Extract Remaining', r['re'].stras(Strength.PLATO))
+	printline('Remaining Extract (w/w)', r['re'].stras(Strength.PLATO))
+	printline('Remaining Extract (w/v)', '{:.1f} g/l'.format(r['re_gl']))
 	printline('Apparent attenuation (/sg)', '{:.1f}%'.format(r['aa']))
 	printline('Real attenuation (/plato)', '{:.1f}%'.format(r['ra']))
 	print
