@@ -67,7 +67,7 @@ hops:
         - [ [ Saaz,            3.1%, leaf   ], 20 g,          30 min ]
         - [ [ Hallertau,       3.8%, pellet ], 15 g,          15 min ]
 ```
-translated with `wbctool -u metric -u plato`:
+translated with `wbctool -P units_output=metric -P strength_output=plato `:
 ```
 ==============================================================================
 Name:              MarBock
@@ -125,7 +125,7 @@ Speculative apparent attenuation and resulting ABV
 
 ```
 
-translated with `wbctool -u us -u sg`:
+translated with `wbctool -P units_output=us -P strength_output=sg`:
 ```
 ==============================================================================
 Name:              MarBock
@@ -226,7 +226,7 @@ hops:
                 - [ citra,      52g, keg ]
                 - [ mosaic,     52g, keg ]
 ```
-translated with `wbctool -u metric -u plato`:
+translated with `wbctool -P units_output=metric -P strength_output=plato `:
 ```
 ==============================================================================
 Name:              Return to IPAnema
@@ -301,7 +301,7 @@ Speculative apparent attenuation and resulting ABV
 
 ```
 
-translated with `wbctool -u us -u sg`:
+translated with `wbctool -P units_output=us -P strength_output=sg`:
 ```
 ==============================================================================
 Name:              Return to IPAnema

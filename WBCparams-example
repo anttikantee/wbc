@@ -1,7 +1,5 @@
 # WBC brew system parameters file, version -0.9
 
-units_output	=	metric
-strength_output	=	plato
 mash_efficiency	=	.88
 boiloff_perhour	=	3.5
 mlt_loss	=	1
