@@ -31,7 +31,8 @@ import os, sys
 
 def getparam(what):
 	global wbcparams
-	return wbcparams[what]
+	rv = wbcparams[what]
+	return rv
 
 # XXX: should actually parse the values properly and check that they make sense
 floatparams = \
@@ -53,33 +54,38 @@ def processparam(paramstr):
 		value = float(value)
 	setparam(what, value)
 
-def processfile(filename):
-	pfiles = []
-	if filename is not None:
-		pfiles.append(filename)
-	pfiles.append('./.wbcsysparams')
-	pfiles.append(os.path.expanduser('~/.wbcsysparams'))
+def _process(f):
+	for line in f:
+		_processline(line, False)
 
-	f = None
-	for pf in pfiles:
+def _processline(line, emptyerror):
+	line = line.strip()
+	if len(line) == 0 or line[0] == '#':
+		if emptyerror:
+			raise PilotError('empty parameter line')
+		else:
+			return
+	processparam(line)
+
+def processline(line):
+	_processline(line, True)
+
+def processdefaults():
+	for pf in [os.path.expanduser('~/.wbcsysparams'), './.wbcsysparams']:
 		try:
 			f = open(pf, 'r')
-			break
+			notice('Using "' + pf + '" for WBC system parameters\n')
+			_process(f)
+			f.close()
 		except IOError:
 			continue
 
-	if f is None:
-		raise PilotError('could not open wbcsysparams file')
+def processfile(filename):
+	with open(filename, 'r') as f:
+		notice('Using "' + filename + '" for WBC system parameters\n')
+		_process(f)
 
-	notice('Using "' + pf + '" for WBC brew system parameters\n')
-
-	for line in f:
-		line = line.strip()
-		if len(line) == 0 or line[0] == '#':
-			continue
-		processparam(line)
-	f.close()
-
+def checkset():
 	for p in needparams:
 		if getparam(p) is None:
 			raise PilotError('missing system parameter for: ' + p)

@@ -20,7 +20,7 @@ from WBC.WBC import Recipe, Hop, Mash
 from WBC.Units import Mass, Temperature, Volume, Strength
 from WBC.Units import _Mass, _Temperature, _Volume
 from WBC.Utils import PilotError
-from WBC.Sysparams import setparam
+from WBC import Sysparams
 from WBC import Parse
 
 import getopt
@@ -187,8 +187,10 @@ def processyaml(clist, odict, data):
 	else:
 		boiltime = '60min'
 
-	paramsfile = odict.get('wbcparams', None)
-	r = Recipe(paramsfile, name, yeast, volume, Parse.kettletime(boiltime))
+	r = Recipe(name, yeast, volume, Parse.kettletime(boiltime))
+
+	for f in odict.get('wbcparams', []):
+		Sysparams.processfile(f)
 
 	applyparams(r, clist, odict)
 
@@ -208,8 +210,6 @@ def processyaml(clist, odict, data):
 def processcsv(clist, odict, data):
 	import csv
 
-	paramsfile = odict.get('wbcparams', None)
-
 	reader = csv.reader(data, delimiter='|')
 	dataver = -1
 	r = None
@@ -223,8 +223,7 @@ def processcsv(clist, odict, data):
 			raise PilotError("unsupported wbcdata version")
 
 		if row[0] == "recipe":
-			r = Recipe(paramsfile, row[1], row[2], _Volume(row[4]),
-			    int(row[3]))
+			r = Recipe(row[1], row[2], _Volume(row[4]), int(row[3]))
 			applyparams(r, clist, odict)
 
 		elif row[0] == "mash":
@@ -270,7 +269,7 @@ def processopts(opts):
 			clist.append((Recipe.set_ambient_temperature, t))
 
 		elif o == '-p':
-			odict['wbcparams'] = a
+			odict.setdefault('wbcparams', []).append(a)
 
 		elif o == '-s':
 			optarg = a.split(',')

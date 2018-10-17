@@ -31,13 +31,11 @@ def checkconfig():
 	return True
 
 class Recipe:
-	def __init__(self, sysparamsfile, name, yeast, volume, boiltime = 60):
+	def __init__(self, name, yeast, volume, boiltime = 60):
 		# volume may be None if the recipe contains only relative units
 		# XXXTODO: not all specifications take relative units currently
 		if volume is not None:
 			checktype(volume, Volume)
-
-		Sysparams.processfile(sysparamsfile)
 
 		self.name = name
 		self.yeast = yeast
@@ -71,6 +69,11 @@ class Recipe:
 		self.results = {}
 
 		self.mash = Mash()
+
+		Sysparams.processdefaults()
+
+	def paramfile(self, filename):
+		Sysparams.processfile(filename)
 
 	def __havefermentable(self, fermentable, when):
 		v = filter(lambda x: x[0] == fermentable and x[3] == when,
