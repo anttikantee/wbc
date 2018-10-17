@@ -189,8 +189,10 @@ def processyaml(clist, odict, data):
 
 	r = Recipe(name, yeast, volume, Parse.kettletime(boiltime))
 
-	for f in odict.get('wbcparams', []):
+	for f in odict.get('wbcparamfiles', []):
 		Sysparams.processfile(f)
+	for pl in odict.get('wbcparams', []):
+		Sysparams.processline(pl)
 
 	applyparams(r, clist, odict)
 
@@ -253,9 +255,8 @@ def processcsv(clist, odict, data):
 
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
-	    + ' [-u metric|us|plato|sg] [-s volume,strength]\n'
-	    + '\t[-v final volume] [-c] [-d]\n'
-	    + '\t[-p paramsfile] recipefile\n')
+	    + ' [-s volume,strength] [-v final volume] [-c] [-d]\n'
+	    + '\t[-p paramsfile] [-P param=value] recipefile\n')
 	sys.exit(1)
 
 def processopts(opts):
@@ -269,6 +270,9 @@ def processopts(opts):
 			clist.append((Recipe.set_ambient_temperature, t))
 
 		elif o == '-p':
+			odict.setdefault('wbcparamfiles', []).append(a)
+
+		elif o == '-P':
 			odict.setdefault('wbcparams', []).append(a)
 
 		elif o == '-s':
@@ -279,16 +283,6 @@ def processopts(opts):
 			s = Parse.strength(optarg[1])
 			clist.append((Recipe.steal_preboil_wort, v, s))
 
-		elif o == '-u':
-			if a == 'us' or a == 'metric':
-				clist.append((Recipe.setparam,
-				    'units_output', a))
-			elif a == 'plato' or a == 'sg':
-				clist.append((Recipe.setparam,
-				    'strength_output', a))
-			else:
-				usage()
-
 		elif o == '-v':
 			v = Parse.volume(a)
 			odict['volume'] = v
@@ -296,7 +290,7 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'a:cdhp:s:u:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'a:cdhp:P:s:v:')
 	if len(args) > 1:
 		usage()
 
