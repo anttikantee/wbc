@@ -99,6 +99,16 @@ def strength(input):
 		return Strength(float(input), Strength.SG)
 	return _unit(Strength, suffixes, input)
 
+def ratio(input, r1, r2):
+	istr = str(input)
+	marr = istr.split('/')
+	if len(marr) != 2:
+		raise PilotError('ratio must contain exactly one "/", you '
+		    'gave: ' + istr)
+	res1 = r1(marr[0])
+	res2 = r2(marr[1])
+	return (res1, res2)
+
 def mashmethod(input):
 	methods = {
 		'infusion'	: Mash.INFUSION,

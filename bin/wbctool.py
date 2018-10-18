@@ -120,13 +120,8 @@ def domashparams(r, mashparams):
 				v = Parse.percent(value)
 				r.mash.set_mashin_percent(v)
 			elif '/' in value:
-				mstr = str(value)
-				marr = mstr.split('/')
-				if len(marr) != 2:
-					raise PilotError('mashin ratio must be '
-					    '"vol / mass", you gave: ' + mstr)
-				mashin_vol = Parse.volume(marr[0])
-				mashin_mass = Parse.mass(marr[1])
+				(mashin_vol, mashin_mass) = \
+				    Parse.ratio(value, Parse.volume, Parse.mass)
 				r.mash.set_mashin_ratio(mashin_vol, mashin_mass)
 			else:
 				raise PilotError('invalid mashin ratio: '
