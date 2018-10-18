@@ -18,9 +18,10 @@ import fractions
 import math
 
 from Utils import checktype, checktypes, PilotError
-from Sysparams import getparam
 
 import Constants
+
+from Getparam import getparam
 
 class WBCUnit(float):
 	def __new__(cls, value, unit):

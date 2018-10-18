@@ -14,35 +14,24 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-global wbcparams
-wbcparams = {}
-
-needparams = \
-	[ 'units_output', 'strength_output', 'mash_efficiency',
-	  'boiloff_perhour', 'mlt_loss', 'mlt_heatcapacity', 'mlt_heat']
-optparams = \
-	[ 'grain_absorption' ]
-for x in needparams + optparams:
-	wbcparams[x] = None
-
 from Utils import PilotError, notice
+from Getparam import getparam
 
-import os, sys
-
-def getparam(what):
-	global wbcparams
+def _getparam(what):
 	rv = wbcparams[what]
 	return rv
 
-# XXX: should actually parse the values properly and check that they make sense
-floatparams = \
-	[ 'mash_efficiency', 'boiloff_perhour', 'mlt_loss', 'mlt_heatcapacity',
-	  'grain_absorption' ]
+wbcparams = {}
+optparams = \
+	[ 'grain_absorption' ]
+for x in optparams:
+	wbcparams[x] = None
+
 def setparam(what, value):
-	global wbcparams
-	if what not in wbcparams:
-		raise PilotError('invalid config knob: ' + what)
-	wbcparams[what] = value
+	if what not in paramparsers:
+		raise PilotError('invalid parameter: ' + what)
+	rv = paramparsers[what](value)
+	wbcparams[what] = rv
 
 def processparam(paramstr):
 	ar = paramstr.split('=')
@@ -50,8 +39,6 @@ def processparam(paramstr):
 		raise PilotError('invalid sysparam: ' + paramstr)
 	what = ar[0].strip()
 	value = ar[1].strip()
-	if what in floatparams:
-		value = float(value)
 	setparam(what, value)
 
 def _process(f):
@@ -71,6 +58,7 @@ def processline(line):
 	_processline(line, True)
 
 def processdefaults():
+	import os
 	for pf in [os.path.expanduser('~/.wbcsysparams'), './.wbcsysparams']:
 		try:
 			f = open(pf, 'r')
@@ -86,6 +74,43 @@ def processfile(filename):
 		_process(f)
 
 def checkset():
-	for p in needparams:
-		if getparam(p) is None:
+	for p in paramparsers:
+		if p not in optparams and p not in wbcparams:
 			raise PilotError('missing system parameter for: ' + p)
+
+# do some fancypants stuff to avoid having to type things multiple times.
+# one makes my fingers hurt, the other makes my brain hurt #PoisonChosen
+# beginning to appreciate cpp ...
+def _addparam(key, value):
+	def x(arg):
+		try:
+			return value(arg)
+		except PilotError, ValueError:
+			raise PilotError('invalid value "' + arg
+			    + '" for "' + key + '"')
+        paramparsers[key] = x
+
+def _currystring(strings):
+	def x(input):
+		if input in strings:
+			return input
+		else:
+			raise PilotError('invalid input')
+	return x
+
+def _parsefloat(input):
+	return float(input)
+
+import Parse
+
+paramparsers = {}
+_addparam('units_output',	_currystring(['metric', 'us']))
+_addparam('strength_output',	_currystring(['plato','sg']))
+_addparam('mash_efficiency',	Parse.percent)
+_addparam('boiloff_perhour',	Parse.volume)
+_addparam('mlt_loss',		Parse.volume)
+_addparam('mlt_heatcapacity',	_parsefloat)
+_addparam('mlt_heat',		_currystring(['transfer','direct']))
+
+# XXX: should be vol/mass, not a float, but no parser for it currently
+_addparam('grain_absorption',	_parsefloat)

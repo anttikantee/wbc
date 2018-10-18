@@ -18,8 +18,7 @@ import copy
 
 import Constants
 import Fermentables
-import Sysparams
-from Sysparams import getparam
+from Getparam import getparam
 
 from Utils import *
 from Units import *
@@ -156,10 +155,6 @@ class Recipe:
 		scale = self.volume_final / self.volume_inherent
 		return _Mass(scale * what)
 
-	# XXX: do we really need this?
-	def setparam(self, what, value):
-		Sysparams.setparam(what, value)
-
 	def set_final_volume(self, volume_final):
 		checktype(volume_final, Volume)
 		self.volume_final = volume_final
@@ -291,7 +286,7 @@ class Recipe:
 			what[1].extract_legacy = False
 		percent = what[1].extract
 		if what[1].conversion and not theoretical:
-			percent *= getparam('mash_efficiency')
+			percent *= getparam('mash_efficiency')/100.0
 		return percent
 
 	def fermentable_yield(self, what, theoretical=False):
@@ -460,7 +455,7 @@ class Recipe:
 		fmtstr = u'{:32}{:>20}{:>12}{:>12}'
 		print fmtstr.format("Fermentables",
 		    "amount", "ext (100%)", "ext ("
-		    + str(int(100 * getparam('mash_efficiency'))) + "%)")
+		    + str(int(getparam('mash_efficiency'))) + "%)")
 		self._prtsep()
 
 		totextract = 0
@@ -796,7 +791,7 @@ class Recipe:
 		    self.__final_volume())
 		beff = self.results['final_strength'] / maxstren
 		print twofmt.format('Mash eff (conf) :', \
-		    str(100*getparam('mash_efficiency')) + '%',
+		    str(getparam('mash_efficiency')) + '%',
 		    'Brewhouse eff (est):', '{:.1f}%'.format(100 * beff))
 
 		if self.hopsdrunk['keg'] > 0:
@@ -867,6 +862,8 @@ class Recipe:
 		print
 
 	def calculate(self):
+		Sysparams.checkset()
+
 		if self.__final_volume() is None:
 			raise PilotError("final volume is not set")
 
@@ -1472,3 +1469,5 @@ class Mash:
 		print '3) Fill BK2 with remainder of the runnings'
 		print '4) Run', Volume((firstrun_vol+vr)-bigbeer_vol), \
 		    'from BK1 to BK2'
+
+import Sysparams

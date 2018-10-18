@@ -1,7 +1,9 @@
 # WBC brew system parameters file, version -0.9
 
-mash_efficiency	=	.88
-boiloff_perhour	=	3.5
-mlt_loss	=	1
+mash_efficiency	=	88%
+boiloff_perhour	=	3.5l
+mlt_loss	=	1l
 mlt_heatcapacity=	1.5
 mlt_heat	=	transfer
+
+# strength_output and units_output to be provided on the command line
