@@ -98,6 +98,11 @@ def _currystring(strings):
 			raise PilotError('invalid input')
 	return x
 
+def _curryratio(p1, p2):
+	def x(input):
+		return Parse.ratio(input, p1, p2)
+	return x
+
 def _parsefloat(input):
 	return float(input)
 
@@ -111,6 +116,4 @@ _addparam('boiloff_perhour',	Parse.volume)
 _addparam('mlt_loss',		Parse.volume)
 _addparam('mlt_heatcapacity',	_parsefloat)
 _addparam('mlt_heat',		_currystring(['transfer','direct']))
-
-# XXX: should be vol/mass, not a float, but no parser for it currently
-_addparam('grain_absorption',	_parsefloat)
+_addparam('grain_absorption',	_curryratio(Parse.volume, Parse.mass))

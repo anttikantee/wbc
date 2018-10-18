@@ -130,9 +130,11 @@ class Recipe:
 			v += getparam('boiloff_perhour') * (self.boiltime/60.0)
 
 		if stage <= self.MASHWATER:
-			absorp = getparam('grain_absorption')
-			if absorp is None:
+			rv = getparam('grain_absorption')
+			if rv is None:
 				absorp = Constants.grain_absorption
+			else:
+				absorp = rv[0] / rv[1].valueas(Mass.KG)
 			m = self._fermentables_allmass().valueas(Mass.KG)
 			v += absorp * m + getparam('mlt_loss')
 
