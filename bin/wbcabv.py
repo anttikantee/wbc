@@ -54,10 +54,17 @@ if __name__ == '__main__':
 	printline2('Final Strength (apparent)',
 	    r['ae'].stras(Strength.PLATO), r['ae'].stras(Strength.SG))
 	print
-	re_gl = r['re_gl']
-	re_ozqt = Mass(re_gl, Mass.G).valueas(Mass.OZ) / Volume(1, Volume.QUART)
-	printline2('Remaining Extract (w/v)',
-	    '{:.1f} g/l'.format(re_gl), '{:.1f} oz/qt'.format(re_ozqt))
+
+	def extractwvprint(what, str):
+		v = r[what]
+		v_us = Mass(v, Mass.G).valueas(Mass.OZ) \
+		    / Volume(1, Volume.QUART)
+		printline2(str + ' Extract (w/v)',
+		    '{:.1f} g/l'.format(v), '{:.1f} oz/qt'.format(v_us))
+
+	extractwvprint('oe_gl', 'Original ')
+	extractwvprint('re_gl', 'Remaining')
+
 	printline('Remaining Extract (w/w)', r['re'].stras(Strength.PLATO))
 	print
 	printline('Apparent attenuation (/sg)', '{:.1f}%'.format(r['aa']))

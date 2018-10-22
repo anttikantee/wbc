@@ -247,9 +247,10 @@ class Strength(WBCUnit):
 		    + 0.000002452*pow(abw, 2) * pow(ae, 2)
 		re = Strength(re, Strength.PLATO)
 
-		# calculate remaining extract also in g/l.  1l weighs
+		# calculate extracts also in g/l.  1l weighs
 		# SG kilograms, so the weight of extract in g in 1l is
 		# 1000*SG * plato/100
+		oe_gl = 10 * self.valueas(self.PLATO) * self.valueas(self.SG)
 		re_gl = 10 * re.valueas(re.PLATO) * to.valueas(to.SG)
 
 		# if original percentage was given, return it back
@@ -263,6 +264,7 @@ class Strength(WBCUnit):
 		return {
 			'ae': to,
 			're': re,
+			'oe_gl': oe_gl,
 			're_gl': re_gl,
 			'aa': aa,
 			'ra': ra,
