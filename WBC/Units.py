@@ -91,13 +91,10 @@ class Temperature(WBCUnit):
 
 	def __str__(self):
 		if getparam('units_output') == 'metric':
-			t = self
-			sym = 'C'
+			return self.stras(self.degC)
 		else:
-			t = Temperature.CtoF(self)
-			sym = 'F'
-		rv = u'{:.1f}'.format(t) + unichr(0x00b0) + sym
-		return unicode(rv)
+			assert(getparam('units_output') == 'us')
+			return self.stras(self.degF)
 
 	def valueas(self, unit):
 		if unit is Temperature.degC:
@@ -108,6 +105,21 @@ class Temperature(WBCUnit):
 			return self - Constants.absolute_zero_c
 		else:
 			raise PilotError('invalid Temperature unit')
+
+	def stras(self, which):
+		if which is self.K:
+			return '{:.2f}'.format(self - Constants.absolute_zero_c)
+
+		if which is self.degC:
+			t = self
+			sym = 'C'
+		elif which is self.degF:
+			t = Temperature.CtoF(self)
+			sym = 'F'
+		else:
+			raise PilotError('invalid temperature unit')
+		rv = u'{:.1f}'.format(t) + unichr(0x00b0) + sym
+		return unicode(rv)
 
 	@staticmethod
 	def FtoC(temp):
