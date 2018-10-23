@@ -165,46 +165,59 @@ class Mass(WBCUnit):
 		else:
 			assert(False)
 
+
+	def stras(self, unit):
+		if unit is self.G:
+			if self < 100:
+				dec = '1'
+			else:
+				dec = '0'
+			fmt = '{:.' + dec + 'f}'
+			return fmt.format(self) + ' g'
+		elif unit is self.KG:
+			return '{:.2f}'.format(self/1000.0) + ' kg'
+		elif unit is self.OZ:
+			return '{:.2f}'.\
+			    format(self/Constants.gramsperounce)+' oz'
+		elif unit is self.LB:
+			# format pounds in the "normal" way.  I'd use
+			# some expletives here, but it's easier to
+			# point to the comment in the Linux kernel
+			# sources about renaming directories
+			#
+			# so, we print pounds as "whole fraction", where
+			# fraction is max 1/16th and always a power of
+			# two.... because it's logical, I guess
+			#
+			v = self / Constants.gramsperpound
+			whole = int(16*v) / 16
+			frac =  int(16*v) % 16
+			thestr = ""
+			if whole > 0:
+				thestr = str(whole) + ' '
+			return thestr \
+			    + str(fractions.Fraction(frac/16.0)) + ' lb'
+
+
 	# output either in "small" units (g/oz) or "large" ones,
 	# depending on input unit
 	def __str__(self):
 		if getparam('units_output') == 'metric':
 			if self < 1000:
-				if self < 100:
-					dec = '1'
-				else:
-					dec = '0'
-				fmt = '{:.' + dec + 'f}'
-				return fmt.format(self) + ' g'
+				return self.stras(Mass.G)
 			else:
-				return '{:.2f}'.format(self/1000.0) + ' kg'
+				return self.stras(Mass.KG)
 		else:
+			assert(getparam('units_output') is 'us')
+
 			if self.small or self < Constants.gramsperpound:
 				small = True
 			else:
 				small = False
 			if small:
-				return '{:.2f}'.\
-				    format(self/Constants.gramsperounce)+' oz'
+				return self.stras(Mass.OZ)
 			else:
-				# format pounds in the "normal" way.  I'd use
-				# some expletives here, but it's easier to
-				# point to the comment in the Linux kernel
-				# sources about renaming directories
-				#
-				# so, we print pounds as "whole fraction", where
-				# fraction is max 1/16th and always a power of
-				# two.... because it's logical, I guess
-				#
-				v = self / Constants.gramsperpound
-				whole = int(16*v) / 16
-				frac =  int(16*v) % 16
-				thestr = ""
-				if whole > 0:
-					thestr = str(whole) + ' '
-				return thestr \
-				    + str(fractions.Fraction(frac/16.0)) + ' lb'
-
+				return self.stras(Mass.LB)
 
 class Strength(WBCUnit):
 	PLATO	= object()
