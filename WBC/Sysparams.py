@@ -85,7 +85,7 @@ def _addparam(key, value):
 	def x(arg):
 		try:
 			return value(arg)
-		except PilotError, ValueError:
+		except (PilotError, ValueError):
 			raise PilotError('invalid value "' + arg
 			    + '" for "' + key + '"')
         paramparsers[key] = x
