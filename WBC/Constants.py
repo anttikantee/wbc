@@ -22,6 +22,8 @@ litersperquart	= 0.94635295
 literspergallon	= 4 * litersperquart
 gallonsperbarrel= 42
 
+absolute_zero_c	= -273.15
+
 ebcpersrm	= 1.97
 
 # in case the maltster doesn't report a fine-coarse difference, use 1.5%

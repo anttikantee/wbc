@@ -74,10 +74,13 @@ class Volume(WBCUnit):
 class Temperature(WBCUnit):
 	degC	= object()
 	degF	= object()
+	K	= object()
 
 	def __new__(cls, value, unit):
 		if unit is Temperature.degF:
 			value = Temperature.FtoC(value)
+		elif unit is Temperature.K:
+			value = value + Constants.absolute_zero_c
 		elif unit is not Temperature.degC:
 			raise PilotError('invalid Temperature unit')
 
@@ -95,6 +98,16 @@ class Temperature(WBCUnit):
 			sym = 'F'
 		rv = u'{:.1f}'.format(t) + unichr(0x00b0) + sym
 		return unicode(rv)
+
+	def valueas(self, unit):
+		if unit is Temperature.degC:
+			return self
+		if unit is Temperature.degF:
+			return self.CtoF(self)
+		elif unit is Temperature.K:
+			return self - Constants.absolute_zero_c
+		else:
+			raise PilotError('invalid Temperature unit')
 
 	@staticmethod
 	def FtoC(temp):
