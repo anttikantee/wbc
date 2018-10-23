@@ -423,6 +423,57 @@ class Color(float):
 	def EBCtoL(v):
 		return (Color.EBCtoSRM(v) + 0.76) / 1.3456
 
+class Pressure(WBCUnit):
+	PASCAL		= object()
+	BAR		= object()
+	ATMOSPHERE	= object()
+	ATM		= ATMOSPHERE
+	PSI		= object()
+
+	def __new__(cls, value, unit):
+		if unit is Pressure.PSI:
+			value = value * Constants.pascalsperpsi
+		elif unit is Pressure.BAR:
+			value = value * Constants.pascalsperbar
+		elif unit is Pressure.ATMOSPHERE:
+			value = value * Constants.pascalsperatm
+		elif unit is not Pressure.PASCAL:
+			raise Exception('invalid Pressure unit')
+
+		return super(Pressure, cls).__new__(cls, value, unit)
+
+	def valueas(self, which):
+		if which is Pressure.PASCAL:
+			return self
+		elif which is Pressure.BAR:
+			return self / Constants.pascalsperbar
+		elif which is Pressure.ATMOSPHERE:
+			return self / Constants.pascalsperatm
+		elif which is Pressure.PSI:
+			return self / Constants.pascalsperpsi
+		else:
+			raise Exception('invalid Pressure type')
+
+	def __str__(self):
+		# pick bar as the "metric" unit, because it seems to
+		# be present on all of the pressure gauges I own
+		if getparam('units_output') == 'metric':
+			return self.stras(self.BAR)
+		else:
+			return self.stras(self.ATM)
+			assert(getparam('units_output') == 'us')
+
+	def stras(self, which):
+		if which is self.PASCAL:
+			return str(self) + ' Pa'
+		elif which is self.BAR:
+			return '{:.2f} bar'.format(self.valueas(self.BAR))
+		elif which is self.ATM:
+			return '{:.2f} atm'.format(self.valueas(self.ATM))
+		elif which is self.PSI:
+			return '{:.1f} psi'.format(self.valueas(self.PSI))
+		else:
+			raise PilotError('invalid pressure unit')
 
 # shorthand names.  if they're confusing to you, use longhand instead.
 class M(Mass):

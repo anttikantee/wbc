@@ -14,7 +14,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Units import Mass, Temperature, Volume, Strength
+from Units import Mass, Temperature, Volume, Strength, Pressure
 from Utils import PilotError
 from WBC import Recipe, Hop, Mash
 
@@ -68,6 +68,15 @@ def temp(input):
 		'degF'	: Temperature.degF,
 	}
 	return _unit(Temperature, suffixes, input)
+
+def pressure(input):
+	suffixes = {
+		'Pa'	: Pressure.PASCAL,
+		'atm'	: Pressure.ATMOSPHERE,
+		'bar'	: Pressure.BAR,
+		'psi'	: Pressure.PSI,
+	}
+	return _unit(Pressure, suffixes, input)
 
 def kettletime(input):
 	suffixes = {

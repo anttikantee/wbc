@@ -22,6 +22,10 @@ litersperquart	= 0.94635295
 literspergallon	= 4 * litersperquart
 gallonsperbarrel= 42
 
+pascalsperbar	= 100000
+pascalsperatm	= 101325
+pascalsperpsi	= 6894.75729
+
 absolute_zero_c	= -273.15
 
 ebcpersrm	= 1.97
