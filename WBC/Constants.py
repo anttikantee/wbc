@@ -30,6 +30,9 @@ absolute_zero_c	= -273.15
 
 ebcpersrm	= 1.97
 
+# g/l of co2 at stp
+co2_stp_gl	= 1.977
+
 # in case the maltster doesn't report a fine-coarse difference, use 1.5%
 fine_coarse_diff= 1.5
 

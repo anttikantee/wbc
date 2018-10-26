@@ -20,6 +20,8 @@ from Units import _Volume
 
 import Constants
 
+import math
+
 # figure out wort strength for given mass of extract and volume
 def solve_strength(extract, volume):
 	checktypes([(extract, Mass), (volume, Volume)])
@@ -91,3 +93,100 @@ def water_vol_at_temp(curvol, curtemp, totemp):
 		return tab[x]
 
 	return _Volume(curvol * (nearest(curtemp) / nearest(totemp)))
+
+# values for carbonation equations
+_carbc1 = 0.00021705
+_carbc2 = 2617.25
+def _ptotal(p):
+	return p.valueas(p.BAR) + Pressure(1, p.ATM).valueas(p.BAR)
+
+def co2_vols_at_pressuretemperature(p, t):
+	checktypes([(t, Temperature), (p, Pressure)])
+
+	# from http://braukaiser.com/wiki/index.php?title=Carbonation_Tables
+	# (Braukaiser refers to his source, but that link is dead, and
+	# not available via archive.org either)
+	#
+	# Cgl = (p+1.013)*(2.71828182845904^(-10.73797+(2617.25/(T+273.15))))*10
+	#
+	# That's clearly blaablaaa * e^(moreblaablaa), written in a
+	# curious way.
+	#
+	# using Kelvins, and defining ptot = p + atm (in bars), we can
+	# write the above equation as:
+	#
+	# Cgl = 0.00021705*ptot * e^(2617.25/T)
+	#
+	# the above version is much easier to invert analytically...
+	#
+	# [research passes ... more research passes]
+	#
+	# There is another equation (2.1) available via a paper
+	# on A.J. deLange's website:
+	# http://www.wetnewf.org/pdfs/Brewing_articles/CO2%20Volumes.pdf
+	#
+	# The equation is a "Henry's law -fitted" (dissolved CO2 = p * H(T))
+	# formula for the ASBC carbonation tables.  It has a maximum
+	# discrepancy from the ASBC tables by -0.044 volumes, and rms
+	# of 0.01 volumes, which we'll call "good enough".  The paper
+	# does offer more accurate 2nd and 3rd degree polynomials, and
+	# one where H(T) is H(T,p) but ends up recommending using
+	# equation 2.1.
+	#
+	# Now, those two equations are not the same (former is f(p*t)
+	# and equation 2.1 is f(p) + g(p*t)).  However, they give
+	# similar results, with 2.1 usually producing slightly
+	# smaller values (by some 0.0[1-4] volumes).  Specifically
+	# at the "largest error" point for equation 2.1 (37degF, 19psi,
+	# -0.044 volumes), the difference is 0.040 volumes, making the
+	# former equation only 0.004 volumes off.  "yay"
+	#
+	# Anyway, enough, we'll use the first equation presented in the
+	# comment.  For ballparking purposes it is more than adequate,
+	# and those who don't want to ballpark probably actually measure
+	# the carbonation anyway.
+
+	cgl = _carbc1*_ptotal(p) * math.exp(_carbc2/t.valueas(t.K))
+	return cgl / Constants.co2_stp_gl
+
+def co2_pressure_at_temperaturevols(t, v):
+	checktype(t, Temperature)
+
+	# given:
+	#   Cgl = 0.00021705 * ptot * e^(2617.25/t)
+	#
+	#   ptot = Cgl / (0.00021705 * e^(2617.25/t))
+
+	cgl = v * Constants.co2_stp_gl
+	p = cgl / (_carbc1 * math.exp(_carbc2/t.valueas(t.K)))
+
+	pval = p - Pressure(1, Pressure.ATM).valueas(Pressure.BAR)
+	return Pressure(pval, Pressure.BAR)
+
+def co2_temperature_at_pressurevols(p, v):
+	checktype(p, Pressure)
+
+	# given:
+	#   Cgl = 0.00021705 * ptot * e^(2617.25/t)
+	#
+	#   t = 2617.25 / ln(Cgl / 0.00021705 * ptot)
+
+	cgl = v * Constants.co2_stp_gl
+	t = _carbc2 / math.log(cgl / (_carbc1 * _ptotal(p)))
+
+	return Temperature(t, Temperature.K)
+
+def co2_headspace(p1, t1):
+	checktypes([(t1, Temperature), (p1, Pressure)])
+
+	# assuming pV = nRT, with constant V
+	#  => n = pV/RT
+	#  => n1/n2 = (p1*V/R*T1)/(p2*V/R*T2) = (p1*T2/p2*T1)
+
+	stp_p = Pressure(1, Pressure.BAR)
+	stp_t = Temperature(0, Temperature.degC)
+
+	ratio = (_ptotal(p1) * stp_t.valueas(stp_t.K)) \
+	    / (stp_p.valueas(stp_p.BAR) * t1.valueas(t1.K))
+
+	return ratio * Constants.co2_stp_gl
