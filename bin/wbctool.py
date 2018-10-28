@@ -145,6 +145,11 @@ def domashparams(r, mashparams):
 			raise PilotError('unknown mash parameter: ' + str(p))
 
 def applyparams(r, clist, odict):
+	for f in odict.get('wbcparamfiles', []):
+		Sysparams.processfile(f)
+	for pl in odict.get('wbcparams', []):
+		Sysparams.processline(pl)
+
 	for c in clist:
 		c[0](r, *c[1:])
 
@@ -183,11 +188,6 @@ def processyaml(clist, odict, data):
 		boiltime = '60min'
 
 	r = Recipe(name, yeast, volume, Parse.kettletime(boiltime))
-
-	for f in odict.get('wbcparamfiles', []):
-		Sysparams.processfile(f)
-	for pl in odict.get('wbcparams', []):
-		Sysparams.processline(pl)
 
 	applyparams(r, clist, odict)
 
