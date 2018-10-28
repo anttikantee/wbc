@@ -208,7 +208,7 @@ class Mass(WBCUnit):
 			else:
 				return self.stras(Mass.KG)
 		else:
-			assert(getparam('units_output') is 'us')
+			assert(getparam('units_output') == 'us')
 
 			if self.small or self < Constants.gramsperpound:
 				small = True
