@@ -535,11 +535,16 @@ class Recipe:
 			print '({:.2f} {:}, mash vol {:})'.format(ratio,
 			    unit, mash_volume)
 
-		print u'{:23}{:}'.format('Mashstep water volume:', \
+		print u'{:21}{:}'.format('Mashin water volume:', \
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
-		    + unicode(Constants.sourcewater_temp))
+		    + unicode(Constants.sourcewater_temp)),
+		print '(potential first runnings: ~{:})' \
+		    .format(_Volume(self.results['mash']['mashstep_water']
+		      - (mash_grainmass.valueas(Mass.KG)
+		         * self.__grain_absorption()
+		        + getparam('mlt_loss'))))
 
-		print u'{:23}{:}'.format('Sparge water volume:', \
+		print u'{:21}{:}'.format('Sparge water volume:', \
 		    unicode(self.results['mash']['sparge_water']) + ' @ '
 		    + unicode(Constants.spargewater_temp))
 
