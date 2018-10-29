@@ -42,7 +42,7 @@ minconversion	= 94
 # water absortion for 1kg of grain, net (i.e. apparent absorption).
 # really somewhere around 1.05, but this value seems to work better
 # for grains not wrung dry
-grain_absorption = 1.1
+grain_absorption = '1.1l/kg'
 
 # hop absorption, milliliter of wort per gram of hops
 pellethop_absorption = 6

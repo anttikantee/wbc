@@ -17,15 +17,13 @@
 from Utils import PilotError, notice
 from Getparam import getparam
 
+import Constants
+
 def _getparam(what):
 	rv = wbcparams[what]
 	return rv
 
 wbcparams = {}
-optparams = \
-	[ 'grain_absorption' ]
-for x in optparams:
-	wbcparams[x] = None
 
 def setparam(what, value):
 	if what not in paramparsers:
@@ -75,7 +73,7 @@ def processfile(filename):
 
 def checkset():
 	for p in paramparsers:
-		if p not in optparams and p not in wbcparams:
+		if p not in wbcparams:
 			raise PilotError('missing system parameter for: ' + p)
 
 # do some fancypants stuff to avoid having to type things multiple times.
@@ -86,8 +84,8 @@ def _addparam(key, value):
 		try:
 			return value(arg)
 		except (PilotError, ValueError):
-			raise PilotError('invalid value "' + arg
-			    + '" for "' + key + '"')
+			raise PilotError('invalid value "' + str(arg)
+			    + '" for "' + str(key) + '"')
         paramparsers[key] = x
 
 def _currystring(strings):
@@ -117,3 +115,10 @@ _addparam('mlt_loss',		Parse.volume)
 _addparam('mlt_heatcapacity',	_parsefloat)
 _addparam('mlt_heat',		_currystring(['transfer','direct']))
 _addparam('grain_absorption',	_curryratio(Parse.volume, Parse.mass))
+
+_defaults = {
+	'grain_absorption' : Constants.grain_absorption,
+}
+
+for x in _defaults:
+	setparam(x, _defaults[x])

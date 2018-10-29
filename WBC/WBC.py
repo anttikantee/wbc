@@ -106,6 +106,11 @@ class Recipe:
 			return self.volume_final
 		return self.volume_inherent
 
+	def __grain_absorption(self):
+		rv = getparam('grain_absorption')
+		absorp = rv[0] / rv[1].valueas(Mass.KG)
+		return absorp
+
 	def __volume_at_stage(self, stage):
 		assert(stage >= self.MASHWATER and stage <= self.FINAL)
 
@@ -130,13 +135,8 @@ class Recipe:
 			v += getparam('boiloff_perhour') * (self.boiltime/60.0)
 
 		if stage <= self.MASHWATER:
-			rv = getparam('grain_absorption')
-			if rv is None:
-				absorp = Constants.grain_absorption
-			else:
-				absorp = rv[0] / rv[1].valueas(Mass.KG)
 			m = self._fermentables_allmass().valueas(Mass.KG)
-			v += absorp * m + getparam('mlt_loss')
+			v += self.__grain_absorption()*m + getparam('mlt_loss')
 
 		return _Volume(v)
 
