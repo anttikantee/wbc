@@ -179,7 +179,14 @@ add('Avangard Wheat',
 	DiaP(150, DiaP.WK),
 	Color(4.5, EBC))
 
-add('Briess pale', 78.5, 264, Color(7.8, EBC))
+add('Briess Pale',
+	Extract(78.5, CGDB, 1.5, 4.0),
+	DiaP(85, DiaP.L),
+	Color(3.5, LOVIBOND))
+add('Briess Carapils',
+	Extract(75.0, FGDB, FCD_UNKNOWN, 6.5),
+	diap_none,
+	Color(1.5, LOVIBOND))
 # Briess generic smoked malt (any of beech / cherry / mesquite)
 # XXX: not sure diastatic power is correct (specs do say 140 degL)
 add('Briess smoked', 80.5, 474, Color(14.5, EBC))
@@ -197,7 +204,6 @@ add('Dingemans Pale',
 	Extract(80, FGDB, 2.0, 4.5),
 	Constants.minconversion,
 	Color(9, EBC))
-
 add('Dingemans Special B',
 	Extract(72, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
@@ -212,16 +218,27 @@ add('Meussdoerffer Sour Malt',
 	diap_none,
 	Color(2, LOVIBOND))
 
-# XXX: extract correct?
-add('Muntons Chocolate', 67, 0, Color(1000, EBC))
-add('Muntons Crystal 150 EBC', 67, 0, Color(150, EBC))
+# Muntons is so convenient that I have to guess half and stich the
+# rest together from two sources:
+# http://www.muntonsmicrobrewing.com/wp-content/uploads/2018/04/171122-Craft-Brewer-Guide-October-2017_stg-5_email.pdf
+# http://www.muntonsmicrobrewing.com/products/typical-analysis/
+add('Muntons Black Malt',
+	Extract(60, FGDB, FCD_UNKNOWN, 5.0),
+	diap_none,
+	Color(1300, EBC))
+add('Muntons Chocolate',
+	Extract(65.5, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(1100, EBC))
+add('Muntons Crystal 150 EBC',
+	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(150, EBC))
 alias('Muntons Crystal 60 L', 'Muntons Crystal 150 EBC')
-add('Muntons Black Malt', 67, 0, Color(1300, EBC))
-
-# XXX: I was utterly unable to find a datasheet for whatever Muntons
-# "Whole Pale Malt Marris Otter" is.  So I'm just guessing it's
-# more or less "ale malt" from muntons.com
-add('Muntons Maris Otter', 81.5, 156, Color(5.8, EBC))
+add('Muntons Maris Otter',
+	Extract(81.5, FGDB, FCD_UNKNOWN, 3.0),
+	DiaP(156, DiaP.WK),
+	Color(5.8, EBC))
 
 add('Simpsons Golden Promise', 81, 140, Color(6.5, EBC))
 
