@@ -66,6 +66,7 @@ def temp(input):
 	suffixes = {
 		'degC'	: Temperature.degC,
 		'degF'	: Temperature.degF,
+		'K'	: Temperature.K,
 	}
 	return _unit(Temperature, suffixes, input)
 
