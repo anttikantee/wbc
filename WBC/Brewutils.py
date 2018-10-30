@@ -186,7 +186,10 @@ def co2_headspace(p1, t1):
 	stp_p = Pressure(1, Pressure.BAR)
 	stp_t = Temperature(0, Temperature.degC)
 
-	ratio = (_ptotal(p1) * stp_t.valueas(stp_t.K)) \
+	# the P in STP is defined as 1bar (not 1atm), so we can't use
+	# _ptotal(), since the other equations use 1atm
+	ptotal = Pressure(p1.valueas(Pressure.BAR) + 1, Pressure.BAR)
+	ratio = (ptotal.valueas(ptotal.BAR) * stp_t.valueas(stp_t.K)) \
 	    / (stp_p.valueas(stp_p.BAR) * t1.valueas(t1.K))
 
 	return ratio * Constants.co2_stp_gl
