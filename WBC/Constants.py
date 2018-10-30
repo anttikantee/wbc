@@ -14,8 +14,6 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Units import _Temperature
-
 gramsperounce	= 28.349523
 gramsperpound	= 16 * gramsperounce
 litersperquart	= 0.94635295
@@ -38,11 +36,6 @@ fine_coarse_diff= 1.5
 
 # need this much conversion power in the entire recipe (WK)
 minconversion	= 94
-
-# water absortion for 1kg of grain, net (i.e. apparent absorption).
-# really somewhere around 1.05, but this value seems to work better
-# for grains not wrung dry
-grain_absorption = '1.1l/kg'
 
 # hop absorption, milliliter of wort per gram of hops
 pellethop_absorption = 6
@@ -67,15 +60,3 @@ grain_specificvolume = 0.7
 # in kg/m3 (or g/l)
 pellethop_density = 500
 leafhop_density = 135
-
-# temperature is used for volume calculations.
-# XXX: should be configurable, though it doesn't really matter if
-# it's 4 or 10 or 20 or 30.
-sourcewater_temp = _Temperature(20)
-
-# should also be configurable, but doesn't matter that much
-preboil_temp	 = _Temperature(70)
-postboil_temp	 = _Temperature(100)
-
-# doesn't really matter, except for "setting" preboil temp
-spargewater_temp = _Temperature(82)

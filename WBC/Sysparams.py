@@ -109,15 +109,32 @@ import Parse
 paramparsers = {}
 _addparam('units_output',	_currystring(['metric', 'us']))
 _addparam('strength_output',	_currystring(['plato','sg']))
+
 _addparam('mash_efficiency',	Parse.percent)
+
 _addparam('boiloff_perhour',	Parse.volume)
+
 _addparam('mlt_loss',		Parse.volume)
 _addparam('mlt_heatcapacity',	_parsefloat)
 _addparam('mlt_heat',		_currystring(['transfer','direct']))
+
 _addparam('grain_absorption',	_curryratio(Parse.volume, Parse.mass))
 
+_addparam('ambient_temp',	Parse.temp)
+_addparam('preboil_temp',	Parse.temp)
+_addparam('postboil_temp',	Parse.temp)
+_addparam('sparge_temp',	Parse.temp)
+
 _defaults = {
-	'grain_absorption' : Constants.grain_absorption,
+	# water absortion for 1kg of grain, net (i.e. apparent absorption).
+	# really somewhere around 1.05, but this value seems to work better
+	# for grains not wrung dry
+	'grain_absorption'	: '1.1l/kg',
+
+	'ambient_temp'		: '20degC',
+	'preboil_temp'		: '70degC',
+	'postboil_temp'		: '100degC',
+	'sparge_temp'		: '82degC',
 }
 
 for x in _defaults:

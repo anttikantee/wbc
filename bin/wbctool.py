@@ -260,9 +260,6 @@ def processopts(opts):
 	for o, a in opts:
 		if o == '-h':
 			usage()
-		elif o == '-a':
-			t = Parse.temp(a)
-			clist.append((Recipe.set_ambient_temperature, t))
 
 		elif o == '-p':
 			odict.setdefault('wbcparamfiles', []).append(a)
@@ -285,7 +282,7 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'a:cdhp:P:s:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'cdhp:P:s:v:')
 	if len(args) > 1:
 		usage()
 

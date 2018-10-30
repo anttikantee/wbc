@@ -57,9 +57,6 @@ class Recipe:
 
 		self.boiltime = boiltime
 
-		# overridable by calling ambient_temperature()
-		self.ambient_temperature = _Temperature(20)
-
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
 		    'keg':_Volume(0)}
 
@@ -110,6 +107,9 @@ class Recipe:
 		rv = getparam('grain_absorption')
 		absorp = rv[0] / rv[1].valueas(Mass.KG)
 		return absorp
+
+	def __reference_temp(self):
+		return getparam('ambient_temp')
 
 	def __volume_at_stage(self, stage):
 		assert(stage >= self.MASHWATER and stage <= self.FINAL)
@@ -269,10 +269,6 @@ class Recipe:
 				raise PilotError('captain, I cannot change the'\
 				    ' laws of math; 100% fermentables max!')
 
-	def set_ambient_temperature(self, temp):
-		checktype(temp, Temperature)
-		self.ambient_temperature = temp
-
 	# indicate that we want to "borrow" some wort at the preboil stage
 	# for e.g. building starters.
 	def steal_preboil_wort(self, vol, strength):
@@ -409,7 +405,7 @@ class Recipe:
 	def _domash(self):
 		prevol1 = self.__volume_at_stage(self.PREBOIL)
 		prevol  = Brewutils.water_vol_at_temp(prevol1,
-		    Constants.sourcewater_temp, Constants.preboil_temp)
+		    self.__reference_temp(), getparam('preboil_temp'))
 		self.results['preboil_volume'] = prevol
 		prestren = Brewutils.solve_strength(self.total_yield(self.MASH),
 		    prevol)
@@ -443,7 +439,8 @@ class Recipe:
 
 		self.results['mashfermentables'] = res
 		self.results['mash'] \
-		    = self.mash.infusion_mash(self.ambient_temperature, totvol)
+		    = self.mash.infusion_mash(getparam('ambient_temp'),
+			self.__reference_temp(), totvol)
 
 		theor_yield = self.total_yield(self.MASH,
 		    theoretical=True).valueas(Mass.KG)
@@ -498,7 +495,7 @@ class Recipe:
 
 		print
 		print 'Mashing instructions (for ambient temperature', \
-		    unicode(self.ambient_temperature) + ')'
+		    unicode(getparam('ambient_temp')) + ')'
 		self._prtsep()
 
 		totvol = 0
@@ -537,7 +534,7 @@ class Recipe:
 
 		print u'{:21}{:}'.format('Mashin water volume:', \
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
-		    + unicode(Constants.sourcewater_temp)),
+		    + unicode(self.__reference_temp())),
 		print '(potential first runnings: ~{:})' \
 		    .format(_Volume(self.results['mash']['mashstep_water']
 		      - (mash_grainmass.valueas(Mass.KG)
@@ -546,7 +543,7 @@ class Recipe:
 
 		print u'{:21}{:}'.format('Sparge water volume:', \
 		    unicode(self.results['mash']['sparge_water']) + ' @ '
-		    + unicode(Constants.spargewater_temp))
+		    + unicode(getparam('sparge_temp')))
 
 		fw = self.results['mash_first_wort_max']
 		fwstrs = []
@@ -726,7 +723,7 @@ class Recipe:
 
 		postvol1 = self.__volume_at_stage(self.POSTBOIL)
 		postvol  = Brewutils.water_vol_at_temp(postvol1,
-		    Constants.sourcewater_temp, Constants.postboil_temp)
+		    self.__reference_temp(), getparam('postboil_temp'))
 		total_water = _Volume(self.results['mash']['total_water']
 		    + self.results['steal']['missing'])
 
@@ -756,7 +753,7 @@ class Recipe:
 		print twofmt.format('Color (Morey):', \
 		    ebcprec.format(ebc) \
 		    + ' EBC, ' + srmprec.format(srm) + ' SRM', \
-		    'Water (' + unicode(Constants.sourcewater_temp) + '):', \
+		    'Water (' + unicode(self.__reference_temp()) + '):', \
 		    unicode(total_water))
 		bil = 1000*1000*1000
 		unit = ' billion'
@@ -771,13 +768,13 @@ class Recipe:
 
 		print twofmt.format('Preboil  volume  :', \
 		    str(self.results['preboil_volume']) \
-		    + ' (' + unicode(Constants.preboil_temp) + ')', \
+		    + ' (' + unicode(getparam('preboil_temp')) + ')', \
 		    'Measured:', '')
 		print twofmt.format('Preboil  strength:', \
 		    unicode(self.results['preboil_strength']), \
 		    'Measured:', '')
 		print twofmt.format('Postboil volume  :', str(postvol) \
-		    + ' (' + unicode(Constants.postboil_temp) + ')', \
+		    + ' (' + unicode(getparam('postboil_temp')) + ')', \
 		    'Measured:', '')
 		print twofmt.format('Postboil strength:', \
 		    unicode(self.results['postboil_strength']), \
@@ -1275,7 +1272,7 @@ class Mash:
 		self.fermentables = []
 		self.temperature = None
 
-	def infusion_mash(self, ambient_temp, watervol):
+	def infusion_mash(self, ambient_temp, water_temp, watervol):
 		if self.temperature is None:
 			raise PilotError('trying to mash without temperature')
 		mashtemps = self.temperature
@@ -1313,7 +1310,7 @@ class Mash:
 					    + '(ran out of water)')
 
 				actualvol = Brewutils.water_vol_at_temp(vol,
-				    Constants.sourcewater_temp, temp)
+				    water_temp, temp)
 				res['steps'].append((t, vol, actualvol, temp))
 				if i+1 < len(mashtemps):
 					step.stepup(mashtemps[i+1])
@@ -1322,14 +1319,14 @@ class Mash:
 			(vol, temp) = step.waterstats()
 			totvol -= vol
 			actualvol = Brewutils.water_vol_at_temp(vol,
-				    Constants.sourcewater_temp, temp)
+				    water_temp, temp)
 			for i, t in enumerate(mashtemps):
 				res['steps'].append((t, vol, actualvol, temp))
 
 		res['mashstep_water'] = _Volume(watervol - totvol)
 		res['sparge_water'] = \
 		    Brewutils.water_vol_at_temp(_Volume(totvol), \
-		    Constants.sourcewater_temp, Constants.spargewater_temp)
+		    water_temp, getparam('sparge_temp'))
 
 		return res
 
