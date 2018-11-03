@@ -304,4 +304,6 @@ if __name__ == '__main__':
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
 		raise SystemExit, 1
+	except IOError, e:
+		print e
 	sys.exit(0)
