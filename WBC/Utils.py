@@ -27,8 +27,8 @@ def checktypes(lst):
 	for chk in lst:
 		checktype(*chk)
 
-def warn(msg):
-	sys.stderr.write('WARNING: ' + msg)
+def warn(msg, prepend=''):
+	sys.stderr.write(prepend + 'WARNING: ' + msg)
 
-def notice(msg):
-	sys.stderr.write('>> ' + msg)
+def notice(msg, prepend=''):
+	sys.stderr.write(prepend + '>> ' + msg)
