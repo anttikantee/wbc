@@ -222,7 +222,7 @@ class Recipe:
 			raise PilotError('fermentables may be specified max '
 			    + 'once per stage')
 
-		if fermentable.conversion and when != self.MASH:
+		if fermentable.needmash and when != self.MASH:
 			raise PilotError('fermentable "' + name + '" needs '
 			    + 'a mash')
 

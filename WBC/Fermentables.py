@@ -21,7 +21,7 @@ from Units import Color
 import copy
 
 class Fermentable:
-	def __init__(self, name, extract, diap, color, conversion):
+	def __init__(self, name, extract, diap, color, needmash, conversion):
 		Utils.checktype(color, Color)
 		self.name = name
 
@@ -40,6 +40,7 @@ class Fermentable:
 			self.wk = diap
 
 		self.color = color
+		self.needmash = needmash
 		self.conversion = conversion
 fermentables = []
 
@@ -134,9 +135,10 @@ def _scanexisting(name):
 		Utils.warn('fermentable ' + name + ' already exists')
 		fermentables.remove(f)
 
-def add(name, extract, wk, ebc, conversion = True):
+def add(name, extract, wk, ebc, needmash = True, conversion = True):
 	_scanexisting(name)
-	fermentables.append(Fermentable(name, extract, wk, ebc, conversion))
+	fermentables.append(Fermentable(name, extract, wk, ebc,
+	    needmash, conversion))
 
 def alias(name, toclone):
 	c = find(toclone)
@@ -186,7 +188,8 @@ add('Briess Pale',
 add('Briess Carapils',
 	Extract(75.0, FGDB, FCD_UNKNOWN, 6.5),
 	diap_none,
-	Color(1.5, LOVIBOND))
+	Color(1.5, LOVIBOND),
+	needmash = False)
 # Briess generic smoked malt (any of beech / cherry / mesquite)
 # XXX: not sure diastatic power is correct (specs do say 140 degL)
 add('Briess smoked', 80.5, 474, Color(14.5, EBC))
@@ -195,7 +198,7 @@ add('Briess smoked', 80.5, 474, Color(14.5, EBC))
 add('Crisp Maris Otter', 81.5, 150, Color(3.5, EBC))
 # well, as usual, can't find this on the maltsters page, but pretty much
 # all vendors agree that it's 200-250 Lovibond, so I guess mostly correct
-add('Crisp Pale Chocolate', 77, 0, Color(600, EBC))
+add('Crisp Pale Chocolate', 77, 0, Color(600, EBC), needmash = False)
 
 # XXX: probably better diastatic power, but can't figure it out
 # from the datasheet at:
@@ -207,7 +210,8 @@ add('Dingemans Pale',
 add('Dingemans Special B',
 	Extract(72, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
-	Color(310, EBC))
+	Color(310, EBC),
+	needmash = False)
 
 # found a data sheet with 81% extract min for fine grind, so
 # guessing the coarse grind from that.
@@ -225,15 +229,18 @@ add('Meussdoerffer Sour Malt',
 add('Muntons Black Malt',
 	Extract(60, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
-	Color(1300, EBC))
+	Color(1300, EBC),
+	needmash = False)
 add('Muntons Chocolate',
 	Extract(65.5, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
-	Color(1100, EBC))
+	Color(1100, EBC),
+	needmash = False)
 add('Muntons Crystal 150 EBC',
 	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
-	Color(150, EBC))
+	Color(150, EBC),
+	needmash = False)
 alias('Muntons Crystal 60 L', 'Muntons Crystal 150 EBC')
 add('Muntons Maris Otter',
 	Extract(81.5, FGDB, FCD_UNKNOWN, 3.0),
@@ -248,16 +255,20 @@ add('Simpsons Golden Promise', 81, 140, Color(6.5, EBC))
 # http://www.fawcett-maltsters.co.uk/spec.html
 # (well, ok, they don't apparently supply the diastatic power, but
 # until we hit base malts for them, doesn't really matter)
-add('Fawcett Brown', 70, 0, Color(188, EBC))
+add('Fawcett Brown',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(188, EBC),
+	needmash = False)
 
 # XXX: no idea about the extract, but since it's supposed just regular
 # pale malt with lactic acid, we'll go with 75%.  it's not used in such
 # high amounts that it should matter if we're off even by 50%
 add('Weyermann Acidulated Malt', 75, 0, Color(4.5, EBC))
 
-add('Weyermann CaraAroma', 74, 0, Color(350, EBC))
-add('Weyermann CaraMunich 1', 75, 0, Color(90, EBC))
-add('Weyermann CaraMunich 3', 76, 0, Color(150, EBC))
+add('Weyermann CaraAroma', 74, 0, Color(350, EBC), needmash = False)
+add('Weyermann CaraMunich 1', 75, 0, Color(90, EBC), needmash = False)
+add('Weyermann CaraMunich 3', 76, 0, Color(150, EBC), needmash = False)
 
 add('Weyermann Melanoidin', 75, 0, Color(70, EBC))
 
@@ -269,19 +280,19 @@ add('Weyermann Munich I',
 	Constants.minconversion,
 	Color(16, EBC))
 
-add('Weyermann Chocolate Rye', 65, 0, Color(600, EBC))
+add('Weyermann Chocolate Rye', 65, 0, Color(600, EBC), needmash = False)
 
 # I'm starting to hate listing malts.  It's a complete crapshoot
 # between what the maltster provides and what vendors provide
 add('Weyermann Pale Rye', 81, Constants.minconversion, Color(7, EBC))
 
 # XXX: extract correct?
-add('Weyermann Carafa 2', 70, 0, Color(1100, EBC))
+add('Weyermann Carafa 2', 70, 0, Color(1100, EBC), needmash = False)
 
 # extract yields for non-malts (from 'How To Brew' [Palmer])
 add('Flaked wheat', 77, 0, Color(0, EBC))
 add('Flaked oats', 70, 0, Color(0, EBC))
-add('Roasted barley', 55, 0, Color(1400, EBC))
+add('Roasted barley', 55, 0, Color(1400, EBC), needmash = False)
 
 # guess and assume
 add('Flaked rye',
@@ -293,4 +304,5 @@ add('Flaked rye',
 add('Rice', 70, 0, Color(1, EBC))
 
 # sugars ("self-converting")
-add('Table sugar', 100, Constants.minconversion, Color(0, EBC), False)
+add('Table sugar', 100, Constants.minconversion, Color(0, EBC),
+    needmash = False)
