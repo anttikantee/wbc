@@ -320,6 +320,18 @@ class Recipe:
 			m += yield_at_stage(self.FERMENT)
 		return _Mass(m - self.stolen_wort[2])
 
+	def _sanity_check(self):
+		pbs = self.results['preboil_strength'].valueas(Strength.PLATO)
+		fw = self.results['mash_first_wort_max'].valueas(Strength.PLATO)
+
+		if pbs > fw:
+			warn("preboil strength is greater than 100% "
+			    "converted mash.\n", '\n')
+			warn('=> impossible mash efficiency. '
+			    'adjust "mash_efficiency" parameter.\n\n')
+
+		# XXX: more checks on lautering feasibility needed
+
 	# turn percentages into masses
 	def _dofermentables(self):
 		# calculates the mass of extract required to hit the
@@ -450,6 +462,15 @@ class Recipe:
 		self.results['mash_first_wort_max'] \
 		    = Strength(fw, Strength.PLATO)
 
+		mf = self._fermentables_atstage(self.MASH)
+		rv = _Volume(self.results['mash']['mashstep_water']
+		      - (self._fermentables_mass(mf).valueas(Mass.KG)
+		         * self.__grain_absorption()
+		        + getparam('mlt_loss')))
+		if rv <= 0:
+			raise PilotError('mashin ratio ridiculously low')
+		self.results['mash_first_runnings_max'] = rv
+
 	def _printmash(self):
 		fmtstr = u'{:32}{:>20}{:>12}{:>12}'
 		print fmtstr.format("Fermentables",
@@ -536,10 +557,7 @@ class Recipe:
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
 		    + unicode(self.__reference_temp())),
 		print '(potential first runnings: ~{:})' \
-		    .format(_Volume(self.results['mash']['mashstep_water']
-		      - (mash_grainmass.valueas(Mass.KG)
-		         * self.__grain_absorption()
-		        + getparam('mlt_loss'))))
+		    .format(self.results['mash_first_runnings_max'])
 
 		print u'{:21}{:}'.format('Sparge water volume:', \
 		    unicode(self.results['mash']['sparge_water']) + ' @ '
@@ -868,6 +886,9 @@ class Recipe:
 	def calculate(self):
 		Sysparams.checkset()
 
+		if self._calculated:
+			raise PilotError("you can calculate() a recipe once")
+
 		if self.__final_volume() is None:
 			raise PilotError("final volume is not set")
 
@@ -910,6 +931,8 @@ class Recipe:
 		self.results['pitch'] = {}
 		self.results['pitch']['ale']   = tmp * 0.75*1000*1000
 		self.results['pitch']['lager'] = tmp * 1.50*1000*1000
+
+		self._sanity_check()
 
 		self._calculated = True
 
