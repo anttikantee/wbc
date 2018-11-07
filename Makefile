@@ -16,7 +16,7 @@ examples:
 		printf '```\n' >> ${RT}; \
 		printf 'translated with `wbctool -P units_output=metric ' \
 		    >> ${RT}; \
-		printf -- '-P strength_output=plato `:\n```\n' >> ${RT}; \
+		printf -- '-P strength_output=plato`:\n```\n' >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
 		    ./bin/wbctool.py -p ./WBCparams-example \
 		    -P units_output=metric -P strength_output=plato \
