@@ -89,11 +89,13 @@ class Recipe:
 
 	# fermentable additions
 	MASH=		object()
+	STEEP=		object()
 	BOIL=		object()
 	FERMENT=	object()
-	fermstages=	[ MASH, BOIL, FERMENT ]
+	fermstages=	[ MASH, STEEP, BOIL, FERMENT ]
 	fermstage2txt=	{
 		MASH : 'mash',
+		STEEP: 'steep',
 		BOIL : 'boil',
 		FERMENT : 'ferment'
 	}
@@ -135,6 +137,7 @@ class Recipe:
 			v += getparam('boiloff_perhour') * (self.boiltime/60.0)
 
 		if stage <= self.MASHWATER:
+			# XXX: should not calculate sugar into this figure
 			m = self._fermentables_allmass().valueas(Mass.KG)
 			v += self.__grain_absorption()*m + getparam('mlt_loss')
 
@@ -215,7 +218,7 @@ class Recipe:
 		self.__doanchor('mass', (fermentable, mass))
 
 	def __validate_ferm(self, name, fermentable, when):
-		if when not in [ self.MASH, self.BOIL, self.FERMENT ]:
+		if when not in self.fermstages:
 			raise PilotError('invalid fermentation stage')
 
 		if self.__havefermentable(name, when):
@@ -314,6 +317,9 @@ class Recipe:
 			return sum([self.fermentable_yield(x, theoretical) \
 			    for x in self._fermentables_atstage(stage)])
 		m = yield_at_stage(self.MASH)
+		if stage == self.STEEP or stage == self.BOIL \
+		    or stage == self.FERMENT:
+			m += yield_at_stage(self.STEEP)
 		if stage == self.BOIL or stage == self.FERMENT:
 			m += yield_at_stage(self.BOIL)
 		if stage == self.FERMENT:
@@ -419,8 +425,8 @@ class Recipe:
 		prevol  = Brewutils.water_vol_at_temp(prevol1,
 		    self.__reference_temp(), getparam('preboil_temp'))
 		self.results['preboil_volume'] = prevol
-		prestren = Brewutils.solve_strength(self.total_yield(self.MASH),
-		    prevol)
+		prestren = Brewutils.solve_strength(
+		    self.total_yield(self.STEEP), prevol)
 		self.results['preboil_strength'] = prestren
 
 		steal = {}
@@ -482,6 +488,7 @@ class Recipe:
 		maxextract = 0
 
 		for stage in [('mashfermentables', 'Mash'),
+		    ('steepfermentables', 'Steep'),
 		    ('boilfermentables', 'Boil'),
 		    ('fermfermentables', 'Ferment')]:
 			(what, name) = stage
@@ -589,6 +596,20 @@ class Recipe:
 
 		self._prtsep()
 		print
+
+	def _dosteep(self):
+		res = []
+		for f in sorted(self._fermentables_atstage(self.STEEP),
+		    key=lambda x: x[2], reverse=True):
+			ferm = f[1]
+			mass = f[2]
+			ratio = mass / self._fermentables_allmass()
+			ext_pred = self.fermentable_yield(f)
+			ext_theo = self.fermentable_yield(f, theoretical=True)
+
+			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
+
+		self.results['steepfermentables'] = res
 
 	def _doboil(self):
 		res = []
@@ -916,6 +937,7 @@ class Recipe:
 			prevol = self.__volume_at_stage(self.MASHWATER)
 			self._domash()
 
+			self._dosteep()
 			self._doboil()
 			if prevol+.01 >= self.__volume_at_stage(self.MASHWATER):
 				break

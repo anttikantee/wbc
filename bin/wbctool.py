@@ -91,6 +91,10 @@ def dofermentables(r, ferms):
 		(fun, v) = Parse.fermentableunit(ferms['mash'][f])
 		fun(r, f, v, Recipe.MASH)
 
+	for f in ferms.get('steep', []):
+		(fun, v) = Parse.fermentableunit(ferms['steep'][f])
+		fun(r, f, v, Recipe.STEEP)
+
 	for f in ferms.get('boil', []):
 		(fun, v) = Parse.fermentableunit(ferms['boil'][f])
 		fun(r, f, v, Recipe.BOIL)
@@ -231,6 +235,7 @@ def processcsv(clist, odict, data):
 		elif row[0] == "fermentable":
 			stagemap = {
 				'mash'    : Recipe.MASH,
+				'steep'   : Recipe.STEEP,
 				'boil'    : Recipe.BOIL,
 				'ferment' : Recipe.FERMENT,
 			}
