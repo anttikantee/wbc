@@ -560,13 +560,13 @@ class Recipe:
 			print '({:.2f} {:}, mash vol {:})'.format(ratio,
 			    unit, mash_volume)
 
-		print u'{:21}{:}'.format('Mashin water volume:', \
+		print u'{:23}{:}'.format('Mashstep water volume:', \
 		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
 		    + unicode(self.__reference_temp())),
 		print '(potential first runnings: ~{:})' \
 		    .format(self.results['mash_first_runnings_max'])
 
-		print u'{:21}{:}'.format('Sparge water volume:', \
+		print u'{:23}{:}'.format('Sparge water volume:', \
 		    unicode(self.results['mash']['sparge_water']) + ' @ '
 		    + unicode(getparam('sparge_temp')))
 
