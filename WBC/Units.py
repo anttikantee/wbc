@@ -321,6 +321,17 @@ class Strength(WBCUnit):
 
 		return self._attenuate(strength, None)
 
+	def refractometer_correction(self, strength):
+		checktype(strength, Strength)
+
+		oe = self.valueas(self.PLATO)
+		ae = strength.valueas(strength.PLATO)
+
+		# http://seanterrill.com/2011/04/07/refractometer-fg-results/
+		# (the linear equation, seems just as good as the cubic
+		# one if not better)
+		return Strength(1.0 - 0.00085683*oe + 0.0034941*ae, Strength.SG)
+
 	# from:
 	# "Specific Gravity Measurement Methods and Applications in Brewing"
 	#
