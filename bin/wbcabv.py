@@ -18,18 +18,21 @@
 
 from WBC.WBC import Recipe
 from WBC.Units import Mass, Temperature, Volume, Strength, _Strength
+from WBC.Utils import PilotError
 from WBC import Parse
 
 import getopt
 import sys
 
 def usage():
-        sys.stderr.write('usage: ' + sys.argv[0]
-            + ' original_strength final_strength|apparent_attenuation%\n')
+        sys.stderr.write('usage: ' + sys.argv[0] + ' [-r]\n'
+            + '\toriginal_strength final_strength|apparent_attenuation%\n')
         sys.exit(1)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], '')
+	opts, args = getopt.getopt(sys.argv[1:], 'r')
+
+	rflag = '-r' in [x[0] for x in opts]
 
 	if len(args) != 2:
 		usage()
@@ -37,22 +40,32 @@ if __name__ == '__main__':
 	s_orig = Parse.strength(args[0])
 
 	if '%' in args[1]:
+		if rflag: raise PilotError('use refractometer reading with -r')
 		attn = Parse.percent(args[1])
 		r = s_orig.attenuate_bypercent(attn)
 	else:
-		s_fin  = Parse.strength(args[1])
+		s_fin_arg = Parse.strength(args[1])
+
+		if rflag:
+			s_fin = s_orig.refractometer_correction(s_fin_arg)
+		else:
+			s_fin = s_fin_arg
 		r = s_orig.attenuate_bystrength(s_fin)
 
 	def printline(fname, value):
 		print u'{:28}:{:>12}'.format(fname, value)
-
 	def printline2(fname, value1, value2):
 		print u'{:28}:{:>12}{:>12}'.format(fname, value1, value2)
+	def printstrength(what, s):
+		printline2(what, s.stras(Strength.PLATO), s.stras(Strength.SG))
 
-	printline2('Original Strength',
-	    s_orig.stras(Strength.PLATO), s_orig.stras(Strength.SG))
-	printline2('Final Strength (apparent)',
-	    r['ae'].stras(Strength.PLATO), r['ae'].stras(Strength.SG))
+	printstrength('Original Strength', s_orig)
+	if rflag:
+		printstrength('Final Strength (apparent)', s_fin_arg)
+		printstrength('Final Strength (corrected)', r['ae'])
+	else:
+		printstrength('Final Strength (apparent)', r['ae'])
+
 	print
 
 	def extractwvprint(what, str):
