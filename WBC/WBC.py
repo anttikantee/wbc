@@ -635,6 +635,9 @@ class Recipe:
 		self.results['boilfermentables'] = res
 		self._dohops()
 
+	def _unhopmap(self, h):
+		return (h['hop'], h['mass'], h['time'], h['ibu'])
+
 	def _dohops(self):
 		allhop = []
 
@@ -647,6 +650,15 @@ class Recipe:
 		sg = _Strength((Brewutils.solve_strength(y, v_pre)
 		    + Brewutils.solve_strength(y, v_post)) / 2)
 
+		def hopmap(hop, mass, time, ibu):
+			return {
+			    'hop' : hop,
+			    'mass' : mass,
+			    'time' : time,
+			    'ibu' : ibu,
+			    'timer' : '', # only for boil
+			}
+
 		# calculate IBU produced by "bymass" hops and add to printables
 		for h in self.hops_bymass:
 			if self.volume_inherent is None:
@@ -655,15 +667,15 @@ class Recipe:
 			time = h[2].gettime(self.boiltime)
 			mass = self.__scale(h[1])
 			ibu = h[0].IBU(sg, v_post, time, mass)
-			allhop.append([h[0], mass, h[2], ibu])
+			allhop.append(hopmap(h[0], mass, h[2], ibu))
 
 		# calculate mass of "byIBU" hops and add to printables
 		for h in self.hops_byIBU:
 			time = h[2].gettime(self.boiltime)
 			mass = h[0].mass(sg, v_post, time, h[1])
-			allhop.append([h[0], mass, h[2], h[1]])
+			allhop.append(hopmap(h[0], mass, h[2], h[1]))
 
-		totibus = sum([x[3] for x in allhop])
+		totibus = sum([x['ibu'] for x in allhop])
 		if self.hops_recipeIBU is not None:
 			h = self.hops_recipeIBU
 			time = h[2].gettime(self.boiltime)
@@ -673,7 +685,7 @@ class Recipe:
 				    + 'desired total')
 			mass = h[0].mass(sg, v_post, time,
 			    missibus)
-			allhop.append([h[0], mass, h[2], missibus])
+			allhop.append(hopmap(h[0], mass, h[2], missibus))
 			totibus += missibus
 
 		if self.hops_recipeBUGU is not None:
@@ -685,13 +697,13 @@ class Recipe:
 			missibus = ibus - totibus
 			mass = h[0].mass(sg, v_post, time,
 			    missibus)
-			allhop.append([h[0], mass, h[2], missibus])
+			allhop.append(hopmap(h[0], mass, h[2], missibus))
 			totibus += missibus
 
 		# Sort the hop additions of the recipe.
 		#
 		# pass 1: sort within classes
-		allhop = sorted(allhop, key=lambda x: x[2], reverse=True)
+		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
 
 		# pass 2: sort boil -> steep -> dryhop
 		srtmap = {
@@ -700,22 +712,42 @@ class Recipe:
 			Hop.Boil	: 2,
 		}
 		self.results['hops'] = sorted(allhop, cmp=lambda x,y:
-		    srtmap[x[2].__class__] - srtmap[y[2].__class__],
+		    srtmap[x['time'].__class__] - srtmap[y['time'].__class__],
 		    reverse=True)
 		self.ibus = totibus
 
 		# calculate amount of wort that hops will drink
 		hd = {x: 0 for x in self.hopsdrunk}
 		kegdryhopvol = 0
+		timer = self.boiltime
+		prevval = None
 		for h in allhop:
-			if isinstance(h[2], Hop.Dryhop):
-				if h[2].indays is not h[2].Keg:
-					hd['fermenter'] += h[0].absorption(h[1])
+			(hop, mass, time, ibu) = self._unhopmap(h)
+			if isinstance(time, Hop.Dryhop):
+				if time.indays is not time.Keg:
+					hd['fermenter'] += hop.absorption(mass)
 				else:
-					hd['keg'] += h[0].absorption(h[1])
-					kegdryhopvol += h[0].volume(h[1])
+					hd['keg'] += hop.absorption(mass)
+					kegdryhopvol += hop.volume(mass)
 			else:
-				hd['kettle'] += h[0].absorption(h[1])
+				hd['kettle'] += hop.absorption(mass)
+
+			if isinstance(time, Hop.Boil):
+				cmpval = time.time
+				thistime = '--'
+				if cmpval is Hop.Boil.FWH:
+					cmpval = self.boiltime
+					if prevval != time.time:
+						thistime = 'FWH'
+				elif cmpval == self.boiltime:
+					if prevval != time.time:
+						thistime = '@ boil'
+				elif cmpval != timer:
+					tval = int(timer - cmpval)
+					thistime = str(tval) + ' min'
+				timer = cmpval
+				prevval = time.time
+				h['timer'] = thistime
 
 		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
 		self.kegdryhopvol = _Volume(kegdryhopvol)
@@ -723,36 +755,37 @@ class Recipe:
 	def _printboil(self):
 		# XXX: IBU sum might not be sum of displayed hop additions
 		# due to rounding.  cosmetic, but annoying.
-		namelen = 34
-		onefmt = u'{:' + str(namelen) + '}{:8}{:>15}{:>10}{:>9}'
-		print onefmt.format("Hops", "AA%", "time", "amount", "IBUs")
+		namelen = 26
+		onefmt = u'{:' + str(namelen) + '}{:7}{:>15}{:>9}{:>10}{:>9}'
+		print onefmt.format("Hops", "AA%", "time", "timer",
+		    "amount", "IBUs")
 		self._prtsep()
 		totmass = 0
 
 		prevstage = None
 		for h in self.results['hops']:
-			typ = ' (' + h[0].typestr + ')'
-			nam = h[0].name
-			time = unicode(h[2])
+			(hop, mass, time, ibu) = self._unhopmap(h)
+			typ = ' (' + hop.typestr + ')'
+			nam = hop.name
 			if prevstage is not None and \
-			    prevstage is not h[2].__class__:
+			    prevstage is not time.__class__:
 				self._prtsep('-')
 			maxlen = (namelen-1) - len(typ)
 			if len(nam) > maxlen:
 				nam = nam[0:maxlen-4] + '...'
 
-			prevstage = h[2].__class__
-			totmass = h[1] + totmass
+			prevstage = time.__class__
+			totmass = mass + totmass
 
 			# printing IBUs with two decimal points, given all
 			# other inaccuracy involved, is rather silly.
 			# but what would we be if not silly?
-			ibustr = '{:.2f}'.format(h[3])
-			print onefmt.format(nam + typ, str(h[0].aapers) + '%', \
-			    time, str(h[1]), ibustr)
+			ibustr = '{:.2f}'.format(ibu)
+			print onefmt.format(nam + typ, str(hop.aapers) + '%', \
+			    time, h['timer'], str(mass), ibustr)
 		self._prtsep()
 		ibustr = '{:.2f}'.format(self.ibus)
-		print onefmt.format('', '', '', str(_Mass(totmass)), ibustr)
+		print onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr)
 		print
 
 	def _keystats(self):
@@ -1126,9 +1159,9 @@ class Hop:
 		self.name = name
 		self.type = type
 		if type is Hop.Pellet:
-			self.typestr = 'pellet'
+			self.typestr = 'p'
 		elif type is Hop.Leaf:
-			self.typestr = 'leaf'
+			self.typestr = 'l'
 		else:
 			raise PilotError('invalid hop type: ' + type)
 
