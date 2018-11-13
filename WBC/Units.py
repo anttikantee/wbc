@@ -332,6 +332,12 @@ class Strength(WBCUnit):
 		# one if not better)
 		return Strength(1.0 - 0.00085683*oe + 0.0034941*ae, Strength.SG)
 
+		# commented-out cubic fit (for testing)
+		#return Strength(1.0 - 0.0044993*oe + 0.011774*ae
+		    #+ 0.00027581*pow(oe, 2) - 0.0012717*pow(ae, 2)
+		    #- 0.0000072800*pow(oe, 3) + 0.000063293*pow(ae, 3),
+		    #Strength.SG)
+
 	# from:
 	# "Specific Gravity Measurement Methods and Applications in Brewing"
 	#
