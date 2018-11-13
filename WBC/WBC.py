@@ -1034,8 +1034,10 @@ class Recipe:
 
 		print '# hop|name|type|aa%|mass|timeclass|timespec'
 		for h in self.results['hops']:
-			timeclass = str(h[2].__class__).split('.')[-1].lower()
-			timespec = unicode(h[2]).replace(unichr(0x00b0), "deg")
+			hop = h['hop']
+			time = h['time']
+			timeclass = str(time.__class__).split('.')[-1].lower()
+			timespec = unicode(time).replace(unichr(0x00b0), "deg")
 			timespec = str(timespec)
 
 			# XXX: silly
@@ -1043,8 +1045,8 @@ class Recipe:
 				timespec = 'keg'
 
 			print u'hop|{:}|{:}|{:}|{:}|{:}|{:}'\
-			    .format(h[0].name, h[0].typestr,
-			      h[0].aapers, float(h[1]), timeclass, timespec)
+			    .format(hop.name, hop.typestr,
+			      hop.aapers, float(h['mass']), timeclass, timespec)
 
 	def do(self):
 		self.calculate()
