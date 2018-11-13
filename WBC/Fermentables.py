@@ -16,6 +16,7 @@
 
 import Constants
 import Utils
+from Utils import PilotError
 from Units import Color
 
 import copy
@@ -207,6 +208,12 @@ add('Dingemans Pale',
 	Extract(80, FGDB, 2.0, 4.5),
 	Constants.minconversion,
 	Color(9, EBC))
+add('Dingemans Cara 120',
+	Extract(74, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(120, EBC),
+	needmash = False)
+alias('Dingemans Cara 45 L', 'Dingemans Cara 120')
 add('Dingemans Special B',
 	Extract(72, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
@@ -266,11 +273,31 @@ add('Fawcett Brown',
 # high amounts that it should matter if we're off even by 50%
 add('Weyermann Acidulated Malt', 75, 0, Color(4.5, EBC))
 
-add('Weyermann CaraAroma', 74, 0, Color(350, EBC), needmash = False)
-add('Weyermann CaraMunich 1', 75, 0, Color(90, EBC), needmash = False)
-add('Weyermann CaraMunich 3', 76, 0, Color(150, EBC), needmash = False)
+add('Weyermann CaraAroma',
+	Extract(76.9, FGDB, FCD_UNKNOWN, 5.8),
+	diap_none,
+	Color(300, EBC),
+	needmash = False)
+add('Weyermann CaraMunich 1',
+	Extract(76.4, FGDB, FCD_UNKNOWN, 5.8),
+	diap_none,
+	Color(90, EBC),
+	needmash = False)
+add('Weyermann CaraMunich 2',
+	Extract(76.2, FGDB, FCD_UNKNOWN, 5.8),
+	diap_none,
+	Color(130, EBC),
+	needmash = False)
+add('Weyermann CaraMunich 3',
+	Extract(76.1, FGDB, FCD_UNKNOWN, 5.8),
+	diap_none,
+	Color(160, EBC),
+	needmash = False)
 
-add('Weyermann Melanoidin', 75, 0, Color(70, EBC))
+add('Weyermann Melanoidin',
+	Extract(76.5, FGDB, FCD_UNKNOWN, 4.3),
+	diap_none,
+	Color(70, EBC))
 
 # XXX: couldn't find diastatic power, so we'll just guess
 # (it's self-convering for sure, so err on the low side,
@@ -286,8 +313,28 @@ add('Weyermann Chocolate Rye', 65, 0, Color(600, EBC), needmash = False)
 # between what the maltster provides and what vendors provide
 add('Weyermann Pale Rye', 81, Constants.minconversion, Color(7, EBC))
 
-# XXX: extract correct?
-add('Weyermann Carafa 2', 70, 0, Color(1100, EBC), needmash = False)
+# extract is an "average" of the lot analysis numbers
+add('Weyermann Carafa 1',
+	Extract(70, FGAI, FCD_UNKNOWN, 3.8),
+	diap_none,
+	Color(900, EBC),
+	needmash = False)
+add('Weyermann Carafa 2',
+	Extract(70, FGAI, FCD_UNKNOWN, 3.8),
+	diap_none,
+	Color(1150, EBC),
+	needmash = False)
+add('Weyermann Carafa 3',
+	Extract(70, FGAI, FCD_UNKNOWN, 3.8),
+	diap_none,
+	Color(1400, EBC),
+	needmash = False)
+# the special versions of Carafa have the same extract/color
+# specifications, so we can alias them
+# (and they have completely different flavor, so we *must* alias them!)
+alias('Weyermann Carafa 1 Special', 'Weyermann Carafa 1')
+alias('Weyermann Carafa 2 Special', 'Weyermann Carafa 2')
+alias('Weyermann Carafa 3 Special', 'Weyermann Carafa 3')
 
 # extract yields for non-malts (from 'How To Brew' [Palmer])
 add('Flaked wheat', 77, 0, Color(0, EBC))
