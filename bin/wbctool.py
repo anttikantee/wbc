@@ -255,7 +255,7 @@ def processcsv(clist, odict, data):
 
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
-	    + ' [-s volume,strength] [-v final volume] [-c] [-d]\n'
+	    + ' [-s volume,strength] [-v final volume] [-c] [-d] [-m]\n'
 	    + '\t[-p paramsfile] [-P param=value] recipefile\n')
 	sys.exit(1)
 
@@ -265,6 +265,9 @@ def processopts(opts):
 	for o, a in opts:
 		if o == '-h':
 			usage()
+
+		elif o == '-m':
+			odict['miniprint'] = True
 
 		elif o == '-p':
 			odict.setdefault('wbcparamfiles', []).append(a)
@@ -287,7 +290,7 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'cdhp:P:s:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'cdhmp:P:s:v:')
 	if len(args) > 1:
 		usage()
 
@@ -305,7 +308,7 @@ if __name__ == '__main__':
 		if '-c' in flags:
 			r.printcsv()
 		else:
-			r.printit()
+			r.printit(odict.get('miniprint', False))
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
 		raise SystemExit, 1

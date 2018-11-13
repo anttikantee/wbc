@@ -788,7 +788,7 @@ class Recipe:
 		print onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr)
 		print
 
-	def _keystats(self):
+	def _keystats(self, miniprint):
 		self._prtsep()
 		onefmt = u'{:19}{:}'
 		twofmt = u'{:19}{:19}{:21}{:19}'
@@ -827,12 +827,15 @@ class Recipe:
 		    + ' EBC, ' + srmprec.format(srm) + ' SRM', \
 		    'Water (' + unicode(self.__reference_temp()) + '):', \
 		    unicode(total_water))
-		bil = 1000*1000*1000
-		unit = ' billion'
-		print twofmt.format('Pitch rate, ale:',
-		    str(int(self.results['pitch']['ale'] / bil)) + unit,
-		    'Pitch rate, lager:',
-		    str(int(self.results['pitch']['lager'] / bil)) + unit)
+
+		if not miniprint:
+			bil = 1000*1000*1000
+			unit = ' billion'
+			print twofmt.format('Pitch rate, ale:',
+			    str(int(self.results['pitch']['ale'] / bil)) + unit,
+			    'Pitch rate, lager:',
+			    str(int(self.results['pitch']['lager'] / bil))
+			    + unit)
 		print
 		print onefmt.format('Yeast:', self.yeast)
 		print onefmt.format('Water notes:', '')
@@ -995,12 +998,13 @@ class Recipe:
 		if not self._calculated:
 			raise PilotError('must calculate recipe first')
 
-	def printit(self):
+	def printit(self, miniprint):
 		self._assertcalculate()
-		self._keystats()
+		self._keystats(miniprint)
 		self._printmash()
 		self._printboil()
-		self._printattenuate()
+		if not miniprint:
+			self._printattenuate()
 
 	# dump the recipe as a CSV, which has all of the quantities
 	# resolved, and contains enough information to recalculate
