@@ -62,7 +62,7 @@ if __name__ == '__main__':
 	printstrength('Original Strength', s_orig)
 	if rflag:
 		printstrength('Final Strength (apparent)', s_fin_arg)
-		printstrength('Final Strength (corrected)', r['ae'])
+		printstrength('Final Strength (refract fix)', r['ae'])
 	else:
 		printstrength('Final Strength (apparent)', r['ae'])
 
