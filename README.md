@@ -108,11 +108,11 @@ Sparge water volume:   20.1l @ 82.0°C
 First wort (conv. %):  20.0°P (85%), 21.1°P (90%), 22.1°P (95%), 23.2°P (100%)
 ==============================================================================
 
-Hops                              AA%                time    amount     IBUs
+Hops                      AA%               time    timer    amount     IBUs
 ==============================================================================
-Northern Brewer (pellet)          9.9%             90 min    25.1 g    28.36
-Saaz (leaf)                       3.1%             30 min    20.0 g     4.62
-Hallertau (pellet)                3.8%             15 min    15.0 g     3.02
+Northern Brewer (p)       9.9%            90 min   @ boil    25.1 g    28.36
+Saaz (l)                  3.1%            30 min   60 min    20.0 g     4.62
+Hallertau (p)             3.8%            15 min   15 min    15.0 g     3.02
 ==============================================================================
                                                              60.1 g    36.00
 
@@ -166,11 +166,11 @@ Sparge water volume:   5.3gal @ 179.6°F
 First wort (conv. %):  1.083 (85%), 1.088 (90%), 1.093 (95%), 1.098 (100%)
 ==============================================================================
 
-Hops                              AA%                time    amount     IBUs
+Hops                      AA%               time    timer    amount     IBUs
 ==============================================================================
-Northern Brewer (pellet)          9.9%             90 min   0.89 oz    28.36
-Saaz (leaf)                       3.1%             30 min   0.71 oz     4.62
-Hallertau (pellet)                3.8%             15 min   0.53 oz     3.02
+Northern Brewer (p)       9.9%            90 min   @ boil   0.89 oz    28.36
+Saaz (l)                  3.1%            30 min   60 min   0.71 oz     4.62
+Hallertau (p)             3.8%            15 min   15 min   0.53 oz     3.02
 ==============================================================================
                                                             2.12 oz    36.00
 
@@ -275,20 +275,20 @@ Sparge water volume:   17.1l @ 82.0°C
 First wort (conv. %):  19.8°P (85%), 20.9°P (90%), 21.9°P (95%), 23.0°P (100%)
 ==============================================================================
 
-Hops                              AA%                time    amount     IBUs
+Hops                      AA%               time    timer    amount     IBUs
 ==============================================================================
-Citra (pellet)                    14.0%            20 min    10.0 g     9.21
-Mosaic (pellet)                   12.4%            20 min    10.0 g     8.15
-Citra (pellet)                    14.0%             2 min    10.0 g     1.29
-Mosaic (pellet)                   12.4%             2 min    10.0 g     1.14
+Citra (p)                 14.0%           20 min   @ boil    10.0 g     9.21
+Mosaic (p)                12.4%           20 min       --    10.0 g     8.15
+Citra (p)                 14.0%            2 min   18 min    10.0 g     1.29
+Mosaic (p)                12.4%            2 min       --    10.0 g     1.14
 ------------------------------------------------------------------------------
-Citra (pellet)                    14.0%    10min @ 95.0°C    15.0 g     0.00
-Mosaic (pellet)                   12.4%    10min @ 95.0°C    15.0 g     0.00
+Citra (p)                 14.0%   10min @ 95.0°C             15.0 g     0.00
+Mosaic (p)                12.4%   10min @ 95.0°C             15.0 g     0.00
 ------------------------------------------------------------------------------
-Citra (pellet)                    14.0%     dryhop 3 => 0    11.0 g     0.00
-Mosaic (pellet)                   12.4%     dryhop 3 => 0    11.0 g     0.00
-Mosaic (pellet)                   12.4%     dryhop in keg    52.0 g     0.00
-Citra (pellet)                    14.0%     dryhop in keg    52.0 g     0.00
+Citra (p)                 14.0%    dryhop 3 => 0             11.0 g     0.00
+Mosaic (p)                12.4%    dryhop 3 => 0             11.0 g     0.00
+Mosaic (p)                12.4%    dryhop in keg             52.0 g     0.00
+Citra (p)                 14.0%    dryhop in keg             52.0 g     0.00
 ==============================================================================
                                                               196 g    19.78
 
@@ -350,20 +350,20 @@ Sparge water volume:   4.5gal @ 179.6°F
 First wort (conv. %):  1.082 (85%), 1.087 (90%), 1.092 (95%), 1.097 (100%)
 ==============================================================================
 
-Hops                              AA%                time    amount     IBUs
+Hops                      AA%               time    timer    amount     IBUs
 ==============================================================================
-Citra (pellet)                    14.0%            20 min   0.35 oz     9.21
-Mosaic (pellet)                   12.4%            20 min   0.35 oz     8.15
-Citra (pellet)                    14.0%             2 min   0.35 oz     1.29
-Mosaic (pellet)                   12.4%             2 min   0.35 oz     1.14
+Citra (p)                 14.0%           20 min   @ boil   0.35 oz     9.21
+Mosaic (p)                12.4%           20 min       --   0.35 oz     8.15
+Citra (p)                 14.0%            2 min   18 min   0.35 oz     1.29
+Mosaic (p)                12.4%            2 min       --   0.35 oz     1.14
 ------------------------------------------------------------------------------
-Citra (pellet)                    14.0%   10min @ 203.0°F   0.53 oz     0.00
-Mosaic (pellet)                   12.4%   10min @ 203.0°F   0.53 oz     0.00
+Citra (p)                 14.0%  10min @ 203.0°F            0.53 oz     0.00
+Mosaic (p)                12.4%  10min @ 203.0°F            0.53 oz     0.00
 ------------------------------------------------------------------------------
-Citra (pellet)                    14.0%     dryhop 3 => 0   0.39 oz     0.00
-Mosaic (pellet)                   12.4%     dryhop 3 => 0   0.39 oz     0.00
-Mosaic (pellet)                   12.4%     dryhop in keg   1.83 oz     0.00
-Citra (pellet)                    14.0%     dryhop in keg   1.83 oz     0.00
+Citra (p)                 14.0%    dryhop 3 => 0            0.39 oz     0.00
+Mosaic (p)                12.4%    dryhop 3 => 0            0.39 oz     0.00
+Mosaic (p)                12.4%    dryhop in keg            1.83 oz     0.00
+Citra (p)                 14.0%    dryhop in keg            1.83 oz     0.00
 ==============================================================================
                                                             6.91 oz    19.78
 
