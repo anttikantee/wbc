@@ -352,4 +352,4 @@ add('Rice', 70, 0, Color(1, EBC))
 
 # sugars ("self-converting")
 add('Table sugar', 100, Constants.minconversion, Color(0, EBC),
-    needmash = False)
+    conversion = False, needmash = False)
