@@ -191,6 +191,49 @@ add('Briess Carapils',
 	diap_none,
 	Color(1.5, LOVIBOND),
 	needmash = False)
+
+add('Briess Caramel 20 L',
+	Extract(76.0, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(20, LOVIBOND),
+	needmash = False)
+add('Briess Caramel 40 L',
+	Extract(77.0, FGDB, FCD_UNKNOWN, 5.5),
+	diap_none,
+	Color(40, LOVIBOND),
+	needmash = False)
+add('Briess Caramel 60 L',
+	Extract(77.0, FGDB, FCD_UNKNOWN, 5.0),
+	diap_none,
+	Color(60, LOVIBOND),
+	needmash = False)
+add('Briess Caramel 80 L',
+	Extract(76.0, FGDB, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(80, LOVIBOND),
+	needmash = False)
+add('Briess Caramel 120 L',
+	Extract(75.0, FGDB, FCD_UNKNOWN, 3.0),
+	diap_none,
+	Color(120, LOVIBOND),
+	needmash = False)
+
+# XXX: couldn't find any indication of the extract yield for
+# Briess Blackprinz or Midnight Wheat, not from the Briess site or
+# anywhere else for that matter.  Guessing 50% -- it's going to be
+# max 50 %-units wrong ;)
+# (and in all likelyhood it's in the 50-70 range ...)
+add('Briess Blackprinz',
+	Extract(50.0, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(500, LOVIBOND),
+	needmash = False)
+add('Briess Midnight Wheat',
+	Extract(50.0, FGDB, FCD_UNKNOWN, 6.5),
+	diap_none,
+	Color(550, LOVIBOND),
+	needmash = False)
+
 # Briess generic smoked malt (any of beech / cherry / mesquite)
 # XXX: not sure diastatic power is correct (specs do say 140 degL)
 add('Briess smoked', 80.5, 474, Color(14.5, EBC))
@@ -255,6 +298,12 @@ add('Muntons Maris Otter',
 	Color(5.8, EBC))
 
 add('Simpsons Golden Promise', 81, 140, Color(6.5, EBC))
+
+add('Simpsons Crystal Dark',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
+	diap_none,
+	Color(267.5, EBC),
+	needmash = False)
 
 # Hats off to Thomas Fawcett & Sons for having useful data sheets
 # easily available.  I wish all maltsters were like them.  They even
