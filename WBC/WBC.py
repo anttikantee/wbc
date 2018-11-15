@@ -310,6 +310,18 @@ class Recipe:
 		assert('fermentables' in self.results)
 		return _Mass(sum(x[2] for x in self.results['fermentables']))
 
+	def _process_fermentables(self, stage, resslot):
+		res = []
+		for f in sorted(self._fermentables_atstage(stage),
+		    key=lambda x: x[2], reverse=True):
+			ferm = f[1]
+			mass = f[2]
+			ratio = mass / self._fermentables_allmass()
+			ext_pred = self.fermentable_yield(f)
+			ext_theo = self.fermentable_yield(f, theoretical=True)
+			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
+		self.results[resslot] = res
+
 	def total_yield(self, stage, theoretical=False):
 		assert('fermentables' in self.results)
 
@@ -444,18 +456,8 @@ class Recipe:
 
 		v = self.__volume_at_stage(self.POSTBOIL)
 
-		res = []
-		for f in sorted(mf, key=lambda x: x[2], reverse=True):
-			ferm = f[1]
-			mass = f[2]
-			ratio = mass / self._fermentables_allmass()
-			ext_pred = self.fermentable_yield(f)
-			ext_theor = self.fermentable_yield(f,
-			    theoretical=True)
+		self._process_fermentables(self.MASH, 'mashfermentables')
 
-			res.append((f[0], f[2], 100*ratio, ext_theor, ext_pred))
-
-		self.results['mashfermentables'] = res
 		self.results['mash'] \
 		    = self.mash.infusion_mash(getparam('ambient_temp'),
 			self.__reference_temp(), totvol)
@@ -598,18 +600,7 @@ class Recipe:
 		print
 
 	def _dosteep(self):
-		res = []
-		for f in sorted(self._fermentables_atstage(self.STEEP),
-		    key=lambda x: x[2], reverse=True):
-			ferm = f[1]
-			mass = f[2]
-			ratio = mass / self._fermentables_allmass()
-			ext_pred = self.fermentable_yield(f)
-			ext_theo = self.fermentable_yield(f, theoretical=True)
-
-			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
-
-		self.results['steepfermentables'] = res
+		self._process_fermentables(self.STEEP, 'steepfermentables')
 
 	def _doboil(self):
 		res = []
@@ -622,17 +613,7 @@ class Recipe:
 		self.results['postboil_strength'] \
 		    = Brewutils.solve_strength(self.total_yield(self.BOIL),v)
 
-		for f in sorted(self._fermentables_atstage(self.BOIL),
-		    key=lambda x: x[2], reverse=True):
-			ferm = f[1]
-			mass = f[2]
-			ratio = mass / self._fermentables_allmass()
-			ext_pred = self.fermentable_yield(f)
-			ext_theo = self.fermentable_yield(f, theoretical=True)
-
-			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
-
-		self.results['boilfermentables'] = res
+		self._process_fermentables(self.BOIL, 'boilfermentables')
 		self._dohops()
 
 	def _unhopmap(self, h):
@@ -894,19 +875,7 @@ class Recipe:
 		print
 
 	def _doferment(self):
-		res = []
-		v = self.__volume_at_stage(self.POSTBOIL)
-		for f in sorted(self._fermentables_atstage(self.FERMENT),
-		    key=lambda x: x[2], reverse=True):
-			ferm = f[1]
-			mass = f[2]
-			ratio = mass / self._fermentables_allmass()
-			ext_pred = self.fermentable_yield(f)
-			ext_theo = self.fermentable_yield(f, theoretical=True)
-
-			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
-
-		self.results['fermfermentables'] = res
+		self._process_fermentables(self.FERMENT, 'fermfermentables')
 
 		self._doattenuate()
 
