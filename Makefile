@@ -14,18 +14,18 @@ examples:
 		printf 'Example recipe\n---\n```\n' >> ${RT}; \
 		cat $${r} >> ${RT}; \
 		printf '```\n' >> ${RT}; \
-		printf 'translated with `wbctool -P units_output=metric ' \
+		printf 'translated with `wbcrecipe -P units_output=metric ' \
 		    >> ${RT}; \
 		printf -- '-P strength_output=plato`:\n```\n' >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
-		    ./bin/wbctool.py -p ./WBCparams-example \
+		    ./bin/wbcrecipe.py -p ./WBCparams-example \
 		    -P units_output=metric -P strength_output=plato \
 		    $${r} >> ${RT}; \
 		printf '```\n\n' >> ${RT}; \
-		printf 'translated with `wbctool -P units_output=us ' >> ${RT};\
+		printf 'translated with `wbcrecipe -P units_output=us '>>${RT};\
 		printf -- '-P strength_output=sg`:\n```\n' >> ${RT}; \
 		PYTHONPATH=. PYTHONIOENCODING=utf-8 python \
-		    ./bin/wbctool.py -p ./WBCparams-example \
+		    ./bin/wbcrecipe.py -p ./WBCparams-example \
 		    -P units_output=us -P strength_output=sg $${r} >> ${RT}; \
 		printf '```\n\n' >> ${RT} ; done
 	mv ${RT} ${README}
