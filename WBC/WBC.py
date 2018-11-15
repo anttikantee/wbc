@@ -746,14 +746,17 @@ class Recipe:
 		prevstage = None
 		for h in self.results['hops']:
 			(hop, mass, time, ibu) = self._unhopmap(h)
-			typ = ' (' + hop.typestr + ')'
 			nam = hop.name
+			typ = hop.typestr
+			if len(nam) + len(typ) + len(' ()') >= namelen:
+				typ = hop.typestr[0]
+			typ = ' (' + typ + ')'
 			if prevstage is not None and \
 			    prevstage is not time.__class__:
 				self._prtsep('-')
 			maxlen = (namelen-1) - len(typ)
 			if len(nam) > maxlen:
-				nam = nam[0:maxlen-4] + '...'
+				nam = nam[0:maxlen-2] + '..'
 
 			prevstage = time.__class__
 			totmass = mass + totmass
@@ -1134,9 +1137,9 @@ class Hop:
 		self.name = name
 		self.type = type
 		if type is Hop.Pellet:
-			self.typestr = 'p'
+			self.typestr = 'pellet'
 		elif type is Hop.Leaf:
-			self.typestr = 'l'
+			self.typestr = 'leaf'
 		else:
 			raise PilotError('invalid hop type: ' + type)
 

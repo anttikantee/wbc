@@ -62,6 +62,8 @@ def dohops(r, d_hops):
 
 	def processhopdef(id, v):
 		typstr = v[2] if len(v) > 2 else 'pellet'
+		if typstr not in hoptypes:
+			raise PilotError('invalid hop type: ' + typstr)
 		typ = hoptypes[typstr]
 		aa = Parse.percent(v[1])
 		hops[id] = Hop(v[0], aa, typ)
