@@ -640,7 +640,17 @@ class Recipe:
 		self._process_fermentables(self.BOIL, 'boilfermentables')
 		self._dohops()
 
-	def _unhopmap(self, h):
+	@staticmethod
+	def _hopmap(hop, mass, time, ibu):
+		return {
+		    'hop' : hop,
+		    'mass' : mass,
+		    'time' : time,
+		    'ibu' : ibu,
+		    'timer' : '', # only for boil
+		}
+	@staticmethod
+	def _hopunmap(h):
 		return (h['hop'], h['mass'], h['time'], h['ibu'])
 
 	def _dohops(self):
@@ -655,15 +665,6 @@ class Recipe:
 		sg = _Strength((Brewutils.solve_strength(y, v_pre)
 		    + Brewutils.solve_strength(y, v_post)) / 2)
 
-		def hopmap(hop, mass, time, ibu):
-			return {
-			    'hop' : hop,
-			    'mass' : mass,
-			    'time' : time,
-			    'ibu' : ibu,
-			    'timer' : '', # only for boil
-			}
-
 		# calculate IBU produced by "bymass" hops and add to printables
 		for h in self.hops_bymass:
 			if self.volume_inherent is None:
@@ -672,13 +673,13 @@ class Recipe:
 			time = h[2].gettime(self.boiltime)
 			mass = self.__scale(h[1])
 			ibu = h[0].IBU(sg, v_post, time, mass)
-			allhop.append(hopmap(h[0], mass, h[2], ibu))
+			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
 		# calculate mass of "byIBU" hops and add to printables
 		for h in self.hops_byIBU:
 			time = h[2].gettime(self.boiltime)
 			mass = h[0].mass(sg, v_post, time, h[1])
-			allhop.append(hopmap(h[0], mass, h[2], h[1]))
+			allhop.append(Recipe._hopmap(h[0], mass, h[2], h[1]))
 
 		totibus = sum([x['ibu'] for x in allhop])
 		if self.hops_recipeIBU is not None:
@@ -690,7 +691,7 @@ class Recipe:
 				    + 'desired total')
 			mass = h[0].mass(sg, v_post, time,
 			    missibus)
-			allhop.append(hopmap(h[0], mass, h[2], missibus))
+			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
 
 		if self.hops_recipeBUGU is not None:
@@ -702,7 +703,7 @@ class Recipe:
 			missibus = ibus - totibus
 			mass = h[0].mass(sg, v_post, time,
 			    missibus)
-			allhop.append(hopmap(h[0], mass, h[2], missibus))
+			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
 
 		# Sort the hop additions of the recipe.
@@ -727,7 +728,7 @@ class Recipe:
 		timer = self.boiltime
 		prevval = None
 		for h in allhop:
-			(hop, mass, time, ibu) = self._unhopmap(h)
+			(hop, mass, time, ibu) = Recipe._hopunmap(h)
 			if isinstance(time, Hop.Dryhop):
 				if time.indays is not time.Keg:
 					hd['fermenter'] += hop.absorption(mass)
@@ -769,7 +770,7 @@ class Recipe:
 
 		prevstage = None
 		for h in self.results['hops']:
-			(hop, mass, time, ibu) = self._unhopmap(h)
+			(hop, mass, time, ibu) = Recipe._hopunmap(h)
 			nam = hop.name
 			typ = hop.typestr
 			if len(nam) + len(typ) + len(' ()') >= namelen:
