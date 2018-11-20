@@ -72,7 +72,7 @@ class Recipe:
 		Sysparams.processfile(filename)
 
 	def __havefermentable(self, fermentable, when):
-		v = filter(lambda x: x['name'] == fermentable \
+		v = filter(lambda x: x['fermentable'].name == fermentable \
 		    and x['when'] == when,
 		    self.fermentables_bymass + self.fermentables_bypercent)
 		if len(v) > 0:
@@ -223,7 +223,7 @@ class Recipe:
 		if when not in self.fermstages:
 			raise PilotError('invalid fermentation stage')
 
-		if self.__havefermentable(name, when):
+		if self.__havefermentable(fermentable.name, when):
 			raise PilotError('fermentables may be specified max '
 			    + 'once per stage')
 
