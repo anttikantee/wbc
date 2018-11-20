@@ -72,7 +72,8 @@ class Recipe:
 		Sysparams.processfile(filename)
 
 	def __havefermentable(self, fermentable, when):
-		v = filter(lambda x: x[0] == fermentable and x[3] == when,
+		v = filter(lambda x: x['name'] == fermentable \
+		    and x['when'] == when,
 		    self.fermentables_bymass + self.fermentables_bypercent)
 		if len(v) > 0:
 			return True
@@ -202,7 +203,7 @@ class Recipe:
 	def __doanchor(self, what, value):
 		if not self.anchor is None:
 			raise PilotError('anchor already set')
-		self.anchor = ( what, value )
+		self.anchor = {'what' : what, 'value' : value }
 
 	def anchor_bystrength(self, strength):
 		checktype(strength, Strength)
@@ -212,10 +213,11 @@ class Recipe:
 	def anchor_bymass(self, fermentable, mass):
 		checktype(mass, Mass)
 
-		# test
-		Fermentables.get(fermentable)
-
-		self.__doanchor('mass', (fermentable, mass))
+		(name, f) = Fermentables.get(fermentable)
+		self.__doanchor('mass', {
+			'fermentable' : f,
+			'mass' : mass,
+		})
 
 	def __validate_ferm(self, name, fermentable, when):
 		if when not in self.fermstages:
@@ -237,6 +239,19 @@ class Recipe:
 		#	raise PilotError('fermentable "' + name + '" does not '
 		#	    + 'need a mash')
 
+	@staticmethod
+	def _fermmap(name, fermentable, amount, when):
+		return {
+			'name': name,
+			'fermentable' : fermentable,
+			'amount' : amount,
+			'when' : when,
+		}
+
+	@staticmethod
+	def _fermunmap(f):
+		return (f['name'], f['fermentable'], f['amount'], f['when'])
+
 	def fermentable_bymass(self, name, mass, when=MASH):
 		checktype(mass, Mass)
 
@@ -247,7 +262,8 @@ class Recipe:
 		(name, fermentable) = Fermentables.get(name)
 		self.__validate_ferm(name, fermentable, when)
 
-		self.fermentables_bymass.append((name, fermentable, mass, when))
+		f = self._fermmap(name, fermentable, mass, when)
+		self.fermentables_bymass.append(f)
 
 	# percent of fermentable's mass, not extract's mass
 	def fermentable_bypercent(self, name, percent, when=MASH):
@@ -262,13 +278,13 @@ class Recipe:
 		(name, fermentable) = Fermentables.get(name)
 		self.__validate_ferm(name, fermentable, when)
 
+		f = self._fermmap(name, fermentable, percent, when)
 		if percent is self.THEREST:
-			self.fermentables_therest.append((name,
-			    fermentable, when))
+			self.fermentables_therest.append(f)
 		else:
-			self.fermentables_bypercent.append((name, fermentable,
-			    percent, when))
-			if sum(x[2] for x in self.fermentables_bypercent) > 100:
+			self.fermentables_bypercent.append(f)
+			if sum(x['amount'] \
+			    for x in self.fermentables_bypercent) > 100:
 				raise PilotError('captain, I cannot change the'\
 				    ' laws of math; 100% fermentables max!')
 
@@ -281,22 +297,23 @@ class Recipe:
 		self.stolen_wort = (vol, strength, extract)
 
 	def fermentable_percentage(self, what, theoretical=False):
-		if what[1].extract_legacy is True:
-			warn('fermentable "' + what[1].name + '" uses '
+		f = what['fermentable']
+		if f.extract_legacy is True:
+			warn('fermentable "' + f.name + '" uses '
 			    + 'legacy extract specification\n')
-			what[1].extract_legacy = False
-		percent = what[1].extract
-		if what[1].conversion and not theoretical:
+			f.extract_legacy = False
+		percent = f.extract
+		if f.conversion and not theoretical:
 			percent *= getparam('mash_efficiency')/100.0
 		return percent
 
 	def fermentable_yield(self, what, theoretical=False):
-		return _Mass(what[2]
+		return _Mass(what['amount']
 		    * self.fermentable_percentage(what, theoretical)/100.0)
 
 	def _fermentables_atstage(self, when):
 		assert('fermentables' in self.results)
-		return filter(lambda x: x[3] == when,
+		return filter(lambda x: x['when'] == when,
 		    self.results['fermentables'])
 
 	def _fermentables_allstage(self):
@@ -304,22 +321,24 @@ class Recipe:
 		return self.results['fermentables']
 
 	def _fermentables_mass(self, fermlist):
-		return _Mass(sum(x[2] for x in fermlist))
+		return _Mass(sum(x['amount'] for x in fermlist))
 
 	def _fermentables_allmass(self):
 		assert('fermentables' in self.results)
-		return _Mass(sum(x[2] for x in self.results['fermentables']))
+		return _Mass(sum(x['amount'] \
+		    for x in self.results['fermentables']))
 
 	def _process_fermentables(self, stage, resslot):
 		res = []
 		for f in sorted(self._fermentables_atstage(stage),
-		    key=lambda x: x[2], reverse=True):
-			ferm = f[1]
-			mass = f[2]
+		    key=lambda x: x['amount'], reverse=True):
+			name = f['name']
+			ferm = f['fermentable']
+			mass = f['amount']
 			ratio = mass / self._fermentables_allmass()
 			ext_pred = self.fermentable_yield(f)
 			ext_theo = self.fermentable_yield(f, theoretical=True)
-			res.append((f[0], f[2], 100*ratio, ext_theo, ext_pred))
+			res.append((name, mass, 100*ratio, ext_theo, ext_pred))
 		self.results[resslot] = res
 
 	def total_yield(self, stage, theoretical=False):
@@ -352,6 +371,8 @@ class Recipe:
 
 	# turn percentages into masses
 	def _dofermentables(self):
+		self.results['fermentables'] = []
+
 		# calculates the mass of extract required to hit the
 		# target strength.
 
@@ -363,12 +384,12 @@ class Recipe:
 
 			# if we're scaling the recipe, we just need to
 			# scale the grains
-			self.results['fermentables'] = \
-			    [(x[0], x[1], self.__scale(x[2]), x[3]) \
-			      for x in self.fermentables_bymass]
+			for f in self.fermentables_bymass:
+				f['amount'] = self.__scale(f['amount'])
+				self.results['fermentables'].append(f)
 			return # all done already
 
-		totpers = sum(x[2] for x in self.fermentables_bypercent)
+		totpers = sum(x['amount'] for x in self.fermentables_bypercent)
 		missing = 100 - float(totpers)
 		if missing > 0:
 			ltr = len(self.fermentables_therest)
@@ -378,21 +399,22 @@ class Recipe:
 				    + '%, need 100%')
 			mp = missing / ltr
 			for tr in self.fermentables_therest:
-				i = (tr[0], tr[1], mp, tr[2])
-				self.fermentables_bypercent.append(i)
-		assert (sum(x[2] for x in self.fermentables_bypercent) == 100)
+				tr['amount'] = mp
+				self.fermentables_bypercent.append(tr)
+		assert (sum(x['amount'] \
+		    for x in self.fermentables_bypercent) == 100)
 
 		if self.anchor is None:
 			raise PilotError('anchor must be set for '
 			    + 'by-percent fermentables')
 
-		if self.anchor[0] == 'strength':
+		if self.anchor['what'] == 'strength':
 			# calculate extract required for strength, and derive
 			# masses of fermentables from that
 
 			extract = self.__extract(
 			    self.__volume_at_stage(self.POSTBOIL),
-			    self.anchor[1]) + self.stolen_wort[2]
+			    self.anchor['value']) + self.stolen_wort[2]
 
 			# now, solve for the total mass:
 			# extract = yield1 * m1 + yield2 * m2 + ...
@@ -400,7 +422,7 @@ class Recipe:
 			# and   mn = pn * totmass
 			# and then solve: totmass = extract / (sum(yieldn*pn))
 			thesum = sum([self.fermentable_percentage(x)/100.0
-			    * x[2]/100.0
+			    * x['amount']/100.0
 			    for x in self.fermentables_bypercent])
 			totmass = _Mass(extract / thesum)
 
@@ -411,25 +433,27 @@ class Recipe:
 			# But the math behind the correct calculation seems to
 			# get hairy fast, so we'll let it slip at least for now.
 
-		elif self.anchor[0] == 'mass':
+		elif self.anchor['what'] == 'mass':
 			# mass of one fermentable is set, others are
 			# simply scaled to that value
 
-			a = self.anchor[1]
-			f = filter(lambda x: x[0] == a[0],
+			a = self.anchor['value']
+			aname = a['fermentable'].name
+			f = filter(lambda x: x['fermentable'].name == aname,
 			    self.fermentables_bypercent)
 			if len(f) != 1:
 				raise PilotError("could not find anchor "
-				    "fermentable: " + a[0])
-			totmass = a[1] / (f[0][2]/100.0)
+				    "fermentable: " + aname)
+			totmass = a['mass'] / (f[0]['amount']/100.0)
 
 		# and finally set the masses of each individual fermentable
 		ferms = []
 		for x in self.fermentables_bypercent:
 			# limit mass to 0.1g accuracy
-			m = int(10 * (x[2]/100.0 * totmass)) / 10.0
-			i = (x[0], x[1], _Mass(m), x[3])
-			ferms.append(i)
+			m = int(10 * (x['amount']/100.0 * totmass)) / 10.0
+			n = x.copy()
+			n['amount'] = _Mass(m)
+			ferms.append(n)
 		self.results['fermentables'] = ferms
 
 	def _domash(self):
@@ -784,7 +808,8 @@ class Recipe:
 		    + self.results['steal']['missing'])
 
 		# calculate color, via MCU & Morey equation
-		t = sum(f[2].valueas(Mass.LB) * f[1].color.valueas(Color.SRM) \
+		t = sum(f['amount'].valueas(Mass.LB) \
+		  * f['fermentable'].color.valueas(Color.SRM) \
 		     for f in self.results['fermentables'])
 		mcu = t / postvol1.valueas(Volume.GALLON)
 		color = Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
@@ -1342,7 +1367,7 @@ class Mash:
 		if self.mashin_ratio is None and self.mashin_percent is None:
 			self.mashin_ratio = self.__mashin_ratio_default
 
-		fmass = _Mass(sum(x[2] for x in self.fermentables))
+		fmass = _Mass(sum(x['amount'] for x in self.fermentables))
 
 		res = {}
 		res['steps'] = []
