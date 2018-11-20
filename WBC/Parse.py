@@ -146,6 +146,8 @@ def hopboil(input):
 	}
 	if input == 'FWH':
 		return Hop.Boil(Hop.Boil.FWH)
+	elif input == 'boiltime':
+		return Hop.Boil(Hop.Boil.BOILTIME)
 	return _unit(Hop.Boil, suffixes, input)
 
 def hopunit(input):

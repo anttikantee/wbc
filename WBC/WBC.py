@@ -165,38 +165,42 @@ class Recipe:
 		checktype(volume_final, Volume)
 		self.volume_final = volume_final
 
+	def _hopstore(self, hop, amount, time):
+		time.resolvetime(self.boiltime)
+		return [hop, amount, time]
+
 	def hop_bymass(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])
-		self.hops_bymass.append([hop, mass, time])
+		self.hops_bymass.append(self._hopstore(hop, mass, time))
 
 	# mass per final volume
 	def hop_bymassvolratio(self, hop, mass, vol, time):
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
 		hopmass = _Mass(mass * self.__final_volume() / vol)
-		self.hops_bymass.append([hop, hopmass, time])
+		self.hops_bymass.append(self._hopstore(hop, hopmass, time))
 
 	# alpha acid mass per final volume
 	def hop_byAAvolratio(self, hop, mass, vol, time):
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
 		hopmass = _Mass((mass / (hop.aapers/100.0))
 		    * (self.__final_volume() / vol))
-		self.hops_bymass.append([hop, hopmass, time])
+		self.hops_bymass.append(self._hopstore(hop, hopmass, time))
 
 	def hop_byIBU(self, hop, IBU, time):
 		checktype(hop, Hop)
-		self.hops_byIBU.append([hop, IBU, time])
+		self.hops_byIBU.append(self._hopstore(hop, IBU, time))
 
 	def hop_recipeIBU(self, hop, IBU, time):
 		checktype(hop, Hop)
 		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
-			self.hops_recipeIBU = [hop, IBU, time]
+			self.hops_recipeIBU = self._hopstore(hop, IBU, time)
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
 
 	def hop_recipeBUGU(self, hop, bugu, time):
 		checktype(hop, Hop)
 		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
-			self.hops_recipeBUGU = [hop, bugu, time]
+			self.hops_recipeBUGU = self._hopstore(hop, bugu, time)
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
 
@@ -670,21 +674,21 @@ class Recipe:
 			if self.volume_inherent is None:
 				raise PilotError("recipe with absolute hop "
 				    + "mass does not have an inherent volume")
-			time = h[2].gettime(self.boiltime)
+			time = h[2].time
 			mass = self.__scale(h[1])
 			ibu = h[0].IBU(sg, v_post, time, mass)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
 		# calculate mass of "byIBU" hops and add to printables
 		for h in self.hops_byIBU:
-			time = h[2].gettime(self.boiltime)
+			time = h[2].time
 			mass = h[0].mass(sg, v_post, time, h[1])
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], h[1]))
 
 		totibus = sum([x['ibu'] for x in allhop])
 		if self.hops_recipeIBU is not None:
 			h = self.hops_recipeIBU
-			time = h[2].gettime(self.boiltime)
+			time = h[2].time
 			missibus = self.hops_recipeIBU[1] - totibus
 			if missibus <= 0:
 				raise PilotError('total IBUs are greater than '\
@@ -696,7 +700,7 @@ class Recipe:
 
 		if self.hops_recipeBUGU is not None:
 			h = self.hops_recipeBUGU
-			time = h[2].gettime(self.boiltime)
+			time = h[2].time
 			bugu = self.hops_recipeBUGU[1]
 			stren = self.results['final_strength']
 			ibus = stren.valueas(stren.SG_PTS) * bugu
@@ -741,8 +745,9 @@ class Recipe:
 			if isinstance(time, Hop.Boil):
 				cmpval = time.time
 				thistime = '--'
-				if cmpval is Hop.Boil.FWH:
+				if time.spec is Hop.Boil.FWH:
 					cmpval = self.boiltime
+					# works because of FWH_BONUS
 					if prevval != time.time:
 						thistime = 'FWH'
 				elif cmpval == self.boiltime:
@@ -1055,24 +1060,29 @@ class Hop:
 	Leaf	= object()
 
 	class Boil:
-		FWH	= object()
-		def __init__(self, mins):
-			if mins < 0 and mins is not self.FWH:
+		FWH		= object()
+		BOILTIME	= object()
+
+		# FWH adds this much to full boiltime for IBU calculations
+		FWH_BONUS=	20
+		assert(FWH_BONUS > 0)
+
+		def __init__(self, spec):
+			if spec < 0 and spec is not self.FWH \
+			    and spec is not self.BOILTIME:
 				raise PilotError('invalid boiltime format')
-			self.time = mins
+			self.time = None
+			self.spec = spec
 
 		def __str__(self):
-			if self.time is self.FWH:
+			assert(self.time is not None)
+			if self.spec is self.FWH:
 				return 'FWH'
 			return str(int(self.time)) + ' min'
 
 		def __cmp__(self, other):
+			assert(self.time is not None)
 			if isinstance(other, Hop.Boil):
-				if self.time is self.FWH:
-					rv = 1
-				if other.time is self.FWH:
-					rv = -1
-
 				if   self.time < other.time: rv = -1
 				elif self.time > other.time: rv =  1
 				else:                        rv =  0
@@ -1080,15 +1090,19 @@ class Hop:
 				rv = 0
 			return rv
 
-		def gettime(self, boiltime):
-			if self.time is self.FWH:
-				rv = boiltime + 20
+		def resolvetime(self, boiltime):
+			assert(self.time is None)
+
+			if self.spec is self.FWH:
+				self.time = boiltime + self.FWH_BONUS
+			elif self.spec is self.BOILTIME:
+				self.time = boiltime
 			else:
-				rv = self.time
-				if rv > boiltime:
+				specval = int(self.spec)
+				if specval > boiltime:
 					raise PilotError('hop boiltime ('
-					    + str(rv) + ') > wort boiltime')
-			return int(rv)
+					    + str(specval)+') > wort boiltime')
+				self.time = specval
 
 	class Steep:
 		def __init__(self, temp, mins):
@@ -1096,6 +1110,7 @@ class Hop:
 
 			self.temp = temp
 			self.mins = mins
+			self.time = 0
 
 		def __str__(self):
 			return str(self.mins) + 'min @ ' + unicode(self.temp)
@@ -1106,8 +1121,8 @@ class Hop:
 			else:
 				return 0
 
-		def gettime(self, boiltime):
-			return 0
+		def resolvetime(self, boiltime):
+			return
 
 	class Dryhop:
 		Keg =	object()
@@ -1129,6 +1144,7 @@ class Hop:
 					    'them in')
 			self.indays = indays
 			self.outdays = outdays
+			self.time = 0
 
 		def __str__(self):
 			if self.indays is self.Keg:
@@ -1153,8 +1169,8 @@ class Hop:
 				return -1
 			return 1
 
-		def gettime(self, boiltime):
-			return 0
+		def resolvetime(self, boiltime):
+			return
 
 	def __init__(self, name, aapers, type = Pellet):
 		aalow = 1
