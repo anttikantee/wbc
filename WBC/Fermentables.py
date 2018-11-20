@@ -122,9 +122,7 @@ def get(name):
 	f = find(name)
 	if f is None:
 		raise PilotError("I don't know about fermentable: " + name)
-
-	# return "official" leetcapsed name
-	return (name, f)
+	return f
 
 # used by both "built-in" fermentables and user-added.  User-added
 # fermentables override built-in ones with the same name.  The logic

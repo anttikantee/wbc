@@ -213,7 +213,7 @@ class Recipe:
 	def anchor_bymass(self, fermentable, mass):
 		checktype(mass, Mass)
 
-		(name, f) = Fermentables.get(fermentable)
+		f = Fermentables.get(fermentable)
 		self.__doanchor('mass', {
 			'fermentable' : f,
 			'mass' : mass,
@@ -259,7 +259,7 @@ class Recipe:
 			raise PilotError('all grains in recipe must be ' \
 			    'specified by percent or mass')
 
-		(name, fermentable) = Fermentables.get(name)
+		fermentable = Fermentables.get(name)
 		self.__validate_ferm(name, fermentable, when)
 
 		f = self._fermmap(name, fermentable, mass, when)
@@ -275,7 +275,7 @@ class Recipe:
 			raise PilotError('all grains in recipe must be ' \
 			    'specified by percent or mass')
 
-		(name, fermentable) = Fermentables.get(name)
+		fermentable = Fermentables.get(name)
 		self.__validate_ferm(name, fermentable, when)
 
 		f = self._fermmap(name, fermentable, percent, when)
