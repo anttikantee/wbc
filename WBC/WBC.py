@@ -259,10 +259,6 @@ class Recipe:
 	def fermentable_bymass(self, name, mass, when=MASH):
 		checktype(mass, Mass)
 
-		if len(self.fermentables_bypercent) > 0:
-			raise PilotError('all grains in recipe must be ' \
-			    'specified by percent or mass')
-
 		fermentable = Fermentables.get(name)
 		self.__validate_ferm(name, fermentable, when)
 
@@ -274,10 +270,6 @@ class Recipe:
 		if percent is not self.THEREST and percent <= 0:
 			raise PilotError('grain percentage must be positive '\
 			  '(it is a fun thing!)')
-
-		if len(self.fermentables_bymass) > 0:
-			raise PilotError('all grains in recipe must be ' \
-			    'specified by percent or mass')
 
 		fermentable = Fermentables.get(name)
 		self.__validate_ferm(name, fermentable, when)
@@ -375,23 +367,31 @@ class Recipe:
 
 	# turn percentages into masses
 	def _dofermentables(self):
-		self.results['fermentables'] = []
 
 		# calculates the mass of extract required to hit the
 		# target strength.
 
+		ferms = []
 		if len(self.fermentables_bymass) > 0:
 			if self.volume_inherent is None:
 				raise PilotError("recipe with absolute "
 				    + "fermentable mass "
 				    + "does not have an inherent volume")
 
-			# if we're scaling the recipe, we just need to
+			# if we're scaling the recipe, we need to
 			# scale the grains
 			for f in self.fermentables_bymass:
-				f['amount'] = self.__scale(f['amount'])
-				self.results['fermentables'].append(f)
+				n = f.copy()
+				n['amount'] = self.__scale(n['amount'])
+				ferms.append(n)
+
+		if len(self.fermentables_bypercent) == 0 \
+		    and len(self.fermentables_therest) == 0:
+			self.results['fermentables'] = ferms
 			return # all done already
+
+		bmyield = sum([self.fermentable_yield(x) \
+		    for x in self.fermentables_bymass])
 
 		totpers = sum(x['amount'] for x in self.fermentables_bypercent)
 		missing = 100 - float(totpers)
@@ -420,6 +420,13 @@ class Recipe:
 			    self.__volume_at_stage(self.POSTBOIL),
 			    self.anchor['value']) + self.stolen_wort[2]
 
+			# take into account any yield we already get from
+			# per-mass additions
+			if bmyield > extract:
+				raise PilotError('strength anchor and '
+				    'by-mass addition mismatch')
+			extract -= bmyield
+
 			# now, solve for the total mass:
 			# extract = yield1 * m1 + yield2 * m2 + ...
 			# where yieldn = extract% * mash_efficiency / 100.0
@@ -445,13 +452,13 @@ class Recipe:
 			aname = a['fermentable'].name
 			f = filter(lambda x: x['fermentable'].name == aname,
 			    self.fermentables_bypercent)
-			if len(f) != 1:
+			if len(f) == 0:
 				raise PilotError("could not find anchor "
 				    "fermentable: " + aname)
-			totmass = a['mass'] / (f[0]['amount']/100.0)
+			anchorpers = sum(x['amount'] for x in f)
+			totmass = a['mass'] / (anchorpers/100.0)
 
 		# and finally set the masses of each individual fermentable
-		ferms = []
 		for x in self.fermentables_bypercent:
 			# limit mass to 0.1g accuracy
 			m = int(10 * (x['amount']/100.0 * totmass)) / 10.0

@@ -105,11 +105,9 @@ def dofermentables(r, ferms):
 		(fun, v) = Parse.fermentableunit(ferms['ferment'][f])
 		fun(r, f, v, Recipe.FERMENT)
 
-	if fun == Recipe.fermentable_bypercent:
-		if 'anchor' not in ferms:
-			raise PilotError("percent fermentables must set "
-			    "an anchor")
-		a = ferms['anchor']
+	a = ferms.get('anchor', [])
+	if len(a) > 0:
+		# XXX: validate input length
 		if a[0] == 'strength':
 			r.anchor_bystrength(Parse.strength(a[1]))
 		elif a[0] == 'mass':
