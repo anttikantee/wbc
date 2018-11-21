@@ -105,6 +105,10 @@ def dofermentables(r, ferms):
 		(fun, v) = Parse.fermentableunit(ferms['ferment'][f])
 		fun(r, f, v, Recipe.FERMENT)
 
+	for f in ferms.get('package', []):
+		(fun, v) = Parse.fermentableunit(ferms['package'][f])
+		fun(r, f, v, Recipe.PACKAGE)
+
 	a = ferms.get('anchor', [])
 	if len(a) > 0:
 		# XXX: validate input length

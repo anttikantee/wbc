@@ -93,13 +93,15 @@ class Recipe:
 	STEEP=		object()
 	BOIL=		object()
 	FERMENT=	object()
-	fermstages=	[ MASH, STEEP, BOIL, FERMENT ]
+	PACKAGE=	object()
 	fermstage2txt=	{
 		MASH : 'mash',
 		STEEP: 'steep',
 		BOIL : 'boil',
-		FERMENT : 'ferment'
+		FERMENT : 'ferment',
+		PACKAGE : 'package',
 	}
+	fermstages=	fermstage2txt.keys()
 
 	def __final_volume(self):
 		if self.volume_final is not None:
@@ -527,7 +529,8 @@ class Recipe:
 		for stage in [('mashfermentables', 'Mash'),
 		    ('steepfermentables', 'Steep'),
 		    ('boilfermentables', 'Boil'),
-		    ('fermfermentables', 'Ferment')]:
+		    ('fermfermentables', 'Ferment'),
+		    ('packfermentables', 'Package')]:
 			(what, name) = stage
 			stagem = stagep = stagetote = stagemaxe = 0
 			if len(self.results.get(what, [])) > 0:
@@ -991,6 +994,7 @@ class Recipe:
 			raise Exception('recipe failed to converge ... panic?')
 
 		self._doferment()
+		self._process_fermentables(self.PACKAGE, 'packfermentables')
 
 		# calculate suggested pitch rates, using 0.75mil/ml/degP for
 		# ales and 1.5mil for lagers
