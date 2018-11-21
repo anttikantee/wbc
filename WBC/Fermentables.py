@@ -43,6 +43,10 @@ class Fermentable:
 		self.color = color
 		self.needmash = needmash
 		self.conversion = conversion
+
+	def __repr__(self):
+		return 'Fermentable object: ' + self.name
+
 fermentables = []
 
 class Extract:

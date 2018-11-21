@@ -89,19 +89,12 @@ class Recipe:
 	THEREST=	object()
 
 	# fermentable additions
-	MASH=		object()
-	STEEP=		object()
-	BOIL=		object()
-	FERMENT=	object()
-	PACKAGE=	object()
-	fermstage2txt=	{
-		MASH : 'mash',
-		STEEP: 'steep',
-		BOIL : 'boil',
-		FERMENT : 'ferment',
-		PACKAGE : 'package',
-	}
-	fermstages=	fermstage2txt.keys()
+	MASH=		'mash'
+	STEEP=		'steep'
+	BOIL=		'boil'
+	FERMENT=	'ferment'
+	PACKAGE=	'package'
+	fermstages=	[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
 
 	def __final_volume(self):
 		if self.volume_final is not None:
@@ -1043,8 +1036,8 @@ class Recipe:
 		print '# fermentable|name|mass|when'
 		for g in self.results['fermentables']:
 			print 'fermentable|{:}|{:}|{:}'\
-			    .format(g[1].name, float(g[2]),
-			      self.fermstage2txt[g[3]])
+			    .format(g['fermentable'].name,
+			      float(g['amount']), g['when'])
 
 		print '# hop|name|type|aa%|mass|timeclass|timespec'
 		for h in self.results['hops']:
@@ -1091,6 +1084,9 @@ class Hop:
 				return 'FWH'
 			return str(int(self.time)) + ' min'
 
+		def __repr__(self):
+			return 'Hop boil spec: ' + self.__str__()
+
 		def __cmp__(self, other):
 			assert(self.time is not None)
 			if isinstance(other, Hop.Boil):
@@ -1125,6 +1121,11 @@ class Hop:
 
 		def __str__(self):
 			return str(self.mins) + 'min @ ' + unicode(self.temp)
+
+		# argh unicode in __str__ so can't use it
+		def __repr__(self):
+			return 'Hop steep spec: ' + str(self.mins) \
+			    + 'min @ ' + str(int(self.temp)) + 'degC'
 
 		def __cmp__(self, other):
 			if isinstance(other, Hop.Steep):
@@ -1165,6 +1166,9 @@ class Hop:
 				    + ' => ' + str(self.outdays)
 			return 'dryhop ' + rv
 
+		def __repr__(self):
+			return 'Hop dryhop spec: ' + self.__str__()
+
 		def __cmp__(self, other):
 			if not isinstance(other, Hop.Dryhop):
 				return 0
@@ -1201,6 +1205,10 @@ class Hop:
 			    + 'between ' + str(aalow) + ' and ' + str(aahigh))
 
 		self.aapers = aapers
+
+	def __repr__(self):
+		return 'Hop object for: ' + self.name + '/' + self.typestr \
+		    + '/' + str(self.aapers) + '%'
 
 	#
 	# Tinseth IBUs, from http://realbeer.com/hops/research.html
