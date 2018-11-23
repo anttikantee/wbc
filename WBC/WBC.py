@@ -89,11 +89,11 @@ class Recipe:
 	THEREST=	object()
 
 	# fermentable additions
-	MASH=		'mash'
-	STEEP=		'steep'
-	BOIL=		'boil'
-	FERMENT=	'ferment'
-	PACKAGE=	'package'
+	MASH=		'Mash'
+	STEEP=		'Steep'
+	BOIL=		'Boil'
+	FERMENT=	'Ferment'
+	PACKAGE=	'Package'
 	fermstages=	[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
 
 	def __final_volume(self):
@@ -319,19 +319,6 @@ class Recipe:
 		return _Mass(sum(x['amount'] \
 		    for x in self.results['fermentables']))
 
-	def _process_fermentables(self, stage, resslot):
-		res = []
-		for f in sorted(self._fermentables_atstage(stage),
-		    key=lambda x: x['amount'], reverse=True):
-			name = f['name']
-			ferm = f['fermentable']
-			mass = f['amount']
-			ratio = mass / self._fermentables_allmass()
-			ext_pred = self.fermentable_yield(f)
-			ext_theo = self.fermentable_yield(f, theoretical=True)
-			res.append((name, mass, 100*ratio, ext_theo, ext_pred))
-		self.results[resslot] = res
-
 	def total_yield(self, stage, theoretical=False):
 		assert('fermentables' in self.results)
 
@@ -462,6 +449,15 @@ class Recipe:
 			ferms.append(n)
 		self.results['fermentables'] = ferms
 
+	def _dofermentablestats(self):
+		assert('fermentables' in self.results)
+		allmass = self._fermentables_allmass()
+		for f in self.results['fermentables']:
+			f['percent'] = 100.0 * (f['amount'] / allmass)
+			f['extract_predicted'] = self.fermentable_yield(f)
+			f['extract_theoretical'] = self.fermentable_yield(f,
+			    theoretical=True)
+
 	def _domash(self):
 		prevol1 = self.__volume_at_stage(self.PREBOIL)
 		prevol  = Brewutils.water_vol_at_temp(prevol1,
@@ -485,8 +481,6 @@ class Recipe:
 		self.mash.set_fermentables(mf)
 
 		v = self.__volume_at_stage(self.POSTBOIL)
-
-		self._process_fermentables(self.MASH, 'mashfermentables')
 
 		self.results['mash'] \
 		    = self.mash.infusion_mash(getparam('ambient_temp'),
@@ -516,43 +510,45 @@ class Recipe:
 		    + str(int(getparam('mash_efficiency'))) + "%)")
 		self._prtsep()
 
-		totextract = 0
-		maxextract = 0
+		extract_theoretical = extract_predicted = 0
 
-		for stage in [('mashfermentables', 'Mash'),
-		    ('steepfermentables', 'Steep'),
-		    ('boilfermentables', 'Boil'),
-		    ('fermfermentables', 'Ferment'),
-		    ('packfermentables', 'Package')]:
-			(what, name) = stage
-			stagem = stagep = stagetote = stagemaxe = 0
-			if len(self.results.get(what, [])) > 0:
-				print name
-				self._prtsep('-')
-				for f in self.results[what]:
-					pers = ' ({:5.1f}%)'.format(f[2])
-					print fmtstr.format(f[0],
-					    str(f[1]) + pers, str(f[3]),
-					    str(f[4]))
-					stagem += f[1]
-					stagep += f[2]
-					stagetote += f[3]
-					stagemaxe += f[4]
-				self._prtsep('-')
-				pers = ' ({:5.1f}%)'.format(stagep)
-				print fmtstr.format('',
-				    str(_Mass(stagem)) + pers,
-				    str(_Mass(stagetote)),
-				    str(_Mass(stagemaxe)))
-			totextract += stagetote
-			maxextract += stagemaxe
+		def handleonestage(name, lst):
+			stagem = stagep = stage_theoretical = stage_predicted =0
+			print name
+			self._prtsep('-')
+
+			for f in lst:
+				persstr = ' ({:5.1f}%)'.format(f['percent'])
+				print fmtstr.format(f['name'],
+				    str(f['amount']) + persstr,
+				    str(f['extract_theoretical']),
+				    str(f['extract_predicted']))
+				stagem += f['amount']
+				stagep += f['percent']
+				stage_theoretical += f['extract_theoretical']
+				stage_predicted += f['extract_predicted']
+			self._prtsep('-')
+			persstr = ' ({:5.1f}%)'.format(stagep)
+			print fmtstr.format('',
+			    str(_Mass(stagem)) + persstr,
+			    str(_Mass(stage_theoretical)),
+			    str(_Mass(stage_predicted)))
+			return (stage_theoretical, stage_predicted)
+
+		for stage in self.fermstages:
+			lst = sorted(self._fermentables_atstage(stage),
+			    key=lambda x: x['amount'], reverse=True)
+			if len(lst) > 0:
+				v = handleonestage(stage, lst)
+				extract_theoretical += v[0]
+				extract_predicted += v[1]
 
 		self._prtsep()
 
 		print fmtstr.format('', \
 		    str(self._fermentables_allmass()) + ' (100.0%)', \
-		    str(_Mass(totextract)),\
-		    str(_Mass(maxextract)))
+		    str(_Mass(extract_theoretical)),\
+		    str(_Mass(extract_predicted)))
 
 		print
 		print 'Mashing instructions (for ambient temperature', \
@@ -630,9 +626,6 @@ class Recipe:
 		self._prtsep()
 		print
 
-	def _dosteep(self):
-		self._process_fermentables(self.STEEP, 'steepfermentables')
-
 	def _doboil(self):
 		res = []
 
@@ -644,7 +637,6 @@ class Recipe:
 		self.results['postboil_strength'] \
 		    = Brewutils.solve_strength(self.total_yield(self.BOIL),v)
 
-		self._process_fermentables(self.BOIL, 'boilfermentables')
 		self._dohops()
 
 	@staticmethod
@@ -912,8 +904,6 @@ class Recipe:
 		print
 
 	def _doferment(self):
-		self._process_fermentables(self.FERMENT, 'fermfermentables')
-
 		self._doattenuate()
 
 	def _doattenuate(self, attenuation = (60, 86, 5)):
@@ -979,15 +969,14 @@ class Recipe:
 			prevol = self.__volume_at_stage(self.MASHWATER)
 			self._domash()
 
-			self._dosteep()
 			self._doboil()
 			if prevol+.01 >= self.__volume_at_stage(self.MASHWATER):
 				break
 		else:
 			raise Exception('recipe failed to converge ... panic?')
 
+		self._dofermentablestats()
 		self._doferment()
-		self._process_fermentables(self.PACKAGE, 'packfermentables')
 
 		# calculate suggested pitch rates, using 0.75mil/ml/degP for
 		# ales and 1.5mil for lagers
