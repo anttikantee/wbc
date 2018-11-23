@@ -25,7 +25,8 @@ $1 == "hop" {
 	hops[$2, $3, $4] += $5
 }
 $1 == "recipe" {
-	volume += $5
+	yeast_vol[$3] += $5
+	yeast_batch[$3] += 1
 }
 
 END {
@@ -39,7 +40,9 @@ END {
 		name = sprintf("%-34s %5s  %s", ar[1], ar[3] "%", ar[2])
 		printf("h|%s|%.2f\n", name, hops[h])
 	}
-	printf("v|%f\n", volume)
+	for (y in yeast_vol) {
+		printf("y|%s|%f|%f\n", y, yeast_vol[y], yeast_batch[y])
+	}
 }' "$@" | sort -t'|' -k 3rn \
   | awk -F'|' '
 $1 == "f" {
@@ -50,8 +53,10 @@ $1 == "h" {
 	hopname[++j] = $2
 	hopmass[j] = $3
 }
-$1 == "v" {
-	volume = $2
+$1 == "y" {
+	yeastname[++k] = $2
+	yeastvol[k] = $3
+	yeastbatch[k] = $4
 }
 
 # no support for funnyunits for now
@@ -82,7 +87,12 @@ END {
 	}
 	printf("=\n%-60s%s\n", "Total", scale(tothop))
 
-	# some additional "interesting" statistics
-	printf("\n===\n")
-	printf("%-60s%8.1f l\n", "Total volume brewed:", volume)
+	printf("\n\tYeast usage\n\n")
+	for (x = 1; x <= k; x++) {
+		printf("%-38s%8.1f l %14d batches\n",
+		    yeastname[x], yeastvol[x], yeastbatch[x])
+		totvol += yeastvol[x]
+		totbatch += yeastbatch[x]
+	}
+	printf("\n===\n%-38s%8.1f l %14d batches\n", "Total", totvol, totbatch)
 }'
