@@ -77,7 +77,6 @@ Color (Morey):     10.9 EBC, 5.5 SRM  Water (20.0°C):      33.9l
 Pitch rate, ale:   267 billion        Pitch rate, lager:   535 billion        
 
 Yeast:             WLP833
-Water notes:       
 
 Preboil  volume  : 27.1l (70.0°C)     Measured:                               
 Preboil  strength: 13.4°P             Measured:                               
@@ -135,7 +134,6 @@ Color (Morey):     10.9 EBC, 5.5 SRM  Water (68.0°F):      9.0gal
 Pitch rate, ale:   267 billion        Pitch rate, lager:   535 billion        
 
 Yeast:             WLP833
-Water notes:       
 
 Preboil  volume  : 7.2gal (158.0°F)   Measured:                               
 Preboil  strength: 1.054              Measured:                               
@@ -236,7 +234,6 @@ Color (Morey):     12.0 EBC, 6.1 SRM  Water (20.0°C):      29.6l
 Pitch rate, ale:   256 billion        Pitch rate, lager:   513 billion        
 
 Yeast:             WLP095
-Water notes:       
 
 Preboil  volume  : 23.1l (70.0°C)     Measured:                               
 Preboil  strength: 13.9°P             Measured:                               
@@ -311,7 +308,6 @@ Color (Morey):     12.0 EBC, 6.1 SRM  Water (68.0°F):      7.8gal
 Pitch rate, ale:   256 billion        Pitch rate, lager:   513 billion        
 
 Yeast:             WLP095
-Water notes:       
 
 Preboil  volume  : 6.1gal (158.0°F)   Measured:                               
 Preboil  strength: 1.056              Measured:                               
