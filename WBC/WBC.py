@@ -41,6 +41,8 @@ class Recipe:
 		self.volume_inherent = volume
 		self.volume_final = None
 
+		self.water_notes = None
+
 		self.hops_bymass = []
 		self.hops_byIBU = []
 		self.hops_recipeIBU = None
@@ -159,6 +161,13 @@ class Recipe:
 	def set_final_volume(self, volume_final):
 		checktype(volume_final, Volume)
 		self.volume_final = volume_final
+
+	# set opaque water notes to be printed with recipe
+	def set_water_notes(self, waternotes):
+		checktype(waternotes, str)
+		if self.water_notes is not None:
+			warn('water notes already set')
+		self.water_notes = waternotes
 
 	def _hopstore(self, hop, amount, time):
 		time.resolvetime(self.boiltime)
@@ -798,9 +807,13 @@ class Recipe:
 		print
 
 	def _keystats(self, miniprint):
+		# column widths (
+		cols = [19, 19, 21, 19]
+
 		self._prtsep()
-		onefmt = u'{:19}{:}'
-		twofmt = u'{:19}{:19}{:21}{:19}'
+		onefmt = u'{:' + str(cols[0]) + '}{:}'
+		twofmt = u'{:' + str(cols[0]) + '}{:' + str(cols[1]) \
+		    + '}{:' + str(cols[2]) + '}{:' + str(cols[3]) + '}'
 
 		postvol1 = self.__volume_at_stage(self.POSTBOIL)
 		postvol  = Brewutils.water_vol_at_temp(postvol1,
@@ -848,7 +861,9 @@ class Recipe:
 			    + unit)
 		print
 		print onefmt.format('Yeast:', self.yeast)
-		print onefmt.format('Water notes:', '')
+		if self.water_notes is not None:
+			prettyprint_withsugarontop('Water notes:', cols[0],
+			    self.water_notes, sum(cols) - cols[0])
 		print
 
 		print twofmt.format('Preboil  volume  :', \

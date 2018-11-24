@@ -152,6 +152,9 @@ def domashparams(r, mashparams):
 		else:
 			raise PilotError('unknown mash parameter: ' + str(p))
 
+def dowater(r, v):
+	r.set_water_notes(v)
+
 def applyparams(r, clist, odict):
 	for f in odict.get('wbcparamfiles', []):
 		Sysparams.processfile(f)
@@ -199,14 +202,17 @@ def processyaml(clist, odict, data):
 
 	applyparams(r, clist, odict)
 
+	handlers = {
+		'mashparams'	: domashparams,
+		'fermentables'	: dofermentables,
+		'hops'		: dohops,
+		'water'		: dowater,
+	}
+
 	for p in d:
 		v = d[p]
-		if p == 'mashparams':
-			domashparams(r, v)
-		elif p == 'fermentables':
-			dofermentables(r, v)
-		elif p == 'hops':
-			dohops(r, v)
+		if p in handlers:
+			handlers[p](r, v)
 		else:
 			raise PilotError('invalid recipe field: ' + p)
 
