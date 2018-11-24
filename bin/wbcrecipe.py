@@ -167,6 +167,9 @@ def applyparams(r, clist, odict):
 	if 'volume' in odict:
 		r.set_final_volume(odict['volume'])
 
+	for n in odict.get('notes', []):
+		r.add_note(n)
+
 def processyaml(clist, odict, data):
 	# importing yaml is unfathomably slow, so do it only if we need it
 	import yaml
@@ -266,6 +269,7 @@ def processcsv(clist, odict, data):
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
 	    + ' [-s volume,strength] [-v final volume] [-c] [-d] [-m]\n'
+	    + '\t[-n note] [-n note ...]\n'
 	    + '\t[-p paramsfile] [-P param=value] recipefile\n')
 	sys.exit(1)
 
@@ -278,6 +282,9 @@ def processopts(opts):
 
 		elif o == '-m':
 			odict['miniprint'] = True
+
+		elif o == '-n':
+			odict.setdefault('notes', []).append(a)
 
 		elif o == '-p':
 			odict.setdefault('wbcparamfiles', []).append(a)
@@ -300,7 +307,7 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'cdhmp:P:s:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'cdhmn:p:P:s:v:')
 	if len(args) > 1:
 		usage()
 

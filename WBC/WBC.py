@@ -42,6 +42,7 @@ class Recipe:
 		self.volume_final = None
 
 		self.water_notes = None
+		self.notes = []
 
 		self.hops_bymass = []
 		self.hops_byIBU = []
@@ -168,6 +169,10 @@ class Recipe:
 		if self.water_notes is not None:
 			warn('water notes already set')
 		self.water_notes = waternotes
+
+	def add_note(self, note):
+		checktype(note, str)
+		self.notes.append(note)
 
 	def _hopstore(self, hop, amount, time):
 		time.resolvetime(self.boiltime)
@@ -864,6 +869,9 @@ class Recipe:
 		if self.water_notes is not None:
 			prettyprint_withsugarontop('Water notes:', cols[0],
 			    self.water_notes, sum(cols) - cols[0])
+		for n in self.notes:
+			prettyprint_withsugarontop('Brewday notes:', cols[0],
+			    n, sum(cols) - cols[0])
 		print
 
 		print twofmt.format('Preboil  volume  :', \
