@@ -188,6 +188,15 @@ add('Briess Pale',
 	Extract(78.5, CGDB, 1.5, 4.0),
 	DiaP(85, DiaP.L),
 	Color(3.5, LOVIBOND))
+add('Briess Aromatic Munich 20 L',
+	Extract(77.0, FGDB, FCD_UNKNOWN, 2.5),
+	DiaP(20, DiaP.L),
+	Color(20, LOVIBOND))
+add('Briess Victory',
+	Extract(75.0, FGDB, FCD_UNKNOWN, 2.5),
+	diap_none,
+	Color(28, LOVIBOND))
+
 add('Briess Carapils',
 	Extract(75.0, FGDB, FCD_UNKNOWN, 6.5),
 	diap_none,
@@ -324,6 +333,16 @@ add('Fawcett Brown',
 # high amounts that it should matter if we're off even by 50%
 add('Weyermann Acidulated Malt', 75, 0, Color(4.5, EBC))
 
+add('Weyermann CaraFoam',
+	Extract(77.0, FGDB, FCD_UNKNOWN, 5.5),
+	diap_none,
+	Color(5, EBC),
+	needmash = False)
+add('Weyermann CaraHell',
+	Extract(77.0, FGDB, FCD_UNKNOWN, 7.0),
+	diap_none,
+	Color(25, EBC),
+	needmash = False)
 add('Weyermann CaraAroma',
 	Extract(76.9, FGDB, FCD_UNKNOWN, 5.8),
 	diap_none,
