@@ -28,7 +28,7 @@ wbcparams = {}
 def setparam(what, value):
 	if what not in paramparsers:
 		raise PilotError('invalid parameter: ' + what)
-	rv = paramparsers[what](value)
+	rv = paramparsers[what]['parser'](value)
 	wbcparams[what] = rv
 
 def processparam(paramstr):
@@ -79,14 +79,28 @@ def checkset():
 # do some fancypants stuff to avoid having to type things multiple times.
 # one makes my fingers hurt, the other makes my brain hurt #PoisonChosen
 # beginning to appreciate cpp ...
-def _addparam(key, value):
+def _addparam(key, shortname, handler):
 	def x(arg):
 		try:
-			return value(arg)
+			# reject special characters.  they should not be
+			# allowed by the handlers anyway, but it's more
+			# certain to check for them collectively.
+			if '|' in arg or ':' in arg:
+				raise PilotError('__unused')
+			rv = handler(arg)
+			paraminputs[key] = arg
+			return rv
 		except (PilotError, ValueError):
 			raise PilotError('invalid value "' + str(arg)
 			    + '" for "' + str(key) + '"')
-        paramparsers[key] = x
+	param = {}
+	param['parser'] = x
+	param['name'] = key
+	param['shortname'] = shortname
+	paramparsers[key] = param
+
+	assert(shortname not in paramshorts)
+	paramshorts[shortname] = param
 
 def _currystring(strings):
 	def x(input):
@@ -106,24 +120,27 @@ def _parsefloat(input):
 
 import Parse
 
+paraminputs = {}
 paramparsers = {}
-_addparam('units_output',	_currystring(['metric', 'us']))
-_addparam('strength_output',	_currystring(['plato','sg']))
+paramshorts = {}
 
-_addparam('mash_efficiency',	Parse.percent)
+_addparam('units_output',	'uo',	_currystring(['metric', 'us']))
+_addparam('strength_output',	'so',	_currystring(['plato','sg']))
 
-_addparam('boiloff_perhour',	Parse.volume)
+_addparam('mash_efficiency',	'me',	Parse.percent)
 
-_addparam('mlt_loss',		Parse.volume)
-_addparam('mlt_heatcapacity',	_parsefloat)
-_addparam('mlt_heat',		_currystring(['transfer','direct']))
+_addparam('boiloff_perhour',	'bo',	Parse.volume)
 
-_addparam('grain_absorption',	_curryratio(Parse.volume, Parse.mass))
+_addparam('mlt_loss',		'ml',	Parse.volume)
+_addparam('mlt_heatcapacity',	'mh',	_parsefloat)
+_addparam('mlt_heat',		'mt',	_currystring(['transfer','direct']))
 
-_addparam('ambient_temp',	Parse.temp)
-_addparam('preboil_temp',	Parse.temp)
-_addparam('postboil_temp',	Parse.temp)
-_addparam('sparge_temp',	Parse.temp)
+_addparam('grain_absorption',	'ga',	_curryratio(Parse.volume, Parse.mass))
+
+_addparam('ambient_temp',	'ta',	Parse.temp)
+_addparam('preboil_temp',	'tp',	Parse.temp)
+_addparam('postboil_temp',	'tb',	Parse.temp)
+_addparam('sparge_temp',	'st',	Parse.temp)
 
 _defaults = {
 	# water absortion for 1kg of grain, net (i.e. apparent absorption).
@@ -139,3 +156,21 @@ _defaults = {
 
 for x in _defaults:
 	setparam(x, _defaults[x])
+
+# return a string instead of an array of tuples so that we can
+# maintain policy with decodeparamshorts()
+def getparamshorts():
+	out=[]
+	for key in paramparsers:
+		out.append(paramparsers[key]['shortname']
+		    + ':' + paraminputs[key])
+	return '|'.join(out)
+
+def decodeparamshorts(pstr):
+	res = []
+	for x in pstr.split('|'):
+		v = x.split(':')
+		if len(v) != 2 or v[0] not in paramshorts:
+			raise PilotError('invalid sysparam spec: ' + x)
+		res.append((paramshorts[v[0]]['name'], v[1]))
+	return res
