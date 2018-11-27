@@ -26,9 +26,13 @@ def _getparam(what):
 wbcparams = {}
 
 def setparam(what, value):
-	if what not in paramparsers:
+	try:
+		if what in paramshorts:
+			what = paramshorts[what]
+		param = paramparsers.get(what)
+	except:
 		raise PilotError('invalid parameter: ' + what)
-	rv = paramparsers[what]['parser'](value)
+	rv = param['parser'](value)
 	wbcparams[what] = rv
 
 def processparam(paramstr):
@@ -79,7 +83,7 @@ def checkset():
 # do some fancypants stuff to avoid having to type things multiple times.
 # one makes my fingers hurt, the other makes my brain hurt #PoisonChosen
 # beginning to appreciate cpp ...
-def _addparam(key, shortname, handler):
+def _addparam(name, shortname, handler):
 	def x(arg):
 		try:
 			# reject special characters.  they should not be
@@ -88,19 +92,19 @@ def _addparam(key, shortname, handler):
 			if '|' in arg or ':' in arg:
 				raise PilotError('__unused')
 			rv = handler(arg)
-			paraminputs[key] = arg
+			paraminputs[name] = arg
 			return rv
 		except (PilotError, ValueError):
 			raise PilotError('invalid value "' + str(arg)
-			    + '" for "' + str(key) + '"')
+			    + '" for "' + str(name) + '"')
 	param = {}
 	param['parser'] = x
-	param['name'] = key
+	param['name'] = name
 	param['shortname'] = shortname
-	paramparsers[key] = param
+	paramparsers[name] = param
 
 	assert(shortname not in paramshorts)
-	paramshorts[shortname] = param
+	paramshorts[shortname] = name
 
 def _currystring(strings):
 	def x(input):
@@ -120,9 +124,9 @@ def _parsefloat(input):
 
 import Parse
 
-paraminputs = {}
-paramparsers = {}
-paramshorts = {}
+paraminputs = {}	# longname  -> unparsed text input
+paramparsers = {}	# longname  -> param "struct"
+paramshorts = {}	# shortname -> longname
 
 _addparam('units_output',	'uo',	_currystring(['metric', 'us']))
 _addparam('strength_output',	'so',	_currystring(['plato','sg']))
@@ -161,9 +165,8 @@ for x in _defaults:
 # maintain policy with decodeparamshorts()
 def getparamshorts():
 	out=[]
-	for key in paramparsers:
-		out.append(paramparsers[key]['shortname']
-		    + ':' + paraminputs[key])
+	for sn in paramshorts:
+		out.append(sn + ':' + paraminputs[paramshorts[sn]])
 	return '|'.join(out)
 
 def decodeparamshorts(pstr):
@@ -172,5 +175,5 @@ def decodeparamshorts(pstr):
 		v = x.split(':')
 		if len(v) != 2 or v[0] not in paramshorts:
 			raise PilotError('invalid sysparam spec: ' + x)
-		res.append((paramshorts[v[0]]['name'], v[1]))
+		res.append((paramshorts[v[0]], v[1]))
 	return res
