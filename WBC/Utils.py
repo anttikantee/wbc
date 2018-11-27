@@ -35,12 +35,12 @@ def notice(msg, prepend=''):
 
 # print first line with prefix and rest indented at prefixlen,
 # split at whitespaces
-def prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen):
+def prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
 	res = []
 	while len(thestr) > strmaxlen:
 		# this produces off-by-one lengths in a number of
 		# pathological corner cases.  not going to worry about it.
-		v = thestr[:strmaxlen+1].rsplit(None, 1)
+		v = thestr[:strmaxlen+1].rsplit(sep, 1)
 		res.append(v[0])
 		thestr = thestr[len(v[0]):].lstrip()
 	res.append(thestr)
