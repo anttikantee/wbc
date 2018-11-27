@@ -86,6 +86,9 @@ Postboil strength: 16.8°P             Measured:
 Kettle loss (est): 1.0l               Fermenter loss (est):0.8l               
 Mash eff (conf) :  88.0%              Brewhouse eff (est): 84.6%              
 ==============================================================================
+me:88%|ml:1l|bo:3.5l|mh:1.5|tp:70degC|st:82degC|mt:transfer|uo:metric|so:plato
+|ga:1.1l/kg|tb:100degC|ta:20degC
+==============================================================================
 
 Fermentables                                  amount  ext (100%)   ext (88%)
 ==============================================================================
@@ -142,6 +145,9 @@ Postboil strength: 1.069              Measured:
 
 Kettle loss (est): 0.3gal             Fermenter loss (est):0.2gal             
 Mash eff (conf) :  88.0%              Brewhouse eff (est): 84.6%              
+==============================================================================
+me:88%|ml:1l|bo:3.5l|mh:1.5|tp:70degC|st:82degC|mt:transfer|uo:us|so:sg
+|ga:1.1l/kg|tb:100degC|ta:20degC
 ==============================================================================
 
 Fermentables                                  amount  ext (100%)   ext (88%)
@@ -246,6 +252,9 @@ Mash eff (conf) :  88.0%              Brewhouse eff (est): 84.8%
 NOTE: keg hops absorb: 0.6l => effective yield: 18.9l
 NOTE: keg hop volume: ~0.2l => packaged volume: 19.7l
 ==============================================================================
+me:88%|ml:1l|bo:3.5l|mh:1.5|tp:70degC|st:82degC|mt:transfer|uo:metric|so:plato
+|ga:1.1l/kg|tb:100degC|ta:20degC
+==============================================================================
 
 Fermentables                                  amount  ext (100%)   ext (88%)
 ==============================================================================
@@ -319,6 +328,9 @@ Mash eff (conf) :  88.0%              Brewhouse eff (est): 84.8%
 
 NOTE: keg hops absorb: 0.2gal => effective yield: 5.0gal
 NOTE: keg hop volume: ~0.1gal => packaged volume: 5.2gal
+==============================================================================
+me:88%|ml:1l|bo:3.5l|mh:1.5|tp:70degC|st:82degC|mt:transfer|uo:us|so:sg
+|ga:1.1l/kg|tb:100degC|ta:20degC
 ==============================================================================
 
 Fermentables                                  amount  ext (100%)   ext (88%)
