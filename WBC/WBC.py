@@ -924,7 +924,6 @@ class Recipe:
 				          + self.kegdryhopvol))
 
 		self._prtsep()
-		print
 
 	def _doferment(self):
 		self._doattenuate()
@@ -1019,7 +1018,13 @@ class Recipe:
 
 	def printit(self, miniprint):
 		self._assertcalculate()
+
 		self._keystats(miniprint)
+		ps = Sysparams.getparamshorts()
+		prettyprint_withsugarontop('', '', ps, 78, sep='|')
+		self._prtsep()
+		print
+
 		self._printmash()
 		self._printboil()
 		if not miniprint:
