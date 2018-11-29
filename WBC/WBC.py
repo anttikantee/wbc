@@ -143,7 +143,7 @@ class Recipe:
 		return _Volume(v)
 
 	def _prtsep(self, char='='):
-		print char * 78
+		print char * 79
 
 	def __extract(self, vol, strength):
 		m = Mass(vol * strength.valueas(Strength.SG), Mass.KG)
@@ -518,7 +518,7 @@ class Recipe:
 		self.results['mash_first_runnings_max'] = rv
 
 	def _printmash(self):
-		fmtstr = u'{:32}{:>20}{:>12}{:>12}'
+		fmtstr = u'{:34}{:>20}{:>12}{:>12}'
 		print fmtstr.format("Fermentables",
 		    "amount", "ext (100%)", "ext ("
 		    + str(int(getparam('mash_efficiency'))) + "%)")
@@ -775,12 +775,17 @@ class Recipe:
 	def _printboil(self):
 		# XXX: IBU sum might not be sum of displayed hop additions
 		# due to rounding.  cosmetic, but annoying.
-		namelen = 26
-		onefmt = u'{:' + str(namelen) + '}{:7}{:>15}{:>9}{:>10}{:>9}'
+		namelen = 29
+		onefmt = u'{:' + str(namelen) + '}{:7}{:>15}{:>9}{:>10}{:>8}'
 		print onefmt.format("Hops", "AA%", "time", "timer",
 		    "amount", "IBUs")
 		self._prtsep()
 		totmass = 0
+
+		# printing IBUs with a decimal point, given all
+		# other inaccuracy involved, is rather silly.
+		# but what would we be if not silly?
+		ibufmt = '{:.1f}'
 
 		prevstage = None
 		for h in self.results['hops']:
@@ -800,25 +805,27 @@ class Recipe:
 			prevstage = time.__class__
 			totmass = mass + totmass
 
-			# printing IBUs with two decimal points, given all
-			# other inaccuracy involved, is rather silly.
-			# but what would we be if not silly?
-			ibustr = '{:.2f}'.format(ibu)
+			ibustr = ibufmt.format(ibu)
 			print onefmt.format(nam + typ, str(hop.aapers) + '%', \
 			    time, h['timer'], str(mass), ibustr)
 		self._prtsep()
-		ibustr = '{:.2f}'.format(self.ibus)
+		ibustr = ibufmt.format(self.ibus)
 		print onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr)
 		print
 
 	def _keystats(self, miniprint):
 		# column widths (
-		cols = [19, 19, 21, 19]
+		cols = [20, 19, 22, 19]
+		cols_tight = [20, 19, 16, 25]
 
 		self._prtsep()
 		onefmt = u'{:' + str(cols[0]) + '}{:}'
-		twofmt = u'{:' + str(cols[0]) + '}{:' + str(cols[1]) \
-		    + '}{:' + str(cols[2]) + '}{:' + str(cols[3]) + '}'
+
+		def maketwofmt(c):
+			return u'{:' + str(c[0]) + '}{:' + str(c[1]) \
+			    + '}{:' + str(c[2]) + '}{:' + str(c[3]) + '}'
+		twofmt = maketwofmt(cols)
+		twofmt_tight = maketwofmt(cols_tight)
 
 		postvol1 = self.__volume_at_stage(self.POSTBOIL)
 		postvol  = Brewutils.water_vol_at_temp(postvol1,
@@ -836,11 +843,10 @@ class Recipe:
 		ebc = color.valueas(Color.EBC)
 
 		print onefmt.format('Name:', self.name)
-		print twofmt.format('Final volume:',
-		    str(self.__final_volume()),
-		    'Boil:', str(self.boiltime) + ' min')
+		print twofmt_tight.format('Aggregate strength:', 'TBD',
+		    'Package volume:', str(self.__final_volume()))
 		bugu = self.ibus / self.results['final_strength']
-		print twofmt.format('IBU (Tinseth):', \
+		print twofmt_tight.format('IBU (Tinseth):', \
 		    '{:.2f}'.format(self.ibus), \
 		    'BUGU:', '{:.2f}'.format(bugu))
 		if srm >= 10:
@@ -850,29 +856,24 @@ class Recipe:
 
 		ebcprec = '{:.' + prec + 'f}'
 		srmprec = '{:.' + prec + 'f}'
-		print twofmt.format('Color (Morey):', \
-		    ebcprec.format(ebc) \
-		    + ' EBC, ' + srmprec.format(srm) + ' SRM', \
-		    'Water (' + unicode(self.__reference_temp()) + '):', \
-		    unicode(total_water))
+		print twofmt_tight.format('Boil:', str(self.boiltime) + 'min',
+		    'Yeast:', self.yeast)
+		print twofmt_tight.format(
+		    'Water (' + unicode(self.__reference_temp()) + '):',
+		    unicode(total_water),
+		    'Color (Morey):', ebcprec.format(ebc)
+		    + ' EBC, ' + srmprec.format(srm) + ' SRM')
+		print
 
-		if not miniprint:
-			bil = 1000*1000*1000
-			unit = ' billion'
-			print twofmt.format('Pitch rate, ale:',
-			    str(int(self.results['pitch']['ale'] / bil)) + unit,
-			    'Pitch rate, lager:',
-			    str(int(self.results['pitch']['lager'] / bil))
-			    + unit)
-		print
-		print onefmt.format('Yeast:', self.yeast)
-		if self.water_notes is not None:
-			prettyprint_withsugarontop('Water notes:', cols[0],
-			    self.water_notes, sum(cols) - cols[0])
-		for n in self.notes:
-			prettyprint_withsugarontop('Brewday notes:', cols[0],
-			    n, sum(cols) - cols[0])
-		print
+		if self.water_notes is not None or len(self.notes) > 0:
+			if self.water_notes is not None:
+				prettyprint_withsugarontop('Water notes:',
+				    cols[0], self.water_notes,
+				    sum(cols) - cols[0])
+			for n in self.notes:
+				prettyprint_withsugarontop('Brewday notes:',
+				    cols[0], n, sum(cols) - cols[0])
+			print
 
 		print twofmt.format('Preboil  volume  :', \
 		    str(self.results['preboil_volume']) \
@@ -905,6 +906,16 @@ class Recipe:
 		print twofmt.format('Mash eff (conf) :', \
 		    str(getparam('mash_efficiency')) + '%',
 		    'Brewhouse eff (est):', '{:.1f}%'.format(100 * beff))
+
+		if not miniprint:
+			print
+			bil = 1000*1000*1000
+			unit = ' billion'
+			print twofmt.format('Pitch rate, ale:',
+			    str(int(self.results['pitch']['ale'] / bil)) + unit,
+			    'Pitch rate, lager:',
+			    str(int(self.results['pitch']['lager'] / bil))
+			    + unit)
 
 		if self.hopsdrunk['keg'] > 0:
 			print
