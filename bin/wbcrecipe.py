@@ -246,14 +246,8 @@ def processcsv(clist, odict, data):
 			r.mash.set_mash_temperature(mashtemps)
 
 		elif row[0] == "fermentable":
-			stagemap = {
-				'mash'    : Recipe.MASH,
-				'steep'   : Recipe.STEEP,
-				'boil'    : Recipe.BOIL,
-				'ferment' : Recipe.FERMENT,
-			}
 			r.fermentable_bymass(row[1],
-			    Mass(row[2], Mass.G), stagemap[row[3]])
+			    Mass(row[2], Mass.G), row[3])
 
 		elif row[0] == "hop":
 			hopfunmap = {
