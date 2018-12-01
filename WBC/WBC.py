@@ -391,7 +391,8 @@ class Recipe:
 
 		totpers = sum(x['amount'] for x in self.fermentables_bypercent)
 		missing = 100 - float(totpers)
-		if missing > 0:
+		if missing > .000001:
+			# XXXTODO: nonintrusively assert we're here max once
 			ltr = len(self.fermentables_therest)
 			if ltr == 0:
 				raise PilotError('fermentable percentages add '
@@ -401,8 +402,9 @@ class Recipe:
 			for tr in self.fermentables_therest:
 				tr['amount'] = mp
 				self.fermentables_bypercent.append(tr)
-		assert (sum(x['amount'] \
-		    for x in self.fermentables_bypercent) == 100)
+		# yay for floating points
+		assert (abs(sum(x['amount'] \
+		    for x in self.fermentables_bypercent) - 100.0) < .000001)
 
 		if self.anchor is None:
 			raise PilotError('anchor must be set for '
