@@ -255,6 +255,22 @@ add('Crisp Maris Otter', 81.5, 150, Color(3.5, EBC))
 # all vendors agree that it's 200-250 Lovibond, so I guess mostly correct
 add('Crisp Pale Chocolate', 77, 0, Color(600, EBC), needmash = False)
 
+# have to guestimate the extract yield based on random
+# internet sources.  seems like Crisp doesn't want to tell us.
+# guess we should be thankful that they at least tell the color
+# and moisture content.
+add('Crisp Brown',
+	Extract(70.0, FGDB, FCD_UNKNOWN, 2.0),
+	diap_none,
+	Color(135, EBC))
+add('Crisp Roasted barley',
+	Extract(70.0, FGDB, FCD_UNKNOWN, 2.0),
+	diap_none,
+	Color(1350, EBC),
+	needmash = False)
+# help legacy recipes for now
+alias('Roasted Barley', 'Crisp Roasted Barley')
+
 # XXX: probably better diastatic power, but can't figure it out
 # from the datasheet at:
 # http://dingemansmout.be/sites/dingemansmout.be/files/downloads/ALE_MD_0.pdf
@@ -409,7 +425,6 @@ alias('Weyermann Carafa 3 Special', 'Weyermann Carafa 3')
 # extract yields for non-malts (from 'How To Brew' [Palmer])
 add('Flaked wheat', 77, 0, Color(0, EBC))
 add('Flaked oats', 70, 0, Color(0, EBC))
-add('Roasted barley', 55, 0, Color(1400, EBC), needmash = False)
 
 # guess and assume
 add('Flaked rye',
