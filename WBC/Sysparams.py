@@ -77,13 +77,13 @@ def processfile(filename):
 
 def checkset():
 	for p in paramparsers:
-		if p not in wbcparams:
+		if not paramparsers[p]['optional'] and p not in wbcparams:
 			raise PilotError('missing system parameter for: ' + p)
 
 # do some fancypants stuff to avoid having to type things multiple times.
 # one makes my fingers hurt, the other makes my brain hurt #PoisonChosen
 # beginning to appreciate cpp ...
-def _addparam(name, shortname, handler):
+def _addparam1(optional, name, shortname, handler):
 	def x(arg):
 		try:
 			# reject special characters.  they should not be
@@ -101,10 +101,16 @@ def _addparam(name, shortname, handler):
 	param['parser'] = x
 	param['name'] = name
 	param['shortname'] = shortname
+	param['optional'] = optional
 	paramparsers[name] = param
 
 	assert(shortname not in paramshorts)
 	paramshorts[shortname] = name
+
+def _addparam(*args):
+	return _addparam1(False, *args)
+def _addoptparam(*args):
+	return _addparam1(True, *args)
 
 def _currystring(strings):
 	def x(input):
@@ -158,6 +164,8 @@ _defaults = {
 	'sparge_temp'		: '82degC',
 }
 
+for p in paramparsers:
+	wbcparams[p] = None
 for x in _defaults:
 	setparam(x, _defaults[x])
 
@@ -166,6 +174,10 @@ for x in _defaults:
 def getparamshorts():
 	out=[]
 	for sn in paramshorts:
+		n = paramshorts[sn]
+		if n not in paraminputs:
+			assert(paramparsers[n]['optional'])
+			continue
 		out.append(sn + ':' + paraminputs[paramshorts[sn]])
 	return '|'.join(out)
 
