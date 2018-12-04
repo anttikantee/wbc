@@ -29,7 +29,8 @@ import sys
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
 	    + ' [-v keg volume]\n'
-	    + '\ttemperature|pressure|vols temperature|pressure|vols\n')
+	    + '\ttemperature|pressure|(vols|co2 w/v) '
+	    + 'temperature|pressure|(vols|co2 w/v)\n')
 	sys.exit(1)
 
 if __name__ == '__main__':
@@ -47,7 +48,8 @@ if __name__ == '__main__':
 
 	wegot = {}
 	def attempt(what):
-		for m in [ Parse.pressure, Parse.temp, float ]:
+		for m in [ Parse.pressure, Parse.temp,
+		    lambda x: Parse.ratio(x, Parse.mass, Parse.volume), float ]:
 			try:
 				v = m(what)
 				wegot[v.__class__] = v
@@ -57,6 +59,11 @@ if __name__ == '__main__':
 		usage()
 	attempt(args[0])
 	attempt(args[1])
+
+	# if wegot CO2 w/v, convert to volumes
+	if tuple in wegot:
+		t = wegot[tuple]
+		wegot[float] = (t[0] / t[1]) / Constants.co2_stp_gl
 
 	def p(): return wegot[Pressure]
 	def t(): return wegot[Temperature]
