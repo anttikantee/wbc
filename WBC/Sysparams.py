@@ -125,6 +125,14 @@ def _curryratio(p1, p2):
 		return Parse.ratio(input, p1, p2)
 	return x
 
+def _parsemashinratio(input):
+	if '%' in input:
+		rv = Parse.percent(input)
+		return ('%', rv)
+	else:
+		rv = Parse.ratio(input, Parse.volume, Parse.mass)
+		return ('/', rv)
+
 def _parsefloat(input):
 	return float(input)
 
@@ -152,6 +160,12 @@ _addparam('preboil_temp',	'tp',	Parse.temp)
 _addparam('postboil_temp',	'tb',	Parse.temp)
 _addparam('sparge_temp',	'st',	Parse.temp)
 
+_addparam('mashin_ratio',	'mr',	_parsemashinratio)
+
+_addoptparam('mashwater_min',	'mm',	Parse.volume)
+_addoptparam('mashvol_max',	'mM',	Parse.volume)
+_addoptparam('lautervol_max',	'lM',	Parse.volume)
+
 _defaults = {
 	# water absortion for 1kg of grain, net (i.e. apparent absorption).
 	# really somewhere around 1.05, but this value seems to work better
@@ -162,6 +176,8 @@ _defaults = {
 	'preboil_temp'		: '70degC',
 	'postboil_temp'		: '100degC',
 	'sparge_temp'		: '82degC',
+
+	'mashin_ratio'		: '50%',
 }
 
 for p in paramparsers:

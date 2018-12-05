@@ -500,7 +500,8 @@ class Recipe:
 
 		self.results['mash'] \
 		    = self.mash.infusion_mash(getparam('ambient_temp'),
-			self.__reference_temp(), totvol)
+			self.__reference_temp(), totvol,
+			self.__grain_absorption())
 
 		theor_yield = self.total_yield(self.MASH,
 		    theoretical=True).valueas(Mass.KG)
@@ -1293,9 +1294,6 @@ class Hop:
 		return _Volume(mass / density)
 
 class Mash:
-	# 2.5kg water to 1kg of grain by default
-	__mashin_ratio_default = 2.5
-
 	INFUSION=	object()
 
 	#DECOCTION=	object()
@@ -1389,37 +1387,41 @@ class Mash:
 			if water_temp > 100:
 				raise PilotError('could not satisfy mashin '
 				    + 'temperarture with available water. '
-				    + 'check mashin ratio.')
+				    + 'check mash parameters.')
 
 			self._setvalues(water_capa, water_temp, target_temp)
 
-		def stepup(self, target_temp):
+		# figure how much boiling water we need to add (or remove)
+		# to get the system up to the new target temperature
+		def nextstep(self, target_temp):
+			assert(getparam('mlt_heat') == 'transfer')
 			_c = self._capa
 			_h = self._heat
 
-			# see how much boiling water we need to raise the
-			# temp up to the new target
+			# assume slight loss while water is transferred
+			watertemp = _Temperature(98)
 			boiltemp = _Temperature(100)
+
 			nw = (target_temp \
 			      * (_c('mlt') \
 				  + _c('grain') + _c('water'))\
 			    - (_h('mlt') + _h('grain') + _h('water')))\
-			  / (boiltemp - target_temp)
-
+			  / (watertemp - target_temp)
 			self._setvalues(nw, boiltemp, target_temp)
 
-		def waterstats(self):
+		def waterstep(self):
 			return (_Volume(self.step_watermass),
 			    _Temperature(self.step_watertemp))
 
-	def __init__(self):
-		self.mashin_ratio = None
-		self.mashin_percent = None
+		def watermass(self):
+			return self.hts['water']['capa']
 
+	def __init__(self):
 		self.fermentables = []
 		self.temperature = None
 
-	def infusion_mash(self, ambient_temp, water_temp, watervol):
+	def infusion_mash(self, ambient_temp, water_temp, watervol,
+	    grains_absorb):
 		if self.temperature is None:
 			raise PilotError('trying to mash without temperature')
 		mashtemps = self.temperature
@@ -1427,43 +1429,95 @@ class Mash:
 
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
-
-		assert(not(self.mashin_ratio is not None
-		    and self.mashin_percent is not None))
-		if self.mashin_ratio is None and self.mashin_percent is None:
-			self.mashin_ratio = self.__mashin_ratio_default
-
 		fmass = _Mass(sum(x['amount'] for x in self.fermentables))
+		grainvol = fmass.valueas(Mass.KG) \
+			      * Constants.grain_specificvolume
+
+		def origwater(fromtemp, totemp, fromwater):
+			if getparam('mlt_heat') == 'direct':
+				return fromwater
+
+			step = self.__Step(fmass, _Temperature(20),
+			    fromtemp, fromwater)
+			step.nextstep(totemp)
+			return step.watermass()
+
+		mashin_ratio = getparam('mashin_ratio')
+		if mashin_ratio[0] == '%':
+			absorb = fmass.valueas(Mass.KG) * grains_absorb
+			wmass_end = (mashin_ratio[1] / 100.0) \
+			    * (watervol + absorb)
+			wmass = origwater(mashtemps[-1], mashtemps[0],
+			    wmass_end)
+		else:
+			assert(mashin_ratio[0] == '/')
+			rat = mashin_ratio[1][0] \
+			    * mashin_ratio[1][1].valueas(Mass.KG)
+			wmass = rat * fmass.valueas(Mass.KG)
+
+		# adjust minimum mash water, advisory parameter
+		mwatermin = getparam('mashwater_min')
+		if mwatermin is not None:
+			if mwatermin > watervol:
+				mwatermin = watervol
+			if wmass < mwatermin:
+				wmass = origwater(mashtemps[-1], mashtemps[0],
+				    mwatermin)
+
+		# if necessary, adjust final mash volume to limit,
+		# or error if we can't
+		mvolmax = getparam('mashvol_max')
+		wmass_end = origwater(mashtemps[0], mashtemps[-1], wmass)
+		mvol = grainvol + wmass_end
+		if mvolmax is not None and mvol > mvolmax:
+			veryminvol = grainvol + getparam('mlt_loss')
+			if mvolmax <= veryminvol+.1:
+				raise PilotError('cannot satisfy maximum '
+				    'mash volume. adjust param or recipe')
+			wendmax = mvolmax - grainvol
+			wmass = origwater(mashtemps[-1], mashtemps[0], wendmax)
+
+		wmass_end = origwater(mashtemps[0], mashtemps[-1], wmass)
+
+		# finally, if necessary adjust the lauter volume
+		# or error if either mash or lauter volume is beyond limit
+		lvolmax = getparam('lautervol_max')
+		lvol = (watervol - wmass) + grainvol
+		if lvolmax is not None and lvol > lvolmax:
+			dl = lvol - lvolmax
+			assert(dl > 0)
+			if (mvolmax is not None \
+			      and wmass_end + dl + grainvol > mvolmax) \
+			    or wmass_end + dl > watervol:
+				raise PilotError('cannot satisfy mash/lauter '
+				    'max volumes, check params/recipe')
+			wmass += dl
 
 		res = {}
 		res['steps'] = []
 		res['total_water'] = watervol
 
-		if self.mashin_ratio is not None:
-			wmass = self.mashin_ratio * fmass.valueas(Mass.KG)
-		else:
-			wmass = (self.mashin_percent/100.0) * watervol
 		step = self.__Step(fmass, ambient_temp, mashtemps[0], wmass)
 		totvol = watervol
 
 		if getparam('mlt_heat') == 'transfer':
 			for i, t in enumerate(mashtemps):
-				(vol, temp) = step.waterstats()
+				(vol, temp) = step.waterstep()
 				totvol -= vol
-				if totvol < 0:
+				if totvol < -0.0001:
 					raise PilotError('cannot satisfy '
-					    + 'tranfer infusion steps '
-					    + ' with given parameters '
+					    + 'transfer infusion steps '
+					    + 'with given parameters '
 					    + '(ran out of water)')
 
 				actualvol = Brewutils.water_vol_at_temp(vol,
 				    water_temp, temp)
 				res['steps'].append((t, vol, actualvol, temp))
 				if i+1 < len(mashtemps):
-					step.stepup(mashtemps[i+1])
+					step.nextstep(mashtemps[i+1])
 		else:
 			assert(getparam('mlt_heat') == 'direct')
-			(vol, temp) = step.waterstats()
+			(vol, temp) = step.waterstep()
 			totvol -= vol
 			actualvol = Brewutils.water_vol_at_temp(vol,
 				    water_temp, temp)
@@ -1478,11 +1532,11 @@ class Mash:
 		return res
 
 	def printcsv(self):
-		print '# mash|method|mashin ratio|mashtemp1|mashtemp2...'
+		print '# mash|method|mashtemp1|mashtemp2...'
 		mashtemps = ''
 		for t in self.temperature:
-			mashtemps = mashtemps + '|infusion|' + str(float(t))
-		print 'mash|' + str(self.mashin_ratio) + mashtemps
+			mashtemps = mashtemps + '|' + str(float(t))
+		print 'mash|infusion' + mashtemps
 
 	def set_fermentables(self, fermentables):
 		self.fermentables = fermentables
@@ -1503,27 +1557,13 @@ class Mash:
 		else:
 			raise PilotError('mash temperatures must be given as ' \
 			    'Temperature or list of')
+		highest = 0
+		for t in mashtemps:
+			if t <= highest:
+				raise PilotError('need mashtemps in strictly '
+				    'rising order')
+			highest = t
 		self.temperature = mashtemps
-
-	# set ratio of strike water to grist in mash
-	def set_mashin_ratio(self, mashin_vol, mashin_mass):
-		if self.mashin_percent is not None:
-			raise PilotError('cannot set both mashin ratio '
-			    + 'and percent')
-
-		checktype(mashin_vol, Volume)
-		checktype(mashin_mass, Mass)
-		self.mashin_ratio = mashin_vol / mashin_mass.valueas(Mass.KG)
-
-	# set percentage of total water used as strike water (rest is
-	# for sparging etc.)
-	def set_mashin_percent(self, percent):
-		if self.mashin_ratio is not None:
-			raise PilotError('cannot set both mashin ratio '
-			    + 'and percent')
-		if percent <= 0 or percent> 100:
-			raise PilotError('mashin percent must be >0 and <= 100')
-		self.mashin_percent = percent
 
 	# mostly a placeholder
 	def set_method(self, m):

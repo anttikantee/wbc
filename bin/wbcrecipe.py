@@ -123,19 +123,7 @@ def dofermentables(r, ferms):
 def domashparams(r, mashparams):
 	for p in mashparams:
 		value = mashparams[p]
-		if p == 'mashin':
-			if '%' in value:
-				v = Parse.percent(value)
-				r.mash.set_mashin_percent(v)
-			elif '/' in value:
-				(mashin_vol, mashin_mass) = \
-				    Parse.ratio(value, Parse.volume, Parse.mass)
-				r.mash.set_mashin_ratio(mashin_vol, mashin_mass)
-			else:
-				raise PilotError('invalid mashin ratio: '
-				    + value)
-
-		elif p == 'method':
+		if p == 'method':
 			m = Parse.mashmethod(value)
 			r.mash.set_method(m)
 
@@ -241,8 +229,7 @@ def processcsv(clist, odict, data):
 			applyparams(r, clist, odict)
 
 		elif row[0] == "mash":
-			r.mash.set_mashin_ratio(_Volume(row[1]), _Mass(1000))
-			mashtemps = [_Temperature(x) for x in row[3:]]
+			mashtemps = [_Temperature(x) for x in row[2:]]
 			r.mash.set_mash_temperature(mashtemps)
 
 		elif row[0] == "fermentable":
