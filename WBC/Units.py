@@ -130,6 +130,7 @@ class Temperature(WBCUnit):
 		return 1.8*temp + 32
 
 class Mass(WBCUnit):
+	MG	= object()
 	G	= object()
 	KG	= object()
 	OZ	= object()
@@ -137,6 +138,8 @@ class Mass(WBCUnit):
 	def __new__(cls, value, unit):
 		if unit is Mass.KG:
 			value = 1000 * value
+		elif unit is Mass.MG:
+			value = value / 1000.0
 		elif unit is Mass.LB:
 			value = Constants.gramsperpound * value
 		elif unit is Mass.OZ:
@@ -158,6 +161,8 @@ class Mass(WBCUnit):
 			return self / 1000.0
 		elif unit is Mass.G:
 			return self
+		elif unit is Mass.MG:
+			return self * 1000.0
 		elif unit is Mass.LB:
 			return self / Constants.gramsperpound
 		elif unit is Mass.OZ:
@@ -174,6 +179,8 @@ class Mass(WBCUnit):
 				dec = '0'
 			fmt = '{:.' + dec + 'f}'
 			return fmt.format(self) + ' g'
+		elif unit is self.MG:
+			return '{:.0f}'.format(self.valueas(self.MG)) + ' mg'
 		elif unit is self.KG:
 			return '{:.2f}'.format(self/1000.0) + ' kg'
 		elif unit is self.OZ:
@@ -204,7 +211,10 @@ class Mass(WBCUnit):
 	def __str__(self):
 		if getparam('units_output') == 'metric':
 			if self < 1000:
-				return self.stras(Mass.G)
+				if self < 1.0:
+					return self.stras(Mass.MG)
+				else:
+					return self.stras(Mass.G)
 			else:
 				return self.stras(Mass.KG)
 		else:

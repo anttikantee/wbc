@@ -45,6 +45,7 @@ def _unit(cls, sfxmap, input, fatal = True, name = None):
 		return cls(float(numstr), sfx)
 
 masssfx = {
+	'mg'	: Mass.MG,
 	'g'	: Mass.G,
 	'kg'	: Mass.KG,
 	'oz'	: Mass.OZ,
