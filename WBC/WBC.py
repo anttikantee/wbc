@@ -567,9 +567,14 @@ class Recipe:
 		    str(_Mass(extract_theoretical)),\
 		    str(_Mass(extract_predicted)))
 
+		spargevol = self.results['mash']['sparge_water']
+
 		print
-		print 'Mashing instructions (for ambient temperature', \
-		    unicode(getparam('ambient_temp')) + ')'
+		yesnosparge = ")"
+		if spargevol < .001:
+			yesnosparge = ", no-sparge)"
+		print 'Mashing instructions (ambient', \
+		    unicode(getparam('ambient_temp')) + yesnosparge
 		self._prtsep()
 
 		totvol = 0
@@ -612,9 +617,10 @@ class Recipe:
 		print '(potential first runnings: ~{:})' \
 		    .format(self.results['mash_first_runnings_max'])
 
-		print u'{:23}{:}'.format('Sparge water volume:', \
-		    unicode(self.results['mash']['sparge_water']) + ' @ '
-		    + unicode(getparam('sparge_temp')))
+		if spargevol > .001:
+			print u'{:23}{:}'.format('Sparge water volume:', \
+			    unicode(spargevol) + ' @ '
+			    + unicode(getparam('sparge_temp')))
 
 		fw = self.results['mash_first_wort_max']
 		fwstrs = []
