@@ -24,6 +24,7 @@ from WBC import Sysparams
 from WBC import Parse
 
 import getopt
+import io
 import sys
 
 hoptypes = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }
@@ -210,12 +211,13 @@ def processyaml(clist, odict, data):
 	return r
 
 def processcsv(clist, odict, data):
-	import csv
-
-	reader = csv.reader(data, delimiter='|')
 	dataver = -1
 	r = None
-	for row in reader:
+	# don't use csv, because using utf-8+csv on python2 is
+	# just too painful
+	for line in data.read().splitlines():
+		row = line.split('|')
+		print row
 		if row[0][0] is "#":
 			continue
 
@@ -295,7 +297,7 @@ if __name__ == '__main__':
 	try:
 		(clist, odict) = processopts(opts)
 		flags = [x[0] for x in opts]
-		with open(args[0], "r") \
+		with io.open(args[0], "r", encoding='utf-8') \
 		    if (len(args) > 0 and args[0] is not "-") \
 		    else sys.stdin as data:
 			if '-d' in flags:
