@@ -45,6 +45,7 @@ class Recipe:
 		self.notes = []
 
 		self.hops_bymass = []
+		self.hops_bymass_scaled = []
 		self.hops_byIBU = []
 		self.hops_recipeIBU = None
 		self.hops_recipeBUGU = None
@@ -178,22 +179,38 @@ class Recipe:
 		time.resolvetime(self.boiltime)
 		return [hop, amount, time]
 
+	#
+	# hop additions all have the signature (hop, amountspec, time)
+	# where "amountspec" is more complicated than one variable,
+	# e.g. mass/vol, a tuple is used to retain signature
+	#
+
 	def hop_bymass(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])
 		self.hops_bymass.append(self._hopstore(hop, mass, time))
 
 	# mass per final volume
-	def hop_bymassvolratio(self, hop, mass, vol, time):
+	def hop_bymassvolratio(self, hop, mv, time):
+		(mass, vol) = mv
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
 		hopmass = _Mass(mass * self.__final_volume() / vol)
+		self.hops_bymass_scaled.append(self._hopstore(hop,
+		    hopmass, time))
+
+	# alpha acid mass
+	def hop_byAA(self, hop, mass, time):
+		checktypes([(hop, Hop), (mass, Mass)])
+		hopmass = _Mass(mass / (hop.aapers/100.0))
 		self.hops_bymass.append(self._hopstore(hop, hopmass, time))
 
 	# alpha acid mass per final volume
-	def hop_byAAvolratio(self, hop, mass, vol, time):
+	def hop_byAAvolratio(self, hop, mv, time):
+		(mass, vol) = mv
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
 		hopmass = _Mass((mass / (hop.aapers/100.0))
 		    * (self.__final_volume() / vol))
-		self.hops_bymass.append(self._hopstore(hop, hopmass, time))
+		self.hops_bymass_scaled.append(self._hopstore(hop,
+		    hopmass, time))
 
 	def hop_byIBU(self, hop, IBU, time):
 		checktype(hop, Hop)
@@ -692,6 +709,12 @@ class Recipe:
 			if self.volume_inherent is None:
 				raise PilotError("recipe with absolute hop "
 				    + "mass does not have an inherent volume")
+			time = h[2].time
+			mass = self.__scale(h[1])
+			ibu = h[0].IBU(sg, v_post, time, mass)
+			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
+
+		for h in self.hops_bymass_scaled:
 			time = h[2].time
 			mass = self.__scale(h[1])
 			ibu = h[0].IBU(sg, v_post, time, mass)

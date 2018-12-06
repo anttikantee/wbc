@@ -152,6 +152,19 @@ def hopboil(input):
 	return _unit(Hop.Boil, suffixes, input)
 
 def hopunit(input):
+	if input.startswith('AA '):
+		input = input[3:]
+		if '/' in input:
+			rv = ratio(input, mass, volume)
+			return (Recipe.hop_byAAvolratio, rv)
+		else:
+			rv = mass(input)
+			return (Recipe.hop_byAA, rv)
+
+	if '/' in input:
+		rv = ratio(input, mass, volume)
+		return (Recipe.hop_bymassvolratio, rv)
+
 	rv = _unit(Mass, masssfx, input, fatal = False)
 	if rv is not None:
 		return (Recipe.hop_bymass, rv)
