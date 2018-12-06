@@ -32,7 +32,6 @@ def checkconfig():
 class Recipe:
 	def __init__(self, name, yeast, volume, boiltime = 60):
 		# volume may be None if the recipe contains only relative units
-		# XXXTODO: not all specifications take relative units currently
 		if volume is not None:
 			checktype(volume, Volume)
 
@@ -45,7 +44,7 @@ class Recipe:
 		self.notes = []
 
 		self.hops_bymass = []
-		self.hops_bymass_scaled = []
+		self.hops_bymassvolume = []
 		self.hops_byIBU = []
 		self.hops_recipeIBU = None
 		self.hops_recipeBUGU = None
@@ -64,7 +63,7 @@ class Recipe:
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
 		    'keg':_Volume(0)}
 
-		self._calculated = False
+		self._calculatestatus = 0
 
 		self.results = {}
 
@@ -101,6 +100,7 @@ class Recipe:
 	fermstages=	[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
 
 	def __final_volume(self):
+		assert(self._calculatestatus > 0)
 		if self.volume_final is not None:
 			return self.volume_final
 		return self.volume_inherent
@@ -193,8 +193,8 @@ class Recipe:
 	def hop_bymassvolratio(self, hop, mv, time):
 		(mass, vol) = mv
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
-		hopmass = _Mass(mass * self.__final_volume() / vol)
-		self.hops_bymass_scaled.append(self._hopstore(hop,
+		hopmass = _Mass(mass / vol)
+		self.hops_bymassvolume.append(self._hopstore(hop,
 		    hopmass, time))
 
 	# alpha acid mass
@@ -207,9 +207,8 @@ class Recipe:
 	def hop_byAAvolratio(self, hop, mv, time):
 		(mass, vol) = mv
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
-		hopmass = _Mass((mass / (hop.aapers/100.0))
-		    * (self.__final_volume() / vol))
-		self.hops_bymass_scaled.append(self._hopstore(hop,
+		hopmass = _Mass((mass / (hop.aapers/100.0)) / vol)
+		self.hops_bymassvolume.append(self._hopstore(hop,
 		    hopmass, time))
 
 	def hop_byIBU(self, hop, IBU, time):
@@ -714,9 +713,9 @@ class Recipe:
 			ibu = h[0].IBU(sg, v_post, time, mass)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
-		for h in self.hops_bymass_scaled:
+		for h in self.hops_bymassvolume:
 			time = h[2].time
-			mass = self.__scale(h[1])
+			mass = _Mass(self.__scale(h[1]) * self.__final_volume())
 			ibu = h[0].IBU(sg, v_post, time, mass)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
@@ -1004,8 +1003,9 @@ class Recipe:
 	def calculate(self):
 		Sysparams.checkset()
 
-		if self._calculated:
+		if self._calculatestatus:
 			raise PilotError("you can calculate() a recipe once")
+		self._calculatestatus += 1
 
 		if self.__final_volume() is None:
 			raise PilotError("final volume is not set")
@@ -1052,11 +1052,10 @@ class Recipe:
 		self.results['pitch']['lager'] = tmp * 1.50*1000*1000
 
 		self._sanity_check()
-
-		self._calculated = True
+		self._calculatestatus += 1
 
 	def _assertcalculate(self):
-		if not self._calculated:
+		if self._calculatestatus == 0:
 			raise PilotError('must calculate recipe first')
 
 	def printit(self, miniprint):
