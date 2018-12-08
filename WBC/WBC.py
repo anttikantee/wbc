@@ -143,9 +143,6 @@ class Recipe:
 
 		return _Volume(v)
 
-	def _prtsep(self, char='='):
-		print char * 79
-
 	def __extract(self, vol, strength):
 		m = Mass(vol * strength.valueas(Strength.SG), Mass.KG)
 		return Mass(m.valueas(Mass.G)
@@ -541,14 +538,14 @@ class Recipe:
 		print fmtstr.format("Fermentables",
 		    "amount", "ext (100%)", "ext ("
 		    + str(int(getparam('mash_efficiency'))) + "%)")
-		self._prtsep()
+		prtsep()
 
 		extract_theoretical = extract_predicted = 0
 
 		def handleonestage(name, lst):
 			stagem = stagep = stage_theoretical = stage_predicted =0
 			print name
-			self._prtsep('-')
+			prtsep('-')
 
 			for f in lst:
 				persstr = ' ({:5.1f}%)'.format(f['percent'])
@@ -560,7 +557,7 @@ class Recipe:
 				stagep += f['percent']
 				stage_theoretical += f['extract_theoretical']
 				stage_predicted += f['extract_predicted']
-			self._prtsep('-')
+			prtsep('-')
 			persstr = ' ({:5.1f}%)'.format(stagep)
 			print fmtstr.format('',
 			    str(_Mass(stagem)) + persstr,
@@ -576,7 +573,7 @@ class Recipe:
 				extract_theoretical += v[0]
 				extract_predicted += v[1]
 
-		self._prtsep()
+		prtsep()
 
 		print fmtstr.format('', \
 		    str(self._fermentables_allmass()) + ' (100.0%)', \
@@ -591,7 +588,7 @@ class Recipe:
 			yesnosparge = ", no-sparge)"
 		print 'Mashing instructions (ambient', \
 		    unicode(getparam('ambient_temp')) + yesnosparge
-		self._prtsep()
+		prtsep()
 
 		totvol = 0
 		mf = self._fermentables_atstage(self.MASH)
@@ -662,7 +659,7 @@ class Recipe:
 				print '(NOTE: strength below desired!)',
 			print
 
-		self._prtsep()
+		prtsep()
 		print
 
 	def _doboil(self):
@@ -810,7 +807,7 @@ class Recipe:
 		onefmt = u'{:' + str(namelen) + '}{:7}{:>15}{:>9}{:>10}{:>8}'
 		print onefmt.format("Hops", "AA%", "time", "timer",
 		    "amount", "IBUs")
-		self._prtsep()
+		prtsep()
 		totmass = 0
 
 		# printing IBUs with a decimal point, given all
@@ -828,7 +825,7 @@ class Recipe:
 			typ = ' (' + typ + ')'
 			if prevstage is not None and \
 			    prevstage is not time.__class__:
-				self._prtsep('-')
+				prtsep('-')
 			maxlen = (namelen-1) - len(typ)
 			if len(nam) > maxlen:
 				nam = nam[0:maxlen-2] + '..'
@@ -839,7 +836,7 @@ class Recipe:
 			ibustr = ibufmt.format(ibu)
 			print onefmt.format(nam + typ, str(hop.aapers) + '%', \
 			    time, h['timer'], str(mass), ibustr)
-		self._prtsep()
+		prtsep()
 		ibustr = ibufmt.format(self.ibus)
 		print onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr)
 		print
@@ -849,7 +846,7 @@ class Recipe:
 		cols = [20, 19, 22, 19]
 		cols_tight = [20, 19, 16, 25]
 
-		self._prtsep()
+		prtsep()
 		onefmt = u'{:' + str(cols[0]) + '}{:}'
 
 		def maketwofmt(c):
@@ -965,7 +962,7 @@ class Recipe:
 				    + str(_Volume(self.__final_volume()
 				          + self.kegdryhopvol))
 
-		self._prtsep()
+		prtsep()
 
 	def _doferment(self):
 		self._doattenuate()
@@ -980,7 +977,7 @@ class Recipe:
 
 	def _printattenuate(self):
 		print 'Speculative apparent attenuation and resulting ABV'
-		self._prtsep()
+		prtsep()
 		onefmt = u'{:^8}{:^8}{:10}'
 		title = ''
 		for x in range(3):
@@ -997,7 +994,7 @@ class Recipe:
 			line += onefmt.format(*reslst[i + len(reslst)/3])
 			line += onefmt.format(*reslst[i + 2*len(reslst)/3])
 			print line
-		self._prtsep()
+		prtsep()
 		print
 
 	def calculate(self):
@@ -1064,7 +1061,7 @@ class Recipe:
 		self._keystats(miniprint)
 		ps = Sysparams.getparamshorts()
 		prettyprint_withsugarontop('', '', ps, 78, sep='|')
-		self._prtsep()
+		prtsep()
 		print
 
 		self._printmash()

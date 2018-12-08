@@ -49,3 +49,6 @@ def prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
 	for s in res:
 		print fmtstr.format(prefix, s)
 		prefix = ''
+
+def prtsep(char='='):
+	print char * 79
