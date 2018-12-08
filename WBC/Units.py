@@ -453,7 +453,7 @@ class Color(float):
 			return self
 		elif which is Color.SRM:
 			return Color.EBCtoSRM(self)
-		elif which is Strength.LOVIBOND:
+		elif which is Color.LOVIBOND:
 			return Color.EBCtoL(self)
 		else:
 			raise Exception('invalid Color type')
@@ -473,7 +473,7 @@ class Color(float):
 
 	@staticmethod
 	def EBCtoL(v):
-		return (Color.EBCtoSRM(v) + 0.76) / 1.3456
+		return (Color.EBCtoSRM(v) + 0.76) / 1.3546
 
 class Pressure(WBCUnit):
 	PASCAL		= object()
