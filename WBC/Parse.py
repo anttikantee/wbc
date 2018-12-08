@@ -14,7 +14,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Units import Mass, Temperature, Volume, Strength, Pressure
+from Units import Mass, Temperature, Volume, Strength, Pressure, Color
 from Utils import PilotError
 from WBC import Recipe, Hop, Mash
 
@@ -91,6 +91,14 @@ def days(input):
 		'day'	: None,
 	}
 	return _unit(int, suffixes, input, name = 'days')
+
+def color(input):
+	suffixes = {
+		'EBC'	: Color.EBC,
+		'SRM'	: Color.SRM,
+		'L'	: Color.LOVIBOND,
+	}
+	return _unit(Color, suffixes, input)
 
 percentsfxs = {
 	'%'	: None,
