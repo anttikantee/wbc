@@ -153,8 +153,10 @@ def applyparams(r, clist, odict):
 	for c in clist:
 		c[0](r, *c[1:])
 
-	if 'volume' in odict:
-		r.set_final_volume(odict['volume'])
+	if 'volume_scale' in odict:
+		r.set_volume_and_scale(odict['volume_scale'])
+	if 'volume_noscale' in odict:
+		r.set_volume(odict['volume_noscale'])
 
 	for n in odict.get('notes', []):
 		r.add_note(n)
@@ -285,12 +287,19 @@ def processopts(opts):
 
 		elif o == '-v':
 			v = Parse.volume(a)
-			odict['volume'] = v
+			if 'volume_scale' in odict:
+				raise PilotError('can give max one of -v/-V')
+			odict['volume_noscale'] = v
+		elif o == '-V':
+			v = Parse.volume(a)
+			if 'volume_noscale' in odict:
+				raise PilotError('can give max one of -v/-V')
+			odict['volume_scale'] = v
 
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'cdhmn:p:P:s:v:')
+	opts, args = getopt.getopt(sys.argv[1:], 'cdhmn:p:P:s:v:V:')
 	if len(args) > 1:
 		usage()
 

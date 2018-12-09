@@ -38,7 +38,7 @@ class Recipe:
 		self.name = name
 		self.yeast = yeast
 		self.volume_inherent = volume
-		self.volume_final = None
+		self.volume_scaled = None
 
 		self.water_notes = None
 		self.notes = []
@@ -101,8 +101,8 @@ class Recipe:
 
 	def __final_volume(self):
 		assert(self._calculatestatus > 0)
-		if self.volume_final is not None:
-			return self.volume_final
+		if self.volume_scaled is not None:
+			return self.volume_scaled
 		return self.volume_inherent
 
 	def __grain_absorption(self):
@@ -149,17 +149,21 @@ class Recipe:
 		    * strength.valueas(Strength.PLATO)/100.0, Mass.G)
 
 	def __scale(self, what):
-		if self.volume_inherent is None or self.volume_final is None:
+		if self.volume_inherent is None or self.volume_scaled is None:
 			return what
 
 		assert(isinstance(what, Mass))
 
-		scale = self.volume_final / self.volume_inherent
+		scale = self.volume_scaled / self.volume_inherent
 		return _Mass(scale * what)
 
-	def set_final_volume(self, volume_final):
-		checktype(volume_final, Volume)
-		self.volume_final = volume_final
+	def set_volume_and_scale(self, volume):
+		checktype(volume, Volume)
+		self.volume_scaled = volume
+
+	def set_volume(self, volume):
+		checktype(volume, Volume)
+		self.volume_inherent = volume
 
 	# set opaque water notes to be printed with recipe
 	def set_water_notes(self, waternotes):
@@ -1006,6 +1010,11 @@ class Recipe:
 
 		if self.__final_volume() is None:
 			raise PilotError("final volume is not set")
+
+		s = float(self.__scale(_Mass(1)))
+		if abs(s - 1) > .0001:
+			notice('Scaling recipe ingredients by a factor of '
+			    + '{:.4f}'.format(s) + '\n')
 
 		# ok, so the problem is that the amount of hops affects the
 		# kettle crud, meaning we have non-constants loss between
