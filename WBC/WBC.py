@@ -753,18 +753,20 @@ class Recipe:
 
 		# Sort the hop additions of the recipe.
 		#
-		# pass 1: sort within classes
-		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
-
-		# pass 2: sort boil -> steep -> dryhop
+		# pass 1: sort boil -> steep -> dryhop
 		srtmap = {
 			Hop.Dryhop	: 0,
 			Hop.Steep	: 1,
 			Hop.Boil	: 2,
 		}
-		self.results['hops'] = sorted(allhop, cmp=lambda x,y:
+		allhop = sorted(allhop, cmp=lambda x,y:
 		    srtmap[x['time'].__class__] - srtmap[y['time'].__class__],
 		    reverse=True)
+
+		# pass 2: sort within classes
+		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
+
+		self.results['hops'] = allhop
 		self.ibus = totibus
 
 		# calculate amount of wort that hops will drink
