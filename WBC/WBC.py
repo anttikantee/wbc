@@ -56,7 +56,11 @@ class Recipe:
 		# final strength or mass of one fermentable
 		self.anchor = None
 
-		self.stolen_wort = (_Volume(0), _Strength(0), _Mass(0))
+		self.stolen_wort = {
+			'volume'	: _Volume(0),
+			'strength'	: _Strength(0),
+			'extract'	: _Mass(0),
+		}
 
 		self.boiltime = boiltime
 
@@ -316,7 +320,11 @@ class Recipe:
 		checktypes([(vol, Volume), (strength, Strength)])
 
 		extract = self.__extract(vol, strength)
-		self.stolen_wort = (vol, strength, extract)
+		self.stolen_wort = {
+			'volume'	: vol,
+			'strength'	: strength,
+			'extract'	: extract
+		}
 
 	def fermentable_percentage(self, what, theoretical=False):
 		f = what['fermentable']
@@ -364,7 +372,7 @@ class Recipe:
 			m += yield_at_stage(self.BOIL)
 		if stage == self.FERMENT:
 			m += yield_at_stage(self.FERMENT)
-		return _Mass(m - self.stolen_wort[2])
+		return _Mass(m - self.stolen_wort['extract'])
 
 	def _sanity_check(self):
 		pbs = self.results['preboil_strength'].valueas(Strength.PLATO)
@@ -433,7 +441,7 @@ class Recipe:
 
 			extract = self.__extract(
 			    self.__volume_at_stage(self.POSTBOIL),
-			    self.anchor['value']) + self.stolen_wort[2]
+			    self.anchor['value']) + self.stolen_wort['extract']
 
 			# take into account any yield we already get from
 			# per-mass additions
@@ -500,15 +508,18 @@ class Recipe:
 		    self.total_yield(self.STEEP), prevol)
 		self.results['preboil_strength'] = prestren
 
-		steal = {}
-		ratio = self.stolen_wort[1] / prestren
-		steal['strength'] = _Strength(prestren * min(1, ratio))
+		totvol = _Volume(self.__volume_at_stage(self.MASHWATER))
+		if self.stolen_wort['volume'] > 0.001:
+			steal = {}
+			ratio = self.stolen_wort['strength'] / prestren
+			steal['strength'] = _Strength(prestren * min(1, ratio))
 
-		steal['volume'] = _Volume(min(1, ratio) * self.stolen_wort[0])
-		steal['missing'] = _Volume(self.stolen_wort[0]-steal['volume'])
-		totvol = _Volume(self.__volume_at_stage(self.MASHWATER) \
-		    + steal['volume'])
-		self.results['steal'] = steal
+			steal['volume'] = _Volume(min(1, ratio)
+			    * self.stolen_wort['volume'])
+			steal['missing'] = _Volume(self.stolen_wort['volume']
+			    - steal['volume'])
+			totvol += steal['volume']
+			self.results['steal'] = steal
 
 		mf = self._fermentables_atstage(self.MASH)
 		self.mash.set_fermentables(mf)
@@ -647,20 +658,18 @@ class Recipe:
 		print u'{:23}{:}'. format('First wort (conv. %):', \
 		    ', '.join(fwstrs))
 
-		if self.stolen_wort[0] > 0:
-			print
+		if 'steal' in self.results:
 			steal = self.results['steal']
-			print 'Steal', steal['volume'], 'of', \
-			    '*well-mixed* preboil wort',
-			if steal['missing'] > 0:
-				print 'and blend with',steal['missing'],'water'
-			else:
-				print
+			print 'Steal', steal['volume'], 'preboil wort',
+			if steal['missing'] > 0.05:
+				print 'and blend with',steal['missing'],'water',
 
-			print '==>', self.stolen_wort[0], 'of', \
-			    unicode(steal['strength']), 'stolen wort',
-			if steal['strength'] < self.stolen_wort[1]:
-				print '(NOTE: strength below desired!)',
+			print '==>', self.stolen_wort['volume'], '@', \
+			    unicode(steal['strength']),
+			if steal['strength'] < self.stolen_wort['strength']:
+				assert(steal['missing'] <= 0.05)
+				print '(NOTE: strength < ' \
+				    + unicode(self.stolen_wort['strength'])+')',
 			print
 
 		prtsep()
@@ -890,8 +899,10 @@ class Recipe:
 		postvol1 = self.__volume_at_stage(self.POSTBOIL)
 		postvol  = Brewutils.water_vol_at_temp(postvol1,
 		    self.__reference_temp(), getparam('postboil_temp'))
-		total_water = _Volume(self.results['mash']['total_water']
-		    + self.results['steal']['missing'])
+		total_water = self.results['mash']['total_water']
+		if 'steal' in self.results:
+			total_water = _Volume(total_water
+			    + self.results['steal']['missing'])
 
 		# calculate color, via MCU & Morey equation
 		t = sum(f['amount'].valueas(Mass.LB) \
