@@ -393,11 +393,16 @@ add('Weyermann Munich I',
 	Constants.minconversion,
 	Color(16, EBC))
 
-add('Weyermann Chocolate Rye', 65, 0, Color(600, EBC), needmash = False)
+add('Weyermann Chocolate Rye',
+	Extract(65, FGDB, FCD_UNKNOWN, 4.0),
+	diap_none,
+	Color(600, EBC),
+	needmash = False)
 
-# I'm starting to hate listing malts.  It's a complete crapshoot
-# between what the maltster provides and what vendors provide
-add('Weyermann Pale Rye', 81, Constants.minconversion, Color(7, EBC))
+add('Weyermann Pale Rye',
+	Extract(77, FGAI, FCD_UNKNOWN, 5.0),
+	Constants.minconversion,
+	Color(5, EBC))
 
 # extract is an "average" of the lot analysis numbers
 add('Weyermann Carafa 1',
@@ -422,9 +427,16 @@ alias('Weyermann Carafa 1 Special', 'Weyermann Carafa 1')
 alias('Weyermann Carafa 2 Special', 'Weyermann Carafa 2')
 alias('Weyermann Carafa 3 Special', 'Weyermann Carafa 3')
 
-# extract yields for non-malts (from 'How To Brew' [Palmer])
-add('Flaked wheat', 77, 0, Color(0, EBC))
-add('Flaked oats', 70, 0, Color(0, EBC))
+# Extract yields for non-malts from 'How To Brew' [Palmer]
+# Moisture content from BSG website
+add('Flaked wheat',
+	Extract(77, CGDB, FCD_UNKNOWN, 7.0),
+	diap_none,
+	Color(1, LOVIBOND))
+add('Flaked oats',
+	Extract(70, CGDB, FCD_UNKNOWN, 8.0),
+	diap_none,
+	Color(1, LOVIBOND))
 
 # guess and assume
 add('Flaked rye',
@@ -436,5 +448,9 @@ add('Flaked rye',
 add('Rice', 70, 0, Color(1, EBC))
 
 # sugars ("self-converting")
-add('Table sugar', 100, Constants.minconversion, Color(0, EBC),
-    conversion = False, needmash = False)
+add('Table sugar',
+	Extract(100, CGDB, FCD_UNKNOWN, 0),
+	Constants.minconversion,
+	Color(0, EBC),
+	conversion = False,
+	needmash = False)
