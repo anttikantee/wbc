@@ -61,7 +61,7 @@ class Recipe:
 		self.boiltime = boiltime
 
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
-		    'keg':_Volume(0)}
+		    'package':_Volume(0)}
 
 		self._calculatestatus = 0
 
@@ -686,7 +686,7 @@ class Recipe:
 		    'mass' : mass,
 		    'time' : time,
 		    'ibu' : ibu,
-		    'timer' : '', # only for boil
+		    'timer' : '', # filled in later
 		}
 	@staticmethod
 	def _hopunmap(h):
@@ -709,47 +709,42 @@ class Recipe:
 			if self.volume_inherent is None:
 				raise PilotError("recipe with absolute hop "
 				    + "mass does not have an inherent volume")
-			time = h[2].time
 			mass = self.__scale(h[1])
-			ibu = h[0].IBU(sg, v_post, time, mass)
+			ibu = h[0].IBU(sg, v_post, h[2], mass)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
 		for h in self.hops_bymassvolume:
-			time = h[2].time
 			mass = _Mass(self.__scale(h[1]) * self.__final_volume())
-			ibu = h[0].IBU(sg, v_post, time, mass)
+			ibu = h[0].IBU(sg, v_post, h[2], mass)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
 		# calculate mass of "byIBU" hops and add to printables
 		for h in self.hops_byIBU:
-			time = h[2].time
-			mass = h[0].mass(sg, v_post, time, h[1])
+			mass = h[0].mass(sg, v_post, h[2], h[1])
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], h[1]))
 
 		totibus = sum([x['ibu'] for x in allhop])
 		if self.hops_recipeIBU is not None:
 			h = self.hops_recipeIBU
-			time = h[2].time
 			missibus = self.hops_recipeIBU[1] - totibus
 			if missibus <= 0:
 				raise PilotError('total IBUs are greater than '\
 				    + 'desired total')
-			mass = h[0].mass(sg, v_post, time,
-			    missibus)
+			mass = h[0].mass(sg, v_post, h[2], missibus)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
 
 		if self.hops_recipeBUGU is not None:
 			h = self.hops_recipeBUGU
-			time = h[2].time
 			bugu = self.hops_recipeBUGU[1]
 			stren = self.results['final_strength']
 			ibus = stren.valueas(stren.SG_PTS) * bugu
 			missibus = ibus - totibus
-			mass = h[0].mass(sg, v_post, time,
-			    missibus)
+			mass = h[0].mass(sg, v_post, h[2], missibus)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
+
+		self.ibus = totibus
 
 		# Sort the hop additions of the recipe.
 		#
@@ -766,55 +761,80 @@ class Recipe:
 		# pass 2: sort within classes
 		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
 
-		self.results['hops'] = allhop
-		self.ibus = totibus
-
 		# calculate amount of wort that hops will drink
 		hd = {x: 0 for x in self.hopsdrunk}
-		kegdryhopvol = 0
-		timer = self.boiltime
-		prevval = None
+		packagedryhopvol = 0
 		for h in allhop:
 			(hop, mass, time, ibu) = Recipe._hopunmap(h)
 			if isinstance(time, Hop.Dryhop):
-				if time.indays is not time.Keg:
+				if time.indays is not time.Package:
 					hd['fermenter'] += hop.absorption(mass)
 				else:
-					hd['keg'] += hop.absorption(mass)
-					kegdryhopvol += hop.volume(mass)
+					hd['package'] += hop.absorption(mass)
+					packagedryhopvol += hop.volume(mass)
 			else:
 				hd['kettle'] += hop.absorption(mass)
+		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
+		self.packagedryhopvol = _Volume(packagedryhopvol)
+
+		# calculate "timer" field values
+		prevtype = None
+		timer = 0
+		for h in reversed(allhop):
+			(hop, _, time, _) = Recipe._hopunmap(h)
+			if prevtype is None or not isinstance(time, prevtype):
+				timer = 0
+				prevval = None
+				prevtype = time.__class__
+
+			if isinstance(time, Hop.Dryhop):
+				h['timer'] = str(time)
+
+			if isinstance(time, Hop.Steep):
+				if prevval is not None \
+				    and prevval[0] == time.temp:
+					if prevval[1] == time.time:
+						h['timer'] = '=='
+					else:
+						v = time.time - prevval[1]
+						h['timer'] = str(v) + ' min'
+				else:
+					h['timer'] = str(time.time) + ' min'
+				prevval = (time.temp, time.time)
 
 			if isinstance(time, Hop.Boil):
 				cmpval = time.time
-				thistime = '--'
+				thisval = '=='
+
 				if time.spec is Hop.Boil.FWH:
 					cmpval = self.boiltime
-					# works because of FWH_BONUS
-					if prevval != time.time:
-						thistime = 'FWH'
-				elif cmpval == self.boiltime:
-					if prevval != time.time:
-						thistime = '@ boil'
-				elif cmpval != timer:
-					tval = int(timer - cmpval)
-					thistime = str(tval) + ' min'
-				timer = cmpval
-				prevval = time.time
-				h['timer'] = thistime
 
-		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
-		self.kegdryhopvol = _Volume(kegdryhopvol)
+				if cmpval != timer:
+					thisval = str(cmpval - timer) + ' min'
+					timer = cmpval
+				h['timer'] = thisval
+
+		if timer != self.boiltime:
+			self.results['startboil_timer'] = self.boiltime - timer
+		else:
+			self.results['startboil_timer'] = None
+
+		self.results['hops'] = allhop
 
 	def _printboil(self):
 		# XXX: IBU sum might not be sum of displayed hop additions
 		# due to rounding.  cosmetic, but annoying.
-		namelen = 29
-		onefmt = u'{:' + str(namelen) + '}{:7}{:>15}{:>9}{:>10}{:>8}'
-		print onefmt.format("Hops", "AA%", "time", "timer",
+		namelen = 33
+		onefmt = u'{:' + str(namelen) + '}{:7}{:>9}{:>11}{:>10}{:>8}'
+		print onefmt.format("Hops", "AA%", "timespec", "timer",
 		    "amount", "IBUs")
 		prtsep()
 		totmass = 0
+
+		t = self.results['startboil_timer']
+		if t is not None:
+			print onefmt.format('', '', '@ boil',
+			    str(t) + ' min', '', '')
 
 		# printing IBUs with a decimal point, given all
 		# other inaccuracy involved, is rather silly.
@@ -839,9 +859,15 @@ class Recipe:
 			prevstage = time.__class__
 			totmass = mass + totmass
 
+			if time.spec == self.boiltime:
+				# XXX
+				timestr = '@ boil'
+			else:
+				timestr = time.timespecstr()
+
 			ibustr = ibufmt.format(ibu)
 			print onefmt.format(nam + typ, str(hop.aapers) + '%', \
-			    time, h['timer'], str(mass), ibustr)
+			    timestr, h['timer'], str(mass), ibustr)
 		prtsep()
 		ibustr = ibufmt.format(self.ibus)
 		print onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr)
@@ -951,22 +977,22 @@ class Recipe:
 			    str(int(self.results['pitch']['lager'] / bil))
 			    + unit)
 
-		if self.hopsdrunk['keg'] > 0:
+		if self.hopsdrunk['package'] > 0:
 			print
-			print 'NOTE: keg hops absorb: ' \
-			    + str(self.hopsdrunk['keg']) \
+			print 'NOTE: package hops absorb: ' \
+			    + str(self.hopsdrunk['package']) \
 			    + ' => effective yield: ' \
 			    + str(_Volume(self.__final_volume()
-				  - self.hopsdrunk['keg']))
+				  - self.hopsdrunk['package']))
 
-			# warn about larger packaging volume iff keg dryhops
+			# warn about larger packaging volume iff package dryhops
 			# volume exceeds 1dl
-			if self.kegdryhopvol > 0.1:
-				print 'NOTE: keg hop volume: ~' \
-				    + str(self.kegdryhopvol) \
+			if self.packagedryhopvol > 0.1:
+				print 'NOTE: package hop volume: ~' \
+				    + str(self.packagedryhopvol) \
 				    + ' => packaged volume: ' \
 				    + str(_Volume(self.__final_volume()
-				          + self.kegdryhopvol))
+				          + self.packagedryhopvol))
 
 		prtsep()
 
@@ -1114,10 +1140,6 @@ class Recipe:
 			timespec = unicode(time).replace(unichr(0x00b0), "deg")
 			timespec = str(timespec)
 
-			# XXX: silly
-			if timespec == 'dryhop in keg':
-				timespec = 'keg'
-
 			print u'hop|{:}|{:}|{:}|{:}|{:}|{:}'\
 			    .format(hop.name, hop.typestr,
 			      hop.aapers, float(h['mass']), timeclass, timespec)
@@ -1145,11 +1167,22 @@ class Hop:
 			self.time = None
 			self.spec = spec
 
+		# uuuh.  not sure why I'm punishing myself with
+		# __str__() vs. timespecstr()
 		def __str__(self):
 			assert(self.time is not None)
 			if self.spec is self.FWH:
 				return 'FWH'
+			elif self.spec is self.BOILTIME:
+				return 'boiltime'
 			return str(int(self.time)) + ' min'
+
+		def timespecstr(self):
+			assert(self.time is not None)
+			if self.spec is self.BOILTIME:
+				return '@ boil'
+			else:
+				return str(self)
 
 		def __repr__(self):
 			return 'Hop boil spec: ' + self.__str__()
@@ -1179,24 +1212,30 @@ class Hop:
 				self.time = specval
 
 	class Steep:
-		def __init__(self, temp, mins):
+		def __init__(self, temp, time):
 			checktype(temp, Temperature)
 
 			self.temp = temp
-			self.mins = mins
-			self.time = 0
+			self.time = time
+			self.spec = None
 
 		def __str__(self):
-			return str(self.mins) + 'min @ ' + unicode(self.temp)
+			return str(self.time) + ' min @ ' + unicode(self.temp)
+
+		def timespecstr(self):
+			return '@ ' + unicode(self.temp)
 
 		# argh unicode in __str__ so can't use it
 		def __repr__(self):
-			return 'Hop steep spec: ' + str(self.mins) \
+			return 'Hop steep spec: ' + str(self.time) \
 			    + 'min @ ' + str(int(self.temp)) + 'degC'
 
 		def __cmp__(self, other):
 			if isinstance(other, Hop.Steep):
-				return self.temp - other.temp
+				if self.temp == other.temp:
+					return self.time - other.time
+				else:
+					return self.temp - other.temp
 			else:
 				return 0
 
@@ -1204,18 +1243,18 @@ class Hop:
 			return
 
 	class Dryhop:
-		Keg =	object()
+		Package =	object()
 
 		def __init__(self, indays, outdays):
-			if indays == self.Keg or outdays == self.Keg:
+			if indays == self.Package or outdays == self.Package:
 				# I guess someone *could* put hops into
 				# the fermenter for some days and transfer
-				# them into the keg.  We're not going to
+				# them into the package.  We're not going to
 				# support such activities.
 				if indays is not outdays:
 					raise PilotError('when dryhopping in '\
-					    'keg, indays and outdays must be '\
-					    '"keg"')
+					    'package, indays and outdays must '\
+					    'be "package"')
 			else:
 				if indays <= outdays:
 					raise PilotError('trying to take ' \
@@ -1224,14 +1263,18 @@ class Hop:
 			self.indays = indays
 			self.outdays = outdays
 			self.time = 0
+			self.spec = None
 
 		def __str__(self):
-			if self.indays is self.Keg:
-				rv = 'in keg'
+			if self.indays is self.Package:
+				rv = 'package'
 			else:
 				rv = str(self.indays) \
-				    + ' => ' + str(self.outdays)
-			return 'dryhop ' + rv
+				    + 'd -> ' + str(self.outdays) + 'd'
+			return rv
+
+		def timespecstr(self):
+			return 'dryhop'
 
 		def __repr__(self):
 			return 'Hop dryhop spec: ' + self.__str__()
@@ -1240,9 +1283,9 @@ class Hop:
 			if not isinstance(other, Hop.Dryhop):
 				return 0
 
-			if self.indays is self.Keg:
+			if self.indays is self.Package:
 				return -1
-			if other.indays is other.Keg:
+			if other.indays is other.Package:
 				return 1
 
 			if self.indays < other.indays:
@@ -1284,7 +1327,12 @@ class Hop:
 	# whirlpool hops or dryhopping.
 	#
 
-	def __util(self, gravity, mins):
+	def __util(self, gravity, time):
+		if not isinstance(time, Hop.Boil):
+			return 0
+
+		mins = time.time
+
 		# gravity needs to be SG, not points (because sg is great
 		# for all calculations?)
 		SG = gravity.valueas(gravity.SG)
@@ -1296,16 +1344,16 @@ class Hop:
 			bonus = 1.1
 		return bonus * bignessfact * boilfact
 
-	def IBU(self, gravity, volume, mins, mass):
+	def IBU(self, gravity, volume, time, mass):
 		checktypes([(gravity, Strength), (mass, Mass)])
 
-		util = self.__util(gravity, mins)
+		util = self.__util(gravity, time)
 		return util * self.aapers/100.0 * mass * 1000 / volume
 
-	def mass(self, gravity, volume, mins, IBU):
+	def mass(self, gravity, volume, time, IBU):
 		checktype(gravity, Strength)
 
-		util = self.__util(gravity, mins)
+		util = self.__util(gravity, time)
 
 		# calculate mass, limit to 0.01g granularity
 		m = (IBU * volume) / (util * self.aapers/100.0 * 1000)

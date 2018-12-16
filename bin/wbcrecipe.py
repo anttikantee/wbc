@@ -45,13 +45,13 @@ def dosteephop(r, hop, amountspec, timespec):
 	fun(r, hop, hu, Hop.Steep(temp, time))
 
 def dodryhop(r, hop, amountspec, timespec):
-	if timespec == 'keg':
-		inday = outday = Hop.Dryhop.Keg
+	if timespec == 'package':
+		inday = outday = Hop.Dryhop.Package
 	else:
 		ar = timespec.split("->")
 		if len(ar) != 2:
 			raise PilotError("dryhops must be specified as "
-			    + "\"days_in -> days_out\" or \"keg\"")
+			    + "\"days_in -> days_out\" or \"package\"")
 		inday = Parse.days(ar[0])
 		outday = Parse.days(ar[1])
 

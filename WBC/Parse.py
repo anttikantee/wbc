@@ -88,7 +88,9 @@ def kettletime(input):
 
 def days(input):
 	suffixes = {
+		'days'	: None,
 		'day'	: None,
+		'd'	: None,
 	}
 	return _unit(int, suffixes, input, name = 'days')
 
