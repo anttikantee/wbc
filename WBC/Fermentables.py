@@ -326,6 +326,11 @@ add('Muntons Maris Otter',
 
 add('Simpsons Golden Promise', 81, 140, Color(6.5, EBC))
 
+add('Simpsons Brown',
+	Extract(68.7, FGDB, FCD_UNKNOWN, 4.0),
+	diap_none,
+	Color(515, EBC))
+
 add('Simpsons Crystal Dark',
 	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
@@ -342,6 +347,20 @@ add('Fawcett Brown',
 	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
 	diap_none,
 	Color(188, EBC),
+	needmash = False)
+
+# well, ok, Fawcett apparently has different malts for different regions.
+# or at least there doesn't seem to be a naming consistency, plus the
+# specs don't match exactly.  so, yea, hats back on.
+add('Fawcett Crystal I',
+	Extract(70, FGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(45, LOVIBOND),
+	needmash = False)
+add('Fawcett Crystal II',
+	Extract(70, FGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(65, LOVIBOND),
 	needmash = False)
 
 # XXX: no idea about the extract, but since it's supposed just regular
