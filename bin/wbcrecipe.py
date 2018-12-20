@@ -16,7 +16,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe, Hop, Mash
+from WBC.WBC import Recipe, Hop, Mash, WBC
 from WBC.Units import Mass, Temperature, Volume, Strength
 from WBC.Units import _Mass, _Temperature, _Volume
 from WBC.Utils import PilotError
@@ -92,23 +92,23 @@ def dofermentables(r, ferms):
 	fermtype = None
 	for f in ferms['mash']:
 		(fun, v) = Parse.fermentableunit(ferms['mash'][f])
-		fun(r, f, v, Recipe.MASH)
+		fun(r, f, v, WBC.MASH)
 
 	for f in ferms.get('steep', []):
 		(fun, v) = Parse.fermentableunit(ferms['steep'][f])
-		fun(r, f, v, Recipe.STEEP)
+		fun(r, f, v, WBC.STEEP)
 
 	for f in ferms.get('boil', []):
 		(fun, v) = Parse.fermentableunit(ferms['boil'][f])
-		fun(r, f, v, Recipe.BOIL)
+		fun(r, f, v, WBC.BOIL)
 
 	for f in ferms.get('ferment', []):
 		(fun, v) = Parse.fermentableunit(ferms['ferment'][f])
-		fun(r, f, v, Recipe.FERMENT)
+		fun(r, f, v, WBC.FERMENT)
 
 	for f in ferms.get('package', []):
 		(fun, v) = Parse.fermentableunit(ferms['package'][f])
-		fun(r, f, v, Recipe.PACKAGE)
+		fun(r, f, v, WBC.PACKAGE)
 
 	a = ferms.get('anchor', [])
 	if len(a) > 0:
@@ -317,7 +317,9 @@ if __name__ == '__main__':
 		if '-c' in flags:
 			r.printcsv()
 		else:
-			r.printit(odict.get('miniprint', False))
+			from WBC import OutputText
+			OutputText.printit(r.input, r.results,
+			    odict.get('miniprint', False))
 	except PilotError, pe:
 		print 'Pilot Error: ' + str(pe)
 		raise SystemExit, 1

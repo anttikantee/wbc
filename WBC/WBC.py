@@ -29,19 +29,32 @@ import Brewutils
 def checkconfig():
 	return True
 
+class WBC:
+	MASH=		'Mash'
+	STEEP=		'Steep'
+	BOIL=		'Boil'
+	FERMENT=	'Ferment'
+	PACKAGE=	'Package'
+	stages=		[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
+
 class Recipe:
 	def __init__(self, name, yeast, volume, boiltime = 60):
 		# volume may be None if the recipe contains only relative units
 		if volume is not None:
 			checktype(volume, Volume)
 
-		self.name = name
-		self.yeast = yeast
+		input = {}
+		input['name' ] = name
+		input['yeast'] = yeast
+
+		input['water_notes'] = None
+		input['notes'] = []
+
+		self.boiltime = input['boiltime'] = boiltime
+		self.input = input
+
 		self.volume_inherent = volume
 		self.volume_scaled = None
-
-		self.water_notes = None
-		self.notes = []
 
 		self.hops_bymass = []
 		self.hops_bymassvolume = []
@@ -56,20 +69,16 @@ class Recipe:
 		# final strength or mass of one fermentable
 		self.anchor = None
 
-		self.stolen_wort = {
+		self.input['stolen_wort'] = {
 			'volume'	: _Volume(0),
 			'strength'	: _Strength(0),
 			'extract'	: _Mass(0),
 		}
 
-		self.boiltime = boiltime
-
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
 		    'package':_Volume(0)}
 
 		self._calculatestatus = 0
-
-		self.results = {}
 
 		self.mash = Mash()
 
@@ -94,14 +103,6 @@ class Recipe:
 	FINAL=		5
 
 	THEREST=	object()
-
-	# fermentable additions
-	MASH=		'Mash'
-	STEEP=		'Steep'
-	BOIL=		'Boil'
-	FERMENT=	'Ferment'
-	PACKAGE=	'Package'
-	fermstages=	[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
 
 	def __final_volume(self):
 		assert(self._calculatestatus > 0)
@@ -172,13 +173,13 @@ class Recipe:
 	# set opaque water notes to be printed with recipe
 	def set_water_notes(self, waternotes):
 		checktype(waternotes, str)
-		if self.water_notes is not None:
+		if self.input['water_notes'] is not None:
 			warn('water notes already set')
-		self.water_notes = waternotes
+		self.input['water_notes'] = waternotes
 
 	def add_note(self, note):
 		checktype(note, str)
-		self.notes.append(note)
+		self.input['notes'].append(note)
 
 	def _hopstore(self, hop, amount, time):
 		time.resolvetime(self.boiltime)
@@ -254,14 +255,14 @@ class Recipe:
 		})
 
 	def __validate_ferm(self, name, fermentable, when):
-		if when not in self.fermstages:
+		if when not in WBC.stages:
 			raise PilotError('invalid fermentation stage')
 
 		if self.__havefermentable(fermentable.name, when):
 			raise PilotError('fermentables may be specified max '
 			    + 'once per stage')
 
-		if fermentable.needmash and when != self.MASH:
+		if fermentable.needmash and when != WBC.MASH:
 			raise PilotError('fermentable "' + name + '" needs '
 			    + 'a mash')
 
@@ -269,7 +270,7 @@ class Recipe:
 		# want to put sugars into their mash, it's not our business
 		# to tell them not to.
 		#
-		#if not fermentable.conversion and when == self.MASH:
+		#if not fermentable.conversion and when == WBC.MASH:
 		#	raise PilotError('fermentable "' + name + '" does not '
 		#	    + 'need a mash')
 
@@ -286,7 +287,7 @@ class Recipe:
 	def _fermunmap(f):
 		return (f['name'], f['fermentable'], f['amount'], f['when'])
 
-	def fermentable_bymass(self, name, mass, when=MASH):
+	def fermentable_bymass(self, name, mass, when=WBC.MASH):
 		checktype(mass, Mass)
 
 		fermentable = Fermentables.get(name)
@@ -296,7 +297,7 @@ class Recipe:
 		self.fermentables_bymass.append(f)
 
 	# percent of fermentable's mass, not extract's mass
-	def fermentable_bypercent(self, name, percent, when=MASH):
+	def fermentable_bypercent(self, name, percent, when=WBC.MASH):
 		if percent is not self.THEREST and percent <= 0:
 			raise PilotError('grain percentage must be positive '\
 			  '(it is a fun thing!)')
@@ -320,7 +321,7 @@ class Recipe:
 		checktypes([(vol, Volume), (strength, Strength)])
 
 		extract = self.__extract(vol, strength)
-		self.stolen_wort = {
+		self.input['stolen_wort'] = {
 			'volume'	: vol,
 			'strength'	: strength,
 			'extract'	: extract
@@ -364,18 +365,18 @@ class Recipe:
 		def yield_at_stage(stage):
 			return sum([self.fermentable_yield(x, theoretical) \
 			    for x in self._fermentables_atstage(stage)])
-		m = yield_at_stage(self.MASH)
-		if stage == self.STEEP or stage == self.BOIL \
-		    or stage == self.FERMENT:
-			m += yield_at_stage(self.STEEP)
-		if stage == self.BOIL or stage == self.FERMENT:
-			m += yield_at_stage(self.BOIL)
-		if stage == self.FERMENT:
-			m += yield_at_stage(self.FERMENT)
-		return _Mass(m - self.stolen_wort['extract'])
+		m = yield_at_stage(WBC.MASH)
+		if stage == WBC.STEEP or stage == WBC.BOIL \
+		    or stage == WBC.FERMENT:
+			m += yield_at_stage(WBC.STEEP)
+		if stage == WBC.BOIL or stage == WBC.FERMENT:
+			m += yield_at_stage(WBC.BOIL)
+		if stage == WBC.FERMENT:
+			m += yield_at_stage(WBC.FERMENT)
+		return _Mass(m - self.input['stolen_wort']['extract'])
 
 	def _sanity_check(self):
-		pbs = self.results['preboil_strength'].valueas(Strength.PLATO)
+		pbs = self.results['strengths']['preboil'].valueas(Strength.PLATO)
 		fw = self.results['mash_first_wort_max'].valueas(Strength.PLATO)
 
 		if pbs > fw:
@@ -441,7 +442,8 @@ class Recipe:
 
 			extract = self.__extract(
 			    self.__volume_at_stage(self.POSTBOIL),
-			    self.anchor['value']) + self.stolen_wort['extract']
+			    self.anchor['value']) \
+			      + self.input['stolen_wort']['extract']
 
 			# take into account any yield we already get from
 			# per-mass additions
@@ -493,35 +495,62 @@ class Recipe:
 	def _dofermentablestats(self):
 		assert('fermentables' in self.results)
 		allmass = self._fermentables_allmass()
+		stats = {}
+
 		for f in self.results['fermentables']:
+			when = f['when']
 			f['percent'] = 100.0 * (f['amount'] / allmass)
 			f['extract_predicted'] = self.fermentable_yield(f)
 			f['extract_theoretical'] = self.fermentable_yield(f,
 			    theoretical=True)
 
-	def _domash(self):
-		prevol1 = self.__volume_at_stage(self.PREBOIL)
-		prevol  = Brewutils.water_vol_at_temp(prevol1,
-		    self.__reference_temp(), getparam('preboil_temp'))
-		self.results['preboil_volume'] = prevol
-		prestren = Brewutils.solve_strength(
-		    self.total_yield(self.STEEP), prevol)
-		self.results['preboil_strength'] = prestren
+			stats.setdefault(when, {})
+			stats[when].setdefault('percent', 0)
+			stats[when].setdefault('amount', 0)
+			stats[when].setdefault('extract_predicted', 0)
+			stats[when].setdefault('extract_theoretical', 0)
+			stats[when]['percent'] += f['percent']
+			stats[when]['amount'] += f['amount']
+			stats[when]['extract_predicted'] \
+			    += f['extract_predicted']
+			stats[when]['extract_theoretical'] \
+			    += f['extract_theoretical']
 
+		for s in stats:
+			stats[s]['amount'] = _Mass(stats[s]['amount'])
+			stats[s]['extract_predicted'] \
+			    = _Mass(stats[s]['extract_predicted'])
+			stats[s]['extract_theoretical'] \
+			    = _Mass(stats[s]['extract_theoretical'])
+
+		allstats = {}
+		allstats['amount'] \
+		    = _Mass(sum([stats[x]['amount'] for x in stats]))
+		allstats['extract_predicted'] \
+		    = _Mass(sum([stats[x]['extract_predicted'] for x in stats]))
+		allstats['extract_theoretical'] \
+		    = _Mass(sum([stats[x]['extract_theoretical']
+				 for x in stats]))
+
+		self.results['fermentable_stats_perstage'] = stats
+		self.results['fermentable_stats_all'] = allstats
+
+	def _domash(self):
+		prestren = self.results['strengths']['preboil']
 		totvol = _Volume(self.__volume_at_stage(self.MASHWATER))
-		if self.stolen_wort['volume'] > 0.001:
+		if self.input['stolen_wort']['volume'] > 0.001:
 			steal = {}
-			ratio = self.stolen_wort['strength'] / prestren
+			ratio = self.input['stolen_wort']['strength'] / prestren
 			steal['strength'] = _Strength(prestren * min(1, ratio))
 
 			steal['volume'] = _Volume(min(1, ratio)
-			    * self.stolen_wort['volume'])
-			steal['missing'] = _Volume(self.stolen_wort['volume']
+			    * self.input['stolen_wort']['volume'])
+			steal['missing'] = _Volume(self.input['stolen_wort']['volume']
 			    - steal['volume'])
 			totvol += steal['volume']
 			self.results['steal'] = steal
 
-		mf = self._fermentables_atstage(self.MASH)
+		mf = self._fermentables_atstage(WBC.MASH)
 		self.mash.set_fermentables(mf)
 
 		v = self.__volume_at_stage(self.POSTBOIL)
@@ -531,7 +560,7 @@ class Recipe:
 			self.__reference_temp(), totvol,
 			self.__grain_absorption())
 
-		theor_yield = self.total_yield(self.MASH,
+		theor_yield = self.total_yield(WBC.MASH,
 		    theoretical=True).valueas(Mass.KG)
 		# FIXXXME: actually volume, so off-by-very-little
 		watermass = self.results['mash']['mashstep_water']
@@ -539,7 +568,7 @@ class Recipe:
 		self.results['mash_first_wort_max'] \
 		    = Strength(fw, Strength.PLATO)
 
-		mf = self._fermentables_atstage(self.MASH)
+		mf = self._fermentables_atstage(WBC.MASH)
 		rv = _Volume(self.results['mash']['mashstep_water']
 		      - (self._fermentables_mass(mf).valueas(Mass.KG)
 		         * self.__grain_absorption()
@@ -548,145 +577,43 @@ class Recipe:
 			raise PilotError('mashin ratio ridiculously low')
 		self.results['mash_first_runnings_max'] = rv
 
-	def _printmash(self):
-		fmtstr = u'{:34}{:>20}{:>12}{:>12}'
-		print fmtstr.format("Fermentables",
-		    "amount", "ext (100%)", "ext ("
-		    + str(int(getparam('mash_efficiency'))) + "%)")
-		prtsep()
+	def _dovolumes(self):
+		res = {}
+		res['mash'] = self.__volume_at_stage(self.MASHWATER)
+		res['fermentor'] = self.__volume_at_stage(self.FERMENTER)
+		res['package'] = self.__volume_at_stage(self.FINAL)
 
-		extract_theoretical = extract_predicted = 0
+		def v_at_temp(name, stage):
+			v = self.__volume_at_stage(stage)
+			res[name] = v
+			vt = Brewutils.water_vol_at_temp(v,
+			    self.__reference_temp(), getparam(name + '_temp'))
+			res[name + '_attemp'] = vt
+		v_at_temp('preboil', self.PREBOIL)
+		v_at_temp('postboil', self.POSTBOIL)
 
-		def handleonestage(name, lst):
-			stagem = stagep = stage_theoretical = stage_predicted =0
-			print name
-			prtsep('-')
+		self.results['volumes'] = res
 
-			for f in lst:
-				persstr = ' ({:5.1f}%)'.format(f['percent'])
-				print fmtstr.format(f['name'],
-				    str(f['amount']) + persstr,
-				    str(f['extract_theoretical']),
-				    str(f['extract_predicted']))
-				stagem += f['amount']
-				stagep += f['percent']
-				stage_theoretical += f['extract_theoretical']
-				stage_predicted += f['extract_predicted']
-			prtsep('-')
-			persstr = ' ({:5.1f}%)'.format(stagep)
-			print fmtstr.format('',
-			    str(_Mass(stagem)) + persstr,
-			    str(_Mass(stage_theoretical)),
-			    str(_Mass(stage_predicted)))
-			return (stage_theoretical, stage_predicted)
+	# Solve the strength of the wort at various stages.
+	# For preboil we get it from the configured mash efficiency.
+	# For other stages we need to account for losses.  We assume
+	# a uniform loss, i.e. if we lose 10% of the volume, we lose 10%
+	# of the extract. XXX: we don't do that accounting yet, so the
+	# solutions are by large inaccurate for brews with a large
+	# amount of non-mash fermentables
+	def _dostrengths(self):
+		vols = self.results['volumes']
 
-		for stage in self.fermstages:
-			lst = sorted(self._fermentables_atstage(stage),
-			    key=lambda x: x['amount'], reverse=True)
-			if len(lst) > 0:
-				v = handleonestage(stage, lst)
-				extract_theoretical += v[0]
-				extract_predicted += v[1]
-
-		prtsep()
-
-		print fmtstr.format('', \
-		    str(self._fermentables_allmass()) + ' (100.0%)', \
-		    str(_Mass(extract_theoretical)),\
-		    str(_Mass(extract_predicted)))
-
-		spargevol = self.results['mash']['sparge_water']
-
-		print
-		yesnosparge = ")"
-		if spargevol < .001:
-			yesnosparge = ", no-sparge)"
-		print 'Mashing instructions (ambient', \
-		    unicode(getparam('ambient_temp')) + yesnosparge
-		prtsep()
-
-		totvol = 0
-		mf = self._fermentables_atstage(self.MASH)
-		mash_grainmass = self._fermentables_mass(mf)
-		for i, x in enumerate(self.results['mash']['steps']):
-			if getparam('mlt_heat') == 'direct' and i != 0:
-				print u'{:7}'. format(unicode(x[0])) \
-				    + ': apply heat'
-				continue
-			print u'{:7}'.format(unicode(x[0])) + ': add', x[2], \
-			    'of water at', unicode(x[3]),
-
-			# print the water/grist ratio at the step.
-			#
-			# XXX: I'm unsure if we should print the user
-			# input for step 1, but then again, if someone
-			# wants to give mashin ratios as 3.4gal/17lb,
-			# maybe it's their problem, and we just support
-			# printing in metric or cryptic with the denominator
-			# normalized to 1
-			totvol = _Volume(totvol + x[1])
-			if getparam('units_output') == 'metric':
-				ratio = totvol \
-				    / mash_grainmass.valueas(Mass.KG)
-				unit = 'l/kg'
-			else:
-				ratio = totvol.valueas(Volume.QUART) \
-				    / mash_grainmass.valueas(Mass.LB)
-				unit = 'qt/lb'
-			mash_volume = _Volume(totvol
-			    + mash_grainmass.valueas(Mass.KG)
-			      * Constants.grain_specificvolume)
-			print '({:.2f} {:}, mash vol {:})'.format(ratio,
-			    unit, mash_volume)
-
-		print u'{:23}{:}'.format('Mashstep water volume:', \
-		    unicode(self.results['mash']['mashstep_water']) + ' @ ' \
-		    + unicode(self.__reference_temp())),
-		print '(potential first runnings: ~{:})' \
-		    .format(self.results['mash_first_runnings_max'])
-
-		if spargevol > .001:
-			print u'{:23}{:}'.format('Sparge water volume:', \
-			    unicode(spargevol) + ' @ '
-			    + unicode(getparam('sparge_temp')))
-
-		fw = self.results['mash_first_wort_max']
-		fwstrs = []
-		for x in [.85, .90, .95, 1.0]:
-			fwstrs.append(unicode(_Strength(fw * x)) \
-			    + ' (' + str(int(100 * x)) + '%)')
-		print u'{:23}{:}'. format('First wort (conv. %):', \
-		    ', '.join(fwstrs))
-
-		if 'steal' in self.results:
-			steal = self.results['steal']
-			print 'Steal', steal['volume'], 'preboil wort',
-			if steal['missing'] > 0.05:
-				print 'and blend with',steal['missing'],'water',
-
-			print '==>', self.stolen_wort['volume'], '@', \
-			    unicode(steal['strength']),
-			if steal['strength'] < self.stolen_wort['strength']:
-				assert(steal['missing'] <= 0.05)
-				print '(NOTE: strength < ' \
-				    + unicode(self.stolen_wort['strength'])+')',
-			print
-
-		prtsep()
-		print
-
-	def _doboil(self):
-		res = []
-
-		# hop calculations might need final strength
-		v = self.__volume_at_stage(self.FERMENTER)
-		self.results['final_strength'] \
-		    = Brewutils.solve_strength(self.total_yield(self.FERMENT),v)
-		v = self.__volume_at_stage(self.POSTBOIL)
-		self.results['postboil_strength'] \
-		    = Brewutils.solve_strength(self.total_yield(self.BOIL),v)
-
-		self._dohops()
+		strens = {}
+		# XXX: _attemp incorrect.
+		# to keep output unchanged for next commit, FIXME after commit
+		strens['preboil'] = Brewutils.solve_strength(
+		    self.total_yield(WBC.STEEP), vols['preboil_attemp'])
+		strens['final'] = Brewutils.solve_strength(
+		    self.total_yield(WBC.FERMENT), vols['fermentor'])
+		strens['postboil'] = Brewutils.solve_strength(
+		    self.total_yield(WBC.BOIL), vols['postboil'])
+		self.results['strengths'] = strens
 
 	@staticmethod
 	def _hopmap(hop, mass, time, ibu):
@@ -709,7 +636,7 @@ class Recipe:
 
 		# ... and average strength during the boil.  *whee*
 		v_pre = self.__volume_at_stage(self.PREBOIL)
-		y = self.total_yield(self.BOIL)
+		y = self.total_yield(WBC.BOIL)
 		sg = _Strength((Brewutils.solve_strength(y, v_pre)
 		    + Brewutils.solve_strength(y, v_post)) / 2)
 
@@ -746,14 +673,14 @@ class Recipe:
 		if self.hops_recipeBUGU is not None:
 			h = self.hops_recipeBUGU
 			bugu = self.hops_recipeBUGU[1]
-			stren = self.results['final_strength']
+			stren = self.results['strengths']['final']
 			ibus = stren.valueas(stren.SG_PTS) * bugu
 			missibus = ibus - totibus
 			mass = h[0].mass(sg, v_post, h[2], missibus)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
 
-		self.ibus = totibus
+		self.results['ibus'] = totibus
 
 		# Sort the hop additions of the recipe.
 		#
@@ -784,7 +711,7 @@ class Recipe:
 			else:
 				hd['kettle'] += hop.absorption(mass)
 		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
-		self.packagedryhopvol = _Volume(packagedryhopvol)
+		self.hopsdrunk['volume'] = _Volume(packagedryhopvol)
 
 		# calculate "timer" field values
 		prevtype = None
@@ -830,215 +757,16 @@ class Recipe:
 
 		self.results['hops'] = allhop
 
-	def _printboil(self):
-		# XXX: IBU sum might not be sum of displayed hop additions
-		# due to rounding.  cosmetic, but annoying.
-		namelen = 33
-		onefmt = u'{:' + str(namelen) + '}{:7}{:>9}{:>11}{:>10}{:>8}'
-		print onefmt.format("Hops", "AA%", "timespec", "timer",
-		    "amount", "IBUs")
-		prtsep()
-		totmass = 0
-
-		t = self.results['startboil_timer']
-		if t is not None:
-			print onefmt.format('', '', '@ boil',
-			    str(t) + ' min', '', '')
-
-		# printing IBUs with a decimal point, given all
-		# other inaccuracy involved, is rather silly.
-		# but what would we be if not silly?
-		ibufmt = '{:.1f}'
-
-		prevstage = None
-		for h in self.results['hops']:
-			(hop, mass, time, ibu) = Recipe._hopunmap(h)
-			nam = hop.name
-			typ = hop.typestr
-			if len(nam) + len(typ) + len(' ()') >= namelen:
-				typ = hop.typestr[0]
-			typ = ' (' + typ + ')'
-			if prevstage is not None and \
-			    prevstage is not time.__class__:
-				prtsep('-')
-			maxlen = (namelen-1) - len(typ)
-			if len(nam) > maxlen:
-				nam = nam[0:maxlen-2] + '..'
-
-			prevstage = time.__class__
-			totmass = mass + totmass
-
-			if time.spec == self.boiltime:
-				# XXX
-				timestr = '@ boil'
-			else:
-				timestr = time.timespecstr()
-
-			ibustr = ibufmt.format(ibu)
-			print onefmt.format(nam + typ, str(hop.aapers) + '%', \
-			    timestr, h['timer'], str(mass), ibustr)
-		prtsep()
-		ibustr = ibufmt.format(self.ibus)
-		print onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr)
-		print
-
-	def _keystats(self, miniprint):
-		# column widths (
-		cols = [20, 19, 22, 19]
-		cols_tight = [20, 19, 16, 25]
-
-		prtsep()
-		onefmt = u'{:' + str(cols[0]) + '}{:}'
-
-		def maketwofmt(c):
-			return u'{:' + str(c[0]) + '}{:' + str(c[1]) \
-			    + '}{:' + str(c[2]) + '}{:' + str(c[3]) + '}'
-		twofmt = maketwofmt(cols)
-		twofmt_tight = maketwofmt(cols_tight)
-
-		postvol1 = self.__volume_at_stage(self.POSTBOIL)
-		postvol  = Brewutils.water_vol_at_temp(postvol1,
-		    self.__reference_temp(), getparam('postboil_temp'))
-		total_water = self.results['mash']['total_water']
-		if 'steal' in self.results:
-			total_water = _Volume(total_water
-			    + self.results['steal']['missing'])
-
-		# calculate color, via MCU & Morey equation
-		t = sum(f['amount'].valueas(Mass.LB) \
-		  * f['fermentable'].color.valueas(Color.SRM) \
-		     for f in self.results['fermentables'])
-		mcu = t / postvol1.valueas(Volume.GALLON)
-		color = Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
-		srm = color.valueas(Color.SRM)
-		ebc = color.valueas(Color.EBC)
-
-		print onefmt.format('Name:', self.name)
-		print twofmt_tight.format('Aggregate strength:', 'TBD',
-		    'Package volume:', str(self.__final_volume()))
-		bugu = self.ibus / self.results['final_strength']
-		print twofmt_tight.format('IBU (Tinseth):', \
-		    '{:.2f}'.format(self.ibus), \
-		    'BUGU:', '{:.2f}'.format(bugu))
-		if srm >= 10:
-			prec = '0'
-		else:
-			prec = '1'
-
-		ebcprec = '{:.' + prec + 'f}'
-		srmprec = '{:.' + prec + 'f}'
-		print twofmt_tight.format('Boil:', str(self.boiltime) + 'min',
-		    'Yeast:', self.yeast)
-		print twofmt_tight.format(
-		    'Water (' + unicode(self.__reference_temp()) + '):',
-		    unicode(total_water),
-		    'Color (Morey):', ebcprec.format(ebc)
-		    + ' EBC, ' + srmprec.format(srm) + ' SRM')
-		print
-
-		if self.water_notes is not None or len(self.notes) > 0:
-			if self.water_notes is not None:
-				prettyprint_withsugarontop('Water notes:',
-				    cols[0], self.water_notes,
-				    sum(cols) - cols[0])
-			for n in self.notes:
-				prettyprint_withsugarontop('Brewday notes:',
-				    cols[0], n, sum(cols) - cols[0])
-			print
-
-		print twofmt.format('Preboil  volume  :', \
-		    str(self.results['preboil_volume']) \
-		    + ' (' + unicode(getparam('preboil_temp')) + ')', \
-		    'Measured:', '')
-		print twofmt.format('Preboil  strength:', \
-		    unicode(self.results['preboil_strength']), \
-		    'Measured:', '')
-		print twofmt.format('Postboil volume  :', str(postvol) \
-		    + ' (' + unicode(getparam('postboil_temp')) + ')', \
-		    'Measured:', '')
-		print twofmt.format('Postboil strength:', \
-		    unicode(self.results['postboil_strength']), \
-		    'Measured:', '')
-
-		# various expected losses and brewhouse efficiency
-		print
-		d1 = _Volume(self.__volume_at_stage(self.POSTBOIL)
-		    - self.__volume_at_stage(self.FERMENTER))
-		d2 = _Volume(self.__volume_at_stage(self.FERMENTER)
-		    - self.__volume_at_stage(self.FINAL))
-
-		print twofmt.format('Kettle loss (est):', str(d1),
-		    'Fermenter loss (est):', str(d2))
-
-		maxyield = self.total_yield(self.FERMENT, theoretical=True)
-		maxstren = Brewutils.solve_strength(maxyield,
-		    self.__final_volume())
-		beff = self.results['final_strength'] / maxstren
-		print twofmt.format('Mash eff (conf) :', \
-		    str(getparam('mash_efficiency')) + '%',
-		    'Brewhouse eff (est):', '{:.1f}%'.format(100 * beff))
-
-		if not miniprint:
-			print
-			bil = 1000*1000*1000
-			unit = ' billion'
-			print twofmt.format('Pitch rate, ale:',
-			    str(int(self.results['pitch']['ale'] / bil)) + unit,
-			    'Pitch rate, lager:',
-			    str(int(self.results['pitch']['lager'] / bil))
-			    + unit)
-
-		if self.hopsdrunk['package'] > 0:
-			print
-			print 'NOTE: package hops absorb: ' \
-			    + str(self.hopsdrunk['package']) \
-			    + ' => effective yield: ' \
-			    + str(_Volume(self.__final_volume()
-				  - self.hopsdrunk['package']))
-
-			# warn about larger packaging volume iff package dryhops
-			# volume exceeds 1dl
-			if self.packagedryhopvol > 0.1:
-				print 'NOTE: package hop volume: ~' \
-				    + str(self.packagedryhopvol) \
-				    + ' => packaged volume: ' \
-				    + str(_Volume(self.__final_volume()
-				          + self.packagedryhopvol))
-
-		prtsep()
-
 	def _doferment(self):
 		self._doattenuate()
 
 	def _doattenuate(self, attenuation = (60, 86, 5)):
 		res = []
-		fin = self.results['final_strength']
+		fin = self.results['strengths']['final']
 		for x in range(*attenuation):
 			t = fin.attenuate_bypercent(x)
 			res.append((x, t['ae'], t['abv']))
 		self.results['attenuation'] = res
-
-	def _printattenuate(self):
-		print 'Speculative apparent attenuation and resulting ABV'
-		prtsep()
-		onefmt = u'{:^8}{:^8}{:10}'
-		title = ''
-		for x in range(3):
-			title += onefmt.format('Str.', 'Att.', 'ABV')
-		print title
-
-		reslst = []
-		for x in self.results['attenuation']:
-			reslst.append((unicode(x[1]), str(x[0]) + '%', \
-			    '{:.1f}%'.format(x[2])))
-
-		for i in range(0, len(reslst)/3):
-			line = onefmt.format(*reslst[i])
-			line += onefmt.format(*reslst[i + len(reslst)/3])
-			line += onefmt.format(*reslst[i + 2*len(reslst)/3])
-			print line
-		prtsep()
-		print
 
 	def calculate(self):
 		Sysparams.checkset()
@@ -1075,15 +803,22 @@ class Recipe:
 		# volume
 		#
 		for x in range(10):
-			self._dofermentables()
-			prevol = self.__volume_at_stage(self.MASHWATER)
-			self._domash()
+			self.results = {}
 
-			self._doboil()
+			self._dofermentables()
+			self._dovolumes()
+			prevol = self.__volume_at_stage(self.MASHWATER)
+			self._dostrengths()
+			self._domash()
+			self._dohops()
 			if prevol+.01 >= self.__volume_at_stage(self.MASHWATER):
 				break
 		else:
 			raise Exception('recipe failed to converge ... panic?')
+
+		# do the volumes once more to finalize them with the
+		# final hop thirst
+		self._dovolumes()
 
 		self._dofermentablestats()
 		self._doferment()
@@ -1091,10 +826,30 @@ class Recipe:
 		# calculate suggested pitch rates, using 0.75mil/ml/degP for
 		# ales and 1.5mil for lagers
 		tmp = self.__volume_at_stage(self.FERMENTER) * 1000 \
-		    * self.results['final_strength'].valueas(Strength.PLATO)
+		    * self.results['strengths']['final'].valueas(Strength.PLATO)
+		bil = 1000*1000*1000
 		self.results['pitch'] = {}
-		self.results['pitch']['ale']   = tmp * 0.75*1000*1000
-		self.results['pitch']['lager'] = tmp * 1.50*1000*1000
+		self.results['pitch']['ale']   = tmp * 0.75*1000*1000 / bil
+		self.results['pitch']['lager'] = tmp * 1.50*1000*1000 / bil
+
+		# calculate color, via MCU & Morey equation
+		t = sum(f['amount'].valueas(Mass.LB) \
+		    * f['fermentable'].color.valueas(Color.SRM) \
+		        for f in self.results['fermentables'])
+		v = self.results['volumes']['postboil'].valueas(Volume.GALLON)
+		mcu = t / v
+		self.results['color'] = \
+		    Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
+
+		# calculate brewhouse estimated afficiency ... NO, efficiency
+		maxyield = self.total_yield(WBC.FERMENT, theoretical=True)
+		maxstren = Brewutils.solve_strength(maxyield,
+		    self.__final_volume())
+		self.results['brewhouse_efficiency'] = \
+		    self.results['strengths']['final'] / maxstren
+
+		# this one is easy
+		self.results['hopsdrunk'] = self.hopsdrunk
 
 		self._sanity_check()
 		self._calculatestatus += 1
@@ -1102,20 +857,6 @@ class Recipe:
 	def _assertcalculate(self):
 		if self._calculatestatus == 0:
 			raise PilotError('must calculate recipe first')
-
-	def printit(self, miniprint):
-		self._assertcalculate()
-
-		self._keystats(miniprint)
-		ps = Sysparams.getparamshorts()
-		prettyprint_withsugarontop('', '', ps, 78, sep='|')
-		prtsep()
-		print
-
-		self._printmash()
-		self._printboil()
-		if not miniprint:
-			self._printattenuate()
 
 	# dump the recipe as a CSV, which has all of the quantities
 	# resolved, and contains enough information to recalculate
@@ -1594,11 +1335,18 @@ class Mash:
 
 		step = self.__Step(fmass, ambient_temp, mashtemps[0], wmass)
 		totvol = watervol
+		inmash = 0
 
 		if getparam('mlt_heat') == 'transfer':
 			for i, t in enumerate(mashtemps):
 				(vol, temp) = step.waterstep()
 				totvol -= vol
+				inmash += vol
+				mashvol = _Volume(inmash
+				    + fmass.valueas(Mass.KG)
+				      * Constants.grain_specificvolume)
+
+				ratio = inmash / fmass.valueas(Mass.KG)
 				if totvol < -0.0001:
 					raise PilotError('cannot satisfy '
 					    + 'transfer infusion steps '
@@ -1607,17 +1355,22 @@ class Mash:
 
 				actualvol = Brewutils.water_vol_at_temp(vol,
 				    water_temp, temp)
-				res['steps'].append((t, vol, actualvol, temp))
+				res['steps'].append((t, vol, actualvol,
+				    temp, ratio, _Volume(mashvol)))
 				if i+1 < len(mashtemps):
 					step.nextstep(mashtemps[i+1])
 		else:
 			assert(getparam('mlt_heat') == 'direct')
 			(vol, temp) = step.waterstep()
 			totvol -= vol
+			ratio = vol / fmass.valueas(Mass.KG)
 			actualvol = Brewutils.water_vol_at_temp(vol,
 				    water_temp, temp)
+			mashvol = _Volume(vol + fmass.valueas(Mass.KG)
+			      * Constants.grain_specificvolume)
 			for i, t in enumerate(mashtemps):
-				res['steps'].append((t, vol, actualvol, temp))
+				res['steps'].append((t, vol, actualvol,
+				    temp, ratio, mashvol))
 
 		res['mashstep_water'] = _Volume(watervol - totvol)
 		res['sparge_water'] = \
