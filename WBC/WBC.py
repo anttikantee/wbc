@@ -32,11 +32,11 @@ def checkconfig():
 	return True
 
 class WBC:
-	MASH=		'Mash'
-	STEEP=		'Steep'
-	BOIL=		'Boil'
-	FERMENT=	'Ferment'
-	PACKAGE=	'Package'
+	MASH=		'mash'
+	STEEP=		'steep'
+	BOIL=		'boil'
+	FERMENT=	'ferment'
+	PACKAGE=	'package'
 	stages=		[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
 
 class Recipe:

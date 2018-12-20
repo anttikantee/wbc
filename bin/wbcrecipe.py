@@ -92,25 +92,10 @@ def dohops(r, d_hops):
 
 def dofermentables(r, ferms):
 	fermtype = None
-	for f in ferms['mash']:
-		(fun, v) = Parse.fermentableunit(ferms['mash'][f])
-		fun(r, f, v, WBC.MASH)
-
-	for f in ferms.get('steep', []):
-		(fun, v) = Parse.fermentableunit(ferms['steep'][f])
-		fun(r, f, v, WBC.STEEP)
-
-	for f in ferms.get('boil', []):
-		(fun, v) = Parse.fermentableunit(ferms['boil'][f])
-		fun(r, f, v, WBC.BOIL)
-
-	for f in ferms.get('ferment', []):
-		(fun, v) = Parse.fermentableunit(ferms['ferment'][f])
-		fun(r, f, v, WBC.FERMENT)
-
-	for f in ferms.get('package', []):
-		(fun, v) = Parse.fermentableunit(ferms['package'][f])
-		fun(r, f, v, WBC.PACKAGE)
+	for stage in WBC.stages:
+		for f in ferms.get(stage, []):
+			(fun, v) = Parse.fermentableunit(ferms[stage][f])
+			fun(r, f, v, stage)
 
 	a = ferms.get('anchor', [])
 	if len(a) > 0:

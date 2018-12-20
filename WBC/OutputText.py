@@ -41,7 +41,7 @@ def _printmash(input, results):
 		if len(lst) == 0:
 			return
 
-		print stage
+		print stage.title()
 		prtsep('-')
 
 		for f in lst:
