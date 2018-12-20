@@ -605,10 +605,8 @@ class Recipe:
 		vols = self.results['volumes']
 
 		strens = {}
-		# XXX: _attemp incorrect.
-		# to keep output unchanged for next commit, FIXME after commit
 		strens['preboil'] = Brewutils.solve_strength(
-		    self.total_yield(WBC.STEEP), vols['preboil_attemp'])
+		    self.total_yield(WBC.STEEP), vols['preboil'])
 		strens['final'] = Brewutils.solve_strength(
 		    self.total_yield(WBC.FERMENT), vols['fermentor'])
 		strens['postboil'] = Brewutils.solve_strength(
