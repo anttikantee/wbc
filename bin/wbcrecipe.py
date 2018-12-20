@@ -16,7 +16,9 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe, Hop, Mash, WBC
+from WBC.WBC import Recipe, WBC
+from WBC.Hop import Hop
+from WBC.Mash import Mash
 from WBC.Units import Mass, Temperature, Volume, Strength
 from WBC.Units import _Mass, _Temperature, _Volume
 from WBC.Utils import PilotError

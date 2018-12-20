@@ -16,7 +16,9 @@
 
 from Units import Mass, Temperature, Volume, Strength, Pressure, Color
 from Utils import PilotError
-from WBC import Recipe, Hop, Mash
+from WBC import Recipe
+from Hop import Hop
+from Mash import Mash
 
 import re
 
