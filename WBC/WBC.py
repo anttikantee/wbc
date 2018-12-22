@@ -872,9 +872,10 @@ class Recipe:
 		self._assertcalculate()
 		print 'wbcdata|1'
 		print '# recipe|name|yeast|boiltime|volume'
-		print 'recipe|' + self.name + '|' + self.yeast + '|' \
+		print 'recipe|' + self.input['name'] + '|' \
+		    + self.input['yeast'] + '|' \
 		    + str(self.boiltime) \
-		    + '|' + str(float(self.__final_volume()))
+		    + '|' + str(float(self.results['volumes']['package']))
 
 		self.mash.printcsv()
 
