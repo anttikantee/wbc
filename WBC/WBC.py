@@ -144,9 +144,14 @@ class Recipe:
 			v += getparam('boiloff_perhour') * (self.boiltime/60.0)
 
 		if stage <= self.MASHWATER:
-			# XXX: should not calculate sugar into this figure
-			m = self._fermentables_allmass().valueas(Mass.KG)
-			v += self.__grain_absorption()*m + getparam('mlt_loss')
+			# XXX: should not calculate non-grains into this figure
+			# (rarely relevant problem, only e.g. when doing a
+			# "topped-up" partigyle-mash)
+			f = []
+			for stage in [WBC.MASH, WBC.STEEP]:
+				f += self._fermentables_atstage(stage)
+			m = self._fermentables_mass(f).valueas(Mass.KG)
+			v += m*self.__grain_absorption() + getparam('mlt_loss')
 
 		return _Volume(v)
 
@@ -349,17 +354,8 @@ class Recipe:
 		return filter(lambda x: x['when'] == when,
 		    self.results['fermentables'])
 
-	def _fermentables_allstage(self):
-		assert('fermentables' in self.results)
-		return self.results['fermentables']
-
 	def _fermentables_mass(self, fermlist):
 		return _Mass(sum(x['amount'] for x in fermlist))
-
-	def _fermentables_allmass(self):
-		assert('fermentables' in self.results)
-		return _Mass(sum(x['amount'] \
-		    for x in self.results['fermentables']))
 
 	def total_yield(self, stage, theoretical=False):
 		assert('fermentables' in self.results)
@@ -496,7 +492,7 @@ class Recipe:
 
 	def _dofermentablestats(self):
 		assert('fermentables' in self.results)
-		allmass = self._fermentables_allmass()
+		allmass = self._fermentables_mass(self.results['fermentables'])
 		stats = {}
 
 		for f in self.results['fermentables']:
