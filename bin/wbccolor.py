@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
@@ -36,10 +36,10 @@ if __name__ == '__main__':
 
 	try:
 		c = Parse.color(args[0])
-	except PilotError, e:
-		print e
+	except PilotError as e:
+		print(e)
 		sys.exit(1)
 
-	print '{:.1f} EBC {:10.1f} SRM {:10.1f} L'.format(c.valueas(Color.EBC),
-	    c.valueas(Color.SRM), c.valueas(Color.LOVIBOND))
+	print('{:.1f} EBC {:10.1f} SRM {:10.1f} L'.format(c.valueas(Color.EBC),
+	    c.valueas(Color.SRM), c.valueas(Color.LOVIBOND)))
 	sys.exit(0)

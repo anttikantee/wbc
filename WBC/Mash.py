@@ -14,10 +14,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Units import *
-from Units import _Mass, _Temperature, _Volume
+from WBC.Units import *
+from WBC.Units import _Mass, _Temperature, _Volume
 
-from Brewutils import water_vol_at_temp
+from WBC.Brewutils import water_vol_at_temp
 
 class Mash:
 	INFUSION=	object()
@@ -269,11 +269,11 @@ class Mash:
 		return res
 
 	def printcsv(self):
-		print '# mash|method|mashtemp1|mashtemp2...'
+		print('# mash|method|mashtemp1|mashtemp2...')
 		mashtemps = ''
 		for t in self.temperature:
 			mashtemps = mashtemps + '|' + str(float(t))
-		print 'mash|infusion' + mashtemps
+		print('mash|infusion' + mashtemps)
 
 	def set_fermentables(self, fermentables):
 		self.fermentables = fermentables

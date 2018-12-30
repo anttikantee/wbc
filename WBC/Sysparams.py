@@ -14,10 +14,11 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Utils import PilotError, notice
-from Getparam import getparam
+from WBC.Utils import PilotError, notice
+from WBC.Getparam import getparam
 
-import Constants
+from WBC import Constants
+from WBC import Parse
 
 def _getparam(what):
 	rv = wbcparams[what]
@@ -136,11 +137,11 @@ def _parsemashinratio(input):
 def _parsefloat(input):
 	return float(input)
 
-import Parse
+from WBC import Parse
 
-paraminputs = {}	# longname  -> unparsed text input
-paramparsers = {}	# longname  -> param "struct"
-paramshorts = {}	# shortname -> longname
+paraminputs = {}		# longname  -> unparsed text input
+paramparsers = {}		# longname  -> param "struct"
+paramshorts = {}		# shortname -> longname
 
 _addparam('units_output',	'uo',	_currystring(['metric', 'us']))
 _addparam('strength_output',	'so',	_currystring(['plato','sg']))
@@ -189,7 +190,7 @@ for x in _defaults:
 # maintain policy with decodeparamshorts()
 def getparamshorts():
 	out=[]
-	for sn in paramshorts:
+	for sn in sorted(paramshorts):
 		n = paramshorts[sn]
 		if n not in paraminputs:
 			assert(paramparsers[n]['optional'])

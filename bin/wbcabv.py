@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
@@ -53,9 +53,9 @@ if __name__ == '__main__':
 		r = s_orig.attenuate_bystrength(s_fin)
 
 	def printline(fname, value):
-		print u'{:28}:{:>12}'.format(fname, value)
+		print('{:28}:{:>12}'.format(fname, value))
 	def printline2(fname, value1, value2):
-		print u'{:28}:{:>12}{:>12}'.format(fname, value1, value2)
+		print('{:28}:{:>12}{:>12}'.format(fname, value1, value2))
 	def printstrength(what, s):
 		printline2(what, s.stras(Strength.PLATO), s.stras(Strength.SG))
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 	else:
 		printstrength('Final Strength (apparent)', r['ae'])
 
-	print
+	print()
 
 	def extractwvprint(what, str):
 		v = r[what]
@@ -79,9 +79,9 @@ if __name__ == '__main__':
 	extractwvprint('re_gl', 'Remaining')
 
 	printline('Remaining Extract (w/w)', r['re'].stras(Strength.PLATO))
-	print
+	print()
 	printline('Apparent attenuation (/sg)', '{:.1f}%'.format(r['aa']))
 	printline('Real attenuation (/plato)', '{:.1f}%'.format(r['ra']))
-	print
+	print()
 	printline('ABV', '{:.1f}%'.format(r['abv']))
 	printline('ABW', '{:.1f}%'.format(r['abw']))

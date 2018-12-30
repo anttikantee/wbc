@@ -16,17 +16,19 @@
 
 import copy
 
-import Constants
-import Fermentables
-from Getparam import getparam
+from WBC import Constants
+from WBC import Fermentables
+from WBC.Getparam import getparam
 
-from Utils import *
-from Units import *
-from Units import _Mass, _Strength, _Temperature, _Volume
-from Hop import Hop
-from Mash import Mash
+from WBC.Utils import *
+from WBC.Units import *
+from WBC.Units import _Mass, _Strength, _Temperature, _Volume
+from WBC.Hop import Hop
+from WBC.Mash import Mash
 
-import Brewutils
+from WBC import Brewutils
+
+from functools import cmp_to_key
 
 def checkconfig():
 	return True
@@ -90,9 +92,9 @@ class Recipe:
 		Sysparams.processfile(filename)
 
 	def __havefermentable(self, fermentable, when):
-		v = filter(lambda x: x['fermentable'].name == fermentable \
-		    and x['when'] == when,
-		    self.fermentables_bymass + self.fermentables_bypercent)
+		v = [x for x in self.fermentables_bymass 
+		    + self.fermentables_bypercent
+		    if x['fermentable'].name==fermentable and x['when']==when]
 		if len(v) > 0:
 			return True
 		return False
@@ -351,8 +353,8 @@ class Recipe:
 
 	def _fermentables_atstage(self, when):
 		assert('fermentables' in self.results)
-		return filter(lambda x: x['when'] == when,
-		    self.results['fermentables'])
+		return [x for x in self.results['fermentables'] \
+		    if x['when'] == when]
 
 	def _fermentables_mass(self, fermlist):
 		return _Mass(sum(x['amount'] for x in fermlist))
@@ -473,8 +475,8 @@ class Recipe:
 
 			a = self.anchor['value']
 			aname = a['fermentable'].name
-			f = filter(lambda x: x['fermentable'].name == aname,
-			    self.fermentables_bypercent)
+			f = [x for x in self.fermentables_bypercent
+			    if x['fermentable'].name == aname]
 			if len(f) == 0:
 				raise PilotError("could not find anchor "
 				    "fermentable: " + aname)
@@ -679,18 +681,6 @@ class Recipe:
 		self.results['ibus'] = totibus
 
 		# Sort the hop additions of the recipe.
-		#
-		# pass 1: sort boil -> steep -> dryhop
-		srtmap = {
-			Hop.Dryhop	: 0,
-			Hop.Steep	: 1,
-			Hop.Boil	: 2,
-		}
-		allhop = sorted(allhop, cmp=lambda x,y:
-		    srtmap[x['time'].__class__] - srtmap[y['time'].__class__],
-		    reverse=True)
-
-		# pass 2: sort within classes
 		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
 
 		# calculate amount of wort that hops will drink
@@ -866,22 +856,22 @@ class Recipe:
 	# by semi-humans
 	def printcsv(self):
 		self._assertcalculate()
-		print 'wbcdata|1'
-		print '# recipe|name|yeast|boiltime|volume'
-		print 'recipe|' + self.input['name'] + '|' \
-		    + self.input['yeast'] + '|' \
-		    + str(self.boiltime) \
-		    + '|' + str(float(self.results['volumes']['package']))
+		print('wbcdata|1')
+		print('# recipe|name|yeast|boiltime|volume')
+		print('recipe|' + self.input['name'] + '|'
+		    + self.input['yeast'] + '|'
+		    + str(self.boiltime)
+		    + '|' + str(float(self.results['volumes']['package'])))
 
 		self.mash.printcsv()
 
-		print '# fermentable|name|mass|when'
+		print('# fermentable|name|mass|when')
 		for g in self.results['fermentables']:
-			print 'fermentable|{:}|{:}|{:}'\
+			print('fermentable|{:}|{:}|{:}'\
 			    .format(g['fermentable'].name,
-			      float(g['amount']), g['when'])
+			      float(g['amount']), g['when']))
 
-		print '# hop|name|type|aa%|mass|timeclass|timespec'
+		print('# hop|name|type|aa%|mass|timeclass|timespec')
 		for h in self.results['hops']:
 			hop = h['hop']
 			time = h['time']
@@ -889,9 +879,9 @@ class Recipe:
 			timespec = unicode(time).replace(unichr(0x00b0), "deg")
 			timespec = str(timespec)
 
-			print u'hop|{:}|{:}|{:}|{:}|{:}|{:}'\
-			    .format(hop.name, hop.typestr,
-			      hop.aapers, float(h['mass']), timeclass, timespec)
+			print('hop|{:}|{:}|{:}|{:}|{:}|{:}'
+			    .format(hop.name, hop.typestr, hop.aapers,
+				float(h['mass']), timeclass, timespec))
 
 	def do(self):
 		self.calculate()
@@ -960,32 +950,32 @@ class Recipe:
 			raise PilotError('not enough malts for ' \
 			    + str(bigbeer_vol) + ' of ' + str(bigbeer_sg))
 
-		print 'Water temp:\t', \
-		    self.__striketemp(mashtemp, strike_vol)
+		print('Water temp:\t', \
+		    self.__striketemp(mashtemp, strike_vol))
 
-		print '1st run vol:\t', firstrun_vol
-		print '1st run SG:\t', firstrun_sg
-		print '2nd run vol:\t', secondrun_vol
-		print '2nd run SG:\t', secondrun_sg
-		print
-		print 'Big beer SG:\t', bigbeer_sg
-		print 'Big beer vol:\t', bigbeer_vol
-		print 'Small beer SG:\t', smallbeer_sg
-		print 'Small beer vol:\t', smallbeer_vol
+		print('1st run vol:\t', firstrun_vol)
+		print('1st run SG:\t', firstrun_sg)
+		print('2nd run vol:\t', secondrun_vol)
+		print('2nd run SG:\t', secondrun_sg)
+		print()
+		print('Big beer SG:\t', bigbeer_sg)
+		print('Big beer vol:\t', bigbeer_vol)
+		print('Small beer SG:\t', smallbeer_sg)
+		print('Small beer vol:\t', smallbeer_vol)
 
-		print
-		print '\tBlend first:'
-		print '1) Gather first runnings into BK1'
-		print '2) Run', vb, 'from BK1 to BK2'
-		print '3) Fill BK1 up to total volume using second runnings'
-		print '4) Fill BK2 with remainder of the runnings'
+		print()
+		print('\tBlend first:')
+		print('1) Gather first runnings into BK1')
+		print('2) Run', vb, 'from BK1 to BK2')
+		print('3) Fill BK1 up to total volume using second runnings')
+		print('4) Fill BK2 with remainder of the runnings')
 
-		print
-		print '\tRun first:'
-		print '1) Gather first runnings into BK1'
-		print '2) Run', vr, 'of second runnings into BK1'
-		print '3) Fill BK2 with remainder of the runnings'
-		print '4) Run', Volume((firstrun_vol+vr)-bigbeer_vol), \
-		    'from BK1 to BK2'
+		print()
+		print('\tRun first:')
+		print('1) Gather first runnings into BK1')
+		print('2) Run', vr, 'of second runnings into BK1')
+		print('3) Fill BK2 with remainder of the runnings')
+		print('4) Run', Volume((firstrun_vol+vr)-bigbeer_vol),
+		    'from BK1 to BK2')
 
-import Sysparams
+from WBC import Sysparams

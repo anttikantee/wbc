@@ -14,11 +14,11 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Utils import PilotError
-from Units import *
-from Units import _Volume
+from WBC.Utils import PilotError
+from WBC.Units import *
+from WBC.Units import _Volume
 
-import Constants
+from WBC import Constants
 
 import math
 

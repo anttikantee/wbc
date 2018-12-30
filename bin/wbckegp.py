@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
@@ -86,30 +86,30 @@ if __name__ == '__main__':
 		return Mass(x, Mass.G).valueas(Mass.OZ) \
 		    / Volume(1, Volume.QUART)
 
-	print '{:24}:{:>12}{:>12}'.format('Pressure',
-	    p().stras(Pressure.BAR), p().stras(Pressure.PSI))
-	print u'{:24}:{:>12}{:>12}'.format('Temperature',
-	    t().stras(Temperature.degC), t().stras(Temperature.degF))
-	print '{:24}:{:>12.1f}'.format('CO2 (v/v)', v())
-	print
+	print('{:24}:{:>12}{:>12}'.format('Pressure',
+	    p().stras(Pressure.BAR), p().stras(Pressure.PSI)))
+	print('{:24}:{:>12}{:>12}'.format('Temperature',
+	    t().stras(Temperature.degC), t().stras(Temperature.degF)))
+	print('{:24}:{:>12.1f}'.format('CO2 (v/v)', v()))
+	print()
 
 	co2gl = v() * Constants.co2_stp_gl
-	print '{:24}:{:>12}{:>12}'.format('Dissolved CO2 (w/v)',
+	print('{:24}:{:>12}{:>12}'.format('Dissolved CO2 (w/v)',
 	    '{:.2f}'.format(co2gl) + ' g/l',
-	    '{:.2f}'.format(wvtous(co2gl)) + ' oz/qt')
+	    '{:.2f}'.format(wvtous(co2gl)) + ' oz/qt'))
 
-	print '{:24}:{:>12}{:>12}'.format('Headspace CO2 (w/v)',
+	print('{:24}:{:>12}{:>12}'.format('Headspace CO2 (w/v)',
 	    '{:.2f}'.format(co2head_gl) + ' g/l',
-	    '{:.2f}'.format(wvtous(co2head_gl)) + ' oz/qt')
+	    '{:.2f}'.format(wvtous(co2head_gl)) + ' oz/qt'))
 
 	if kegvol is not None:
-		print
+		print()
 		co2dis = Mass(co2gl * kegvol, Mass.G)
-		print '{:24}:{:>12}{:>12}'.format('Dissolved CO2 (init.)',
-		    co2dis.stras(Mass.G), co2dis.stras(Mass.OZ))
+		print('{:24}:{:>12}{:>12}'.format('Dissolved CO2 (init.)',
+		    co2dis.stras(Mass.G), co2dis.stras(Mass.OZ)))
 		co2head = Mass(co2head_gl * kegvol, Mass.G)
-		print '{:24}:{:>12}{:>12}'.format('Headspace CO2 (final)',
-		    co2head.stras(Mass.G), co2head.stras(Mass.OZ))
+		print('{:24}:{:>12}{:>12}'.format('Headspace CO2 (final)',
+		    co2head.stras(Mass.G), co2head.stras(Mass.OZ)))
 		co2total = Mass(co2dis + co2head, Mass.G)
-		print '{:24}:{:>12}{:>12}'.format('Total CO2 use',
-		    co2total.stras(Mass.G), co2total.stras(Mass.OZ))
+		print('{:24}:{:>12}{:>12}'.format('Total CO2 use',
+		    co2total.stras(Mass.G), co2total.stras(Mass.OZ)))

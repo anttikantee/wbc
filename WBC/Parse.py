@@ -14,18 +14,20 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Units import Mass, Temperature, Volume, Strength, Pressure, Color
-from Utils import PilotError
-from WBC import Recipe
-from Hop import Hop
-from Mash import Mash
+from WBC.Units import Mass, Temperature, Volume, Strength, Pressure, Color
+from WBC.Utils import PilotError
+from WBC.WBC import Recipe
+from WBC.Hop import Hop
+from WBC.Mash import Mash
 
 import re
+import string
 
 def _unit(cls, sfxmap, input, fatal = True, name = None):
 	inputstr = str(input).strip()
-	numstr = filter(lambda x: x.isdigit() or x == '.', inputstr)
-	alphastr = inputstr[len(numstr):].strip()
+	alphastr = inputstr.lstrip(string.digits + '.')
+	numstr = inputstr[0:len(inputstr) - len(alphastr)]
+	alphastr = alphastr.strip()
 
 	# if unit is missing, default to 1
 	if numstr == "":

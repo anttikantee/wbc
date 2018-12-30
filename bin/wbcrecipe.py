@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
@@ -154,10 +154,10 @@ def processyaml(clist, odict, data):
 
 	try:
 		d = yaml.safe_load(data.read())
-	except yaml.parser.ParserError, e:
-		print '>> failed to parse yaml recipe:'
-		print e
-		raise SystemExit, 1
+	except (yaml.parser.ParserError, e):
+		print('>> failed to parse yaml recipe:')
+		print(e)
+		sys.exit(1)
 
 	def getdef(x):
 		if x not in d:
@@ -206,7 +206,7 @@ def processcsv(clist, odict, data):
 	# just too painful
 	for line in data.read().splitlines():
 		row = line.split('|')
-		print row
+		print(row)
 		if row[0][0] is "#":
 			continue
 
@@ -307,9 +307,9 @@ if __name__ == '__main__':
 			from WBC import OutputText
 			OutputText.printit(r.input, r.results,
 			    odict.get('miniprint', False))
-	except PilotError, pe:
-		print 'Pilot Error: ' + str(pe)
-		raise SystemExit, 1
-	except IOError, e:
-		print e
+	except PilotError as pe:
+		print('Pilot Error: ' + str(pe))
+		sys.exit(1)
+	except IOError as e:
+		print(e)
 	sys.exit(0)

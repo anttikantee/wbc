@@ -49,7 +49,7 @@ if [ "$1" = 'prep' ]; then
 	mkdir -p testdata || die cannot create testdata
 	for x in recipes/*.yaml; do
 		echo "Processing $x ..."
-		python ./bin/wbcrecipe.py $x > testdata/$(basename $x).out
+		python3 ./bin/wbcrecipe.py $x > testdata/$(basename $x).out
 		[ $? -eq 0 ] || die Failed: $(cat testdata/$(basename $x).out)
 	done
 elif [ $1 = 'test' ]; then
@@ -60,7 +60,7 @@ elif [ $1 = 'test' ]; then
 	for x in testdata/*.out; do
 		bn=$(basename ${x%.out})
 		echo "Testing ${bn} ..."
-		python ./bin/wbcrecipe.py recipes/${bn} > $x.cmp
+		python3 ./bin/wbcrecipe.py recipes/${bn} > $x.cmp
 		if ! diff -u $x $x.cmp; then
 			rv=1
 		fi

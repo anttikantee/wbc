@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
@@ -37,8 +37,8 @@ if __name__ == '__main__':
 		longest = max([len(x[0]) for x in res])
 		fmtstr = '{:' + str(longest) + '} : {:}'
 		for x in res:
-			print fmtstr.format(x[0], x[1])
-	except PilotError, e:
-		print e
+			print(fmtstr.format(x[0], x[1]))
+	except PilotError as e:
+		print(e)
 		sys.exit(1)
 	sys.exit(0)

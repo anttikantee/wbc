@@ -17,17 +17,20 @@
 import fractions
 import math
 
-from Utils import checktype, checktypes, PilotError
+from WBC.Utils import checktype, checktypes, PilotError
 
-import Constants
+from WBC import Constants
 
-from Getparam import getparam
+from WBC.Getparam import getparam
 
 class WBCUnit(float):
 	def __new__(cls, value, unit):
 		rv = super(WBCUnit, cls).__new__(cls, value)
 		rv.inputunit = unit
 		return rv
+
+	def __init__(self, value, unit):
+		super(WBCUnit, self).__init__()
 
 class Volume(WBCUnit):
 	LITER	= object()
@@ -47,9 +50,6 @@ class Volume(WBCUnit):
 			raise PilotError('invalid Volume unit')
 
 		return super(Volume, cls).__new__(cls, value, unit)
-
-	def __init__(self, value, unit):
-		super(Volume, self).__init__(value)
 
 	def __str__(self):
 		if getparam('units_output') == 'metric':
@@ -86,9 +86,6 @@ class Temperature(WBCUnit):
 
 		return super(Temperature, cls).__new__(cls, value, unit)
 
-	def __init__(self, value, unit):
-		super(Temperature, self).__init__(value)
-
 	def __str__(self):
 		if getparam('units_output') == 'metric':
 			return self.stras(self.degC)
@@ -118,8 +115,7 @@ class Temperature(WBCUnit):
 			sym = 'F'
 		else:
 			raise PilotError('invalid temperature unit')
-		rv = u'{:.1f}'.format(t) + unichr(0x00b0) + sym
-		return unicode(rv)
+		return '{:.1f}'.format(t) + chr(0x00b0) + sym
 
 	@staticmethod
 	def FtoC(temp):
@@ -147,14 +143,12 @@ class Mass(WBCUnit):
 		else:
 			assert(unit is Mass.G)
 
-		return super(Mass, cls).__new__(cls, value, unit)
-
-	def __init__(self, value, unit):
+		self = super(Mass, cls).__new__(cls, value, unit)
 		if unit is Mass.OZ:
 			self.small = True
 		else:
 			self.small = False
-		super(Mass, self).__init__(value)
+		return self
 
 	def valueas(self, unit):
 		if unit is Mass.KG:
@@ -418,8 +412,8 @@ class Strength(WBCUnit):
 
 	def stras(self, unit):
 		if unit == self.PLATO:
-			return u'{:.1f}{:}'.format(self.valueas(self.PLATO), \
-			    unicode(unichr(0x00b0) + 'P'))
+			return '{:.1f}{:}'.format(self.valueas(self.PLATO), \
+			    str(chr(0x00b0) + 'P'))
 		elif unit == self.SG:
 			return '{:.3f}'.format(self.valueas(self.SG))
 		else:
@@ -444,9 +438,6 @@ class Color(float):
 			value = Color.LtoEBC(value)
 
 		return super(Color, cls).__new__(cls, value)
-
-	def __init__(self, value, unit):
-		super(Color, self).__init__(value)
 
 	def valueas(self, which):
 		if which is Color.EBC:

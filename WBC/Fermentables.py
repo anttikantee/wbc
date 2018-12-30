@@ -14,10 +14,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-import Constants
-import Utils
-from Utils import PilotError
-from Units import Color
+from WBC import Constants
+from WBC import Utils
+from WBC.Utils import PilotError
+from WBC.Units import Color
 
 import copy
 
@@ -114,7 +114,7 @@ diap_none = DiaP(0, DiaP.WK)
 
 # return fermentable or None
 def find(name):
-	res = filter(lambda x: x.name.lower() == name.lower(), fermentables)
+	res = [x for x in fermentables if x.name.lower() == name.lower()]
 	if len(res) == 0:
 		return None
 	assert(len(res) == 1)

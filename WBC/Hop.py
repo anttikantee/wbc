@@ -14,15 +14,28 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from Units import *
-from Units import _Temperature, _Volume, _Mass
-from Utils import checktype
+from WBC.Units import *
+from WBC.Units import _Temperature, _Volume, _Mass
+from WBC.Utils import checktype
 
 class Hop:
 	Pellet	= object()
 	Leaf	= object()
 
-	class Boil:
+	class Hoptime:
+		def __lt__(self, other):
+			scls = self.__class__
+			ocls = other.__class__
+			if scls == ocls:
+				raise TypeError('I cannot compare')
+			return Hop._order.index(scls) < Hop._order.index(ocls)
+
+		def __eq__(self, other):
+			if self.__class__ != other.__class__:
+				return False
+			raise TypeError('I cannot compare')
+
+	class Boil(Hoptime):
 		FWH		= object()
 		BOILTIME	= object()
 
@@ -31,7 +44,9 @@ class Hop:
 		assert(FWH_BONUS > 0)
 
 		def __init__(self, spec):
-			if spec < 0 and spec is not self.FWH \
+			import numbers
+			if not isinstance(spec, numbers.Number) \
+			    and spec is not self.FWH \
 			    and spec is not self.BOILTIME:
 				raise PilotError('invalid boiltime format')
 			self.time = None
@@ -55,17 +70,19 @@ class Hop:
 				return str(self)
 
 		def __repr__(self):
-			return 'Hop boil spec: ' + self.__str__()
+			return 'Hop boil spec: ' + str(self)
 
-		def __cmp__(self, other):
-			assert(self.time is not None)
-			if isinstance(other, Hop.Boil):
-				if   self.time < other.time: rv = -1
-				elif self.time > other.time: rv =  1
-				else:                        rv =  0
-			else:
-				rv = 0
-			return rv
+		def __lt__(self, other):
+			try:
+				return super().__lt__(other)
+			except TypeError:
+				return self.time < other.time
+
+		def __eq__(self, other):
+			try:
+				return super().__eq__(other)
+			except TypeError:
+				return self.time == other.time
 
 		def resolvetime(self, boiltime):
 			assert(self.time is None)
@@ -81,7 +98,7 @@ class Hop:
 					    + str(specval)+') > wort boiltime')
 				self.time = specval
 
-	class Steep:
+	class Steep(Hoptime):
 		def __init__(self, temp, time):
 			checktype(temp, Temperature)
 
@@ -90,29 +107,33 @@ class Hop:
 			self.spec = None
 
 		def __str__(self):
-			return str(self.time) + ' min @ ' + unicode(self.temp)
+			return str(self.time) + ' min @ ' + str(self.temp)
 
 		def timespecstr(self):
-			return '@ ' + unicode(self.temp)
+			return '@ ' + str(self.temp)
 
-		# argh unicode in __str__ so can't use it
 		def __repr__(self):
-			return 'Hop steep spec: ' + str(self.time) \
-			    + 'min @ ' + str(int(self.temp)) + 'degC'
+			return 'Hop steep spec: ' + str(self)
 
-		def __cmp__(self, other):
-			if isinstance(other, Hop.Steep):
+		def __lt__(self, other):
+			try:
+				return super().__lt__(other)
+			except TypeError:
 				if self.temp == other.temp:
-					return self.time - other.time
-				else:
-					return self.temp - other.temp
-			else:
-				return 0
+					return self.time < other.time
+				return self.temp < other.temp
+
+		def __eq__(self, other):
+			try:
+				return super().__eq__(other)
+			except TypeError:
+				return self.temp == other.temp and \
+				    self.time == other.time
 
 		def resolvetime(self, boiltime):
 			return
 
-	class Dryhop:
+	class Dryhop(Hoptime):
 		Package =	object()
 
 		def __init__(self, indays, outdays):
@@ -147,22 +168,35 @@ class Hop:
 			return 'dryhop'
 
 		def __repr__(self):
-			return 'Hop dryhop spec: ' + self.__str__()
+			return 'Hop dryhop spec: ' + str(self)
 
-		def __cmp__(self, other):
-			if not isinstance(other, Hop.Dryhop):
-				return 0
+		def __lt__(self, other):
+			try:
+				return super().__lt__(other)
+			except TypeError:
+				pass
 
 			if self.indays is self.Package:
-				return -1
+				if other.indays is other.Package:
+					return False
+				return True
+
 			if other.indays is other.Package:
-				return 1
+				return False
 
 			if self.indays < other.indays:
-				return -1
-			if self.outdays < other.outdays:
-				return -1
-			return 1
+				return True
+			elif self.indays == other.indays:
+				if self.outdays < other.outdays:
+					return True
+			return False
+
+		def __eq__(self, other):
+			try:
+				return super().__eq__(other)
+			except TypeError:
+				return self.indays == other.indays and \
+				    self.outdays == other.outdays
 
 		def resolvetime(self, boiltime):
 			return
@@ -247,3 +281,5 @@ class Hop:
 			density = Constants.leafhop_density
 		return _Volume(mass / density)
 
+	# from "smallest" to "largest" (not first-to-last)
+	_order = [Dryhop, Steep, Boil]
