@@ -35,9 +35,7 @@ def _printmash(input, results):
 	prtsep()
 
 	def handleonestage(stage):
-		lst = sorted(filter(lambda x: x['when'] == stage,
-		    results['fermentables']), key=lambda x: x['amount'],
-		    reverse=True)
+		lst = [x for x in results['fermentables'] if x['when'] == stage]
 		if len(lst) == 0:
 			return
 

@@ -535,6 +535,16 @@ class Recipe:
 		self.results['fermentable_stats_perstage'] = stats
 		self.results['fermentable_stats_all'] = allstats
 
+		# sort fermentables by 3 criteria (from most to least dominant)
+		# 1) mass
+		# 2) extract mass
+		# 3) alphabet
+		ferms = self.results['fermentables']
+		ferms = sorted(ferms, key=lambda x: x['name'])
+		ferms = sorted(ferms, key=lambda x: x['extract_predicted'])
+		ferms = sorted(ferms, key=lambda x: x['amount'])
+		self.results['fermentables'] = ferms[::-1]
+
 	def _domash(self):
 		prestren = self.results['strengths']['preboil']
 		totvol = _Volume(self.__volume_at_stage(self.MASHWATER))
