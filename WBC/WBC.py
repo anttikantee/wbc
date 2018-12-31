@@ -885,8 +885,8 @@ class Recipe:
 		for h in self.results['hops']:
 			hop = h['hop']
 			time = h['time']
-			timeclass = str(time.__class__).split('.')[-1].lower()
-			timespec = unicode(time).replace(unichr(0x00b0), "deg")
+			timeclass = time.__class__.__name__.lower()
+			timespec = str(time).replace(chr(0x00b0), "deg")
 			timespec = str(timespec)
 
 			print('hop|{:}|{:}|{:}|{:}|{:}|{:}'

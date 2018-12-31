@@ -206,7 +206,6 @@ def processcsv(clist, odict, data):
 	# just too painful
 	for line in data.read().splitlines():
 		row = line.split('|')
-		print(row)
 		if row[0][0] is "#":
 			continue
 
