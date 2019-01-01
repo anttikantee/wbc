@@ -691,6 +691,7 @@ class Recipe:
 		self.results['ibus'] = totibus
 
 		# Sort the hop additions of the recipe.
+		allhop = sorted(allhop, key=lambda x: x['hop'].name)
 		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
 
 		# calculate amount of wort that hops will drink
