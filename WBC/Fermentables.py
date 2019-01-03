@@ -168,7 +168,7 @@ add('Avangard Pilsner',
 	DiaP(220, DiaP.WK),
 	Color(3.25, EBC))
 add('Avangard Vienna',
-	Extract(80.5, FGDB, 2.0, 4.5),
+	Extract(80, FGDB, 2.0, 4.5),
 	DiaP(200, DiaP.WK),
 	Color(11, EBC))
 add('Avangard Munich light',
