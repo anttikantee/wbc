@@ -540,7 +540,7 @@ class Recipe:
 		# 2) extract mass
 		# 3) alphabet
 		ferms = self.results['fermentables']
-		ferms = sorted(ferms, key=lambda x: x['name'])
+		ferms = sorted(ferms, key=lambda x: x['name'], reverse=True)
 		ferms = sorted(ferms, key=lambda x: x['extract_predicted'])
 		ferms = sorted(ferms, key=lambda x: x['amount'])
 		self.results['fermentables'] = ferms[::-1]
