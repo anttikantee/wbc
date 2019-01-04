@@ -27,12 +27,11 @@ def _getparam(what):
 wbcparams = {}
 
 def setparam(what, value):
-	try:
-		if what in paramshorts:
-			what = paramshorts[what]
-		param = paramparsers.get(what)
-	except:
+	if what in paramshorts:
+		what = paramshorts[what]
+	if what not in paramparsers:
 		raise PilotError('invalid parameter: ' + what)
+	param = paramparsers[what]
 	rv = param['parser'](value)
 	wbcparams[what] = rv
 
