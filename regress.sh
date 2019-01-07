@@ -29,9 +29,6 @@ usage ()
 	die usage: $0 prep\|test\|reset
 }
 
-# you have got to the be kidding me
-export PYTHONIOENCODING=utf-8
-
 # assume this is run in the top level directory
 export PYTHONPATH=.
 
