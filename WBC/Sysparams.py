@@ -155,6 +155,9 @@ _addparam('mlt_heat',		'mt',	_currystring(['transfer','direct']))
 
 _addparam('grain_absorption',	'ga',	_curryratio(Parse.volume, Parse.mass))
 
+_addparam('kettle_loss',	'kl',	Parse.volume)
+_addparam('fermentor_loss',	'fl',	Parse.volume)
+
 _addparam('ambient_temp',	'ta',	Parse.temp)
 _addparam('preboil_temp',	'tp',	Parse.temp)
 _addparam('postboil_temp',	'tb',	Parse.temp)

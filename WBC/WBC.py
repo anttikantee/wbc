@@ -127,19 +127,15 @@ class Recipe:
 
 		v = self.__final_volume()
 
-		# assume 0.8l static loss in fermentor, plus fermentor dryhops
-		# XXX: probably should be variable loss per fermentation size,
-		#      but I don't have any data on that, so this will do
-		#      for now
+		# configured kettle loss + dryhop loss
 		if stage <= self.FERMENTER:
 			v += self.hopsdrunk['fermenter']
-			v += 0.8
+			v += getparam('fermentor_loss')
 
-		# assume 0.8% of boil plus 0.42l plus hop crud lost in kettle
-		# (no facts were harmed in coming up with this number)
+		# configured kettle loss + hop loss
 		if stage <= self.POSTBOIL:
-			v += self.hopsdrunk['kettle'] + _Volume(0.42)
-			v *= 1.008
+			v += self.hopsdrunk['kettle']
+			v += getparam('kettle_loss')
 
 		# preboil volume is postboil + boil loss
 		if stage <= self.PREBOIL:
