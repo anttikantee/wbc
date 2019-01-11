@@ -181,7 +181,7 @@ _defaults = {
 }
 
 for p in paramparsers:
-	wbcparams[p] = None
+	if paramparsers[p]['optional']: wbcparams[p] = None
 for x in _defaults:
 	setparam(x, _defaults[x])
 
