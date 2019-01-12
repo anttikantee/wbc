@@ -441,6 +441,11 @@ add('Weyermann', 'CaraHell',
 	diap_none,
 	Color(25, EBC),
 	needmash = False)
+add('Weyermann', 'CaraRed',
+	Extract(76.0, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(50, EBC),
+	needmash = False)
 add('Weyermann', 'CaraAroma',
 	Extract(76.9, FGDB, FCD_UNKNOWN, 5.8),
 	diap_none,
