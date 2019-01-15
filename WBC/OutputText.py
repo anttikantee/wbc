@@ -34,13 +34,14 @@ def _printmash(input, results):
 	    + str(int(getparam('mash_efficiency'))) + "%)"))
 	prtsep()
 
-	def handleonestage(stage):
+	def handleonestage(stage, needsep):
 		lst = [x for x in results['fermentables'] if x['when'] == stage]
 		if len(lst) == 0:
-			return
+			return needsep
 
+		if needsep:
+			prtsep('-')
 		print(stage.title())
-		prtsep('-')
 
 		for f in lst:
 			persstr = ' ({:5.1f}%)'.format(f['percent'])
@@ -48,16 +49,20 @@ def _printmash(input, results):
 			    str(f['amount']) + persstr,
 			    str(f['extract_theoretical']),
 			    str(f['extract_predicted'])))
-		prtsep('-')
-		stats = results['fermentable_stats_perstage'][stage]
-		persstr = ' ({:5.1f}%)'.format(stats['percent'])
-		print(fmtstr.format('',
-		    str(stats['amount']) + persstr,
-		    str(stats['extract_theoretical']),
-		    str(stats['extract_predicted'])))
 
+		# print stage summary only for stages with >1 fermentable
+		if len(lst) > 1:
+			stats = results['fermentable_stats_perstage'][stage]
+			persstr = ' ({:5.1f}%)'.format(stats['percent'])
+			print(fmtstr.format('',
+			    str(stats['amount']) + persstr,
+			    str(stats['extract_theoretical']),
+			    str(stats['extract_predicted'])))
+		return True
+
+	needsep = False
 	for stage in WBC.stages:
-		handleonestage(stage)
+		needsep = handleonestage(stage, needsep)
 	prtsep()
 
 	allstats = results['fermentable_stats_all']
