@@ -72,42 +72,50 @@ def _printmash(input, results):
 	yesnosparge = ")"
 	if spargevol <= .001:
 		yesnosparge = ", no-sparge)"
-	print('Mashing instructions (ambient',
-	    str(__reference_temp()) + yesnosparge)
+
+	stepfmt = '{:12}{:>10}{:>26}{:>16}{:>14}'
+
+	print(stepfmt.format('Mashstep', 'Time', 'Addition', 'Ratio', 'Volume'))
 	prtsep()
 
 	totvol = 0
 	for i, x in enumerate(results['mash']['steps']):
+
+		steptemp = str(x[0])
+
 		# handle direct-heated mashtuns.
 		# XXX: should probably be more rigorously structured
 		# in the computation so that we don't need so much
 		# logic here on the "dumb" output side
 		if getparam('mlt_heat') == 'direct' and i != 0:
-			print('{:7}'. format(str(x[0]))
-			    + ': apply heat')
-			continue
-
-		print('{:7}'.format(str(x[0])) + ': add', x[2],
-		    'of water at', str(x[3]), end=' ')
+			addition = 'heat'
+		else:
+			addition = '{:>8}'.format(str(x[2])) \
+			    + ' @ {:>7}'.format(str(x[3]))
 
 		# print the water/grist ratio at the step.
 		if getparam('units_output') == 'metric':
-			unit = 'l/kg'
 			ratio = x[4]
+			ratiounit = 'l/kg'
 		else:
 			ratio = (x[4]*Constants.litersperquart) \
 			    / (Constants.gramsperpound / 1000.0)
-			unit = 'qt/lb'
-		print('({:.2f} {:}, mash vol {:})'.format(ratio, unit, x[5]))
+			ratiounit = 'qt/lb'
+		ratiostr = '{:.2f} {:}'.format(ratio, ratiounit)
 
-	print('{:23}{:}'.format('Mashstep water volume:',
+		print(stepfmt.format(steptemp, 'UNS', addition,
+		    ratiostr, str(x[5])))
+
+	prtsep('-')
+
+	print('{:20}{:}'.format('Mashstep water:',
 	    str(results['mash']['mashstep_water']) + ' @ '
 	    + str(__reference_temp())), end=' ')
-	print('(potential first runnings: ~{:})'
-	    .format(results['mash_first_runnings_max']))
+	print('(1st runnings: ~{:}'
+	    .format(results['mash_first_runnings_max']) + yesnosparge)
 
 	if spargevol > .001:
-		print('{:23}{:}'.format('Sparge water volume:',
+		print('{:20}{:}'.format('Sparge water:',
 		    str(spargevol) + ' @ '
 		    + str(getparam('sparge_temp'))))
 
@@ -116,7 +124,7 @@ def _printmash(input, results):
 	for x in [.85, .90, .95, 1.0]:
 		fwstrs.append(str(_Strength(fw * x)) \
 		    + ' (' + str(int(100 * x)) + '%)')
-	print('{:23}{:}'. format('First wort (conv. %):',
+	print('{:20}{:}'. format('1st wort (conv. %):',
 	    ', '.join(fwstrs)))
 
 	if 'steal' in results:
