@@ -1,1 +1,4 @@
 *.pyc
+recipes/*
+testdata
+brews/*
