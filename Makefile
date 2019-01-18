@@ -1,6 +1,6 @@
 .PHONY: example
 
-RECIPES=recipes/MarBock.yaml recipes/IPAnema.yaml
+RECIPES=MarBock IPAnema
 README=README.md
 RT=${README}.tmp
 
@@ -10,7 +10,7 @@ all:
 # (re-)create examples in readme
 examples:
 	sed '/<!-- BEGIN EXAMPLE -->/q' < ${README} > ${RT}
-	for r in ${RECIPES}; do \
+	for r in ${RECIPES:%=example-recipes/%.yaml}; do \
 		printf 'Example recipe\n---\n```\n' >> ${RT}; \
 		cat $${r} >> ${RT}; \
 		printf '```\n' >> ${RT}; \

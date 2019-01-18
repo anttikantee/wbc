@@ -29,8 +29,8 @@ hops:
                 - [ mosaic,     10g,  2 min ]
 
         steep:
-                - [ citra,      15g, 10min @ 95degC ]
-                - [ mosaic,     15g, 10min @ 95degC ]
+                - [ citra,      15g, 10min @ 85degC ]
+                - [ mosaic,     15g, 10min @ 85degC ]
 
         dryhop:
                 - [ citra,      11g, 3 day -> 0 day ]

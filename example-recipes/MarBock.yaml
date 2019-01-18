@@ -1,0 +1,22 @@
+name:   MarBock
+yeast:  WLP833
+boil:   60min
+volume: 19l
+
+mashparams:
+    temperatures: [ 63degC, 70degC ]
+
+fermentables:
+    anchor: [ strength, 16.8 degP ]
+
+    mash:
+        Avangard Pilsner:       rest
+        Avangard Vienna:        8.8%
+        Weyermann Munich I:     8.8%
+        Weyermann Melanoidin:   2.8%
+
+hops:
+    boil:
+        - [ [ Magnum,    12.7%, ], 0.42 Recipe BUGU, boiltime ]
+        - [ [ Tettnanger, 3.7%, ], 1 g/l,              30 min ]
+        - [ [ Tettnanger, 3.7%, ], 1 g/l,              15 min ]
