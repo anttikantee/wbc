@@ -69,9 +69,11 @@ def volume(input):
 
 def temp(input):
 	suffixes = {
-		'degC'	: Temperature.degC,
-		'degF'	: Temperature.degF,
-		'K'	: Temperature.K,
+		'degC'			: Temperature.degC,
+		chr(0x00b0) + 'C'	: Temperature.degC,
+		'degF'			: Temperature.degF,
+		chr(0x00b0) + 'F'	: Temperature.degF,
+		'K'			: Temperature.K,
 	}
 	return _unit(Temperature, suffixes, input)
 
@@ -114,9 +116,10 @@ def percent(input):
 
 def strength(input):
 	suffixes = {
-		'degP'	: Strength.PLATO,
-		'SG'	: Strength.SG,
-		'pts'	: Strength.SG_PTS,
+		'degP'			: Strength.PLATO,
+		chr(0x00b0) + 'P'	: Strength.PLATO,
+		'SG'			: Strength.SG,
+		'pts'			: Strength.SG_PTS,
 	}
 	if re.match(r'^\s*1\.[01][0-9][0-9]\s*$', input):
 		return Strength(float(input), Strength.SG)
