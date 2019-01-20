@@ -314,10 +314,17 @@ add('Briess', 'Midnight Wheat',
 add('Briess', 'smoked', 80.5, DiaP(90, DiaP.L), Color(14.5, EBC))
 
 # Crisp
-add('Crisp', 'Maris Otter', 81.5, 150, Color(3.5, EBC))
+add('Crisp', 'Maris Otter',
+	Extract(82.0, FGDB, FCD_UNKNOWN, 3.5),
+	DiaP(50, DiaP.L),
+	Color(3.0, LOVIBOND))
 # well, as usual, can't find this on the maltsters page, but pretty much
 # all vendors agree that it's 200-250 Lovibond, so I guess mostly correct
-add('Crisp', 'Pale Chocolate', 77, 0, Color(600, EBC), needmash = False)
+add('Crisp', 'Pale Chocolate',
+	Extract(77.0, FGDB, FCD_UNKNOWN, 3.0),
+	diap_none,
+	Color(225, LOVIBOND),
+	needmash = False)
 
 # have to guestimate the extract yield based on random
 # internet sources.  seems like Crisp doesn't want to tell us.
