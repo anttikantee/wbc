@@ -4,7 +4,7 @@ boil:   60min
 volume: 19l
 
 mashparams:
-    temperatures: [ 63degC, 70degC ]
+    temperatures: [ 30min @ 63degC, 45min @ 70degC ]
 
 fermentables:
     anchor: [ strength, 16.8 degP ]

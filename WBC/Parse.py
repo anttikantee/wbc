@@ -18,7 +18,7 @@ from WBC.Units import Mass, Temperature, Volume, Strength, Pressure, Color
 from WBC.Utils import PilotError
 from WBC.WBC import Recipe
 from WBC.Hop import Hop
-from WBC.Mash import Mash
+from WBC.Mash import Mash, MashStep
 
 import re
 import string
@@ -127,15 +127,21 @@ def strength(input):
 		return Strength(float(input), Strength.SG)
 	return _unit(Strength, suffixes, input)
 
-def ratio(input, r1, r2):
+def split(input, splitter, i1, i2):
 	istr = str(input)
-	marr = istr.split('/')
+	marr = istr.split(splitter)
 	if len(marr) != 2:
-		raise PilotError('ratio must contain exactly one "/", you '
-		    'gave: ' + istr)
-	res1 = r1(marr[0])
-	res2 = r2(marr[1])
+		raise PilotError('input must contain exactly one "' + splitter
+		    + '", you gave: ' + istr)
+	res1 = i1(marr[0])
+	res2 = i2(marr[1])
 	return (res1, res2)
+
+def ratio(input, r1, r2):
+	return split(input, '/', r1, r2)
+
+def timedtemp(input):
+	return split(input, '@', kettletime, temp)
 
 def mashmethod(input):
 	methods = {
@@ -144,6 +150,13 @@ def mashmethod(input):
 	if input in methods:
 		return methods[input]
 	raise PilotError('unsupported mash method: ' + str(input))
+
+def mashstep(input):
+	if '@' in input:
+		r = timedtemp(input)
+		return MashStep(r[1], r[0])
+	else:
+		return MashStep(temp(input))
 
 def fermentableunit(input):
 	if input == 'rest':

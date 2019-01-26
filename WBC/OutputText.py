@@ -85,8 +85,12 @@ def _printmash(input, results):
 
 	totvol = 0
 	for i, x in enumerate(results['mash']['steps']):
-
-		steptemp = str(x[0])
+		ms = x[0]
+		steptemp = str(ms.temperature)
+		if ms.time is not ms.TIME_UNSPEC:
+			steptime = str(ms.time) + ' min'
+		else:
+			steptime = 'UNS'
 
 		# handle direct-heated mashtuns.
 		# XXX: should probably be more rigorously structured
@@ -108,7 +112,7 @@ def _printmash(input, results):
 			ratiounit = 'qt/lb'
 		ratiostr = '{:.2f} {:}'.format(ratio, ratiounit)
 
-		print(stepfmt.format(steptemp, 'UNS', addition,
+		print(stepfmt.format(steptemp, steptime, addition,
 		    ratiostr, str(x[5])))
 
 	prtsep('-')

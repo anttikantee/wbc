@@ -111,19 +111,20 @@ def dofermentables(r, ferms):
 def domashparams(r, mashparams):
 	for p in mashparams:
 		value = mashparams[p]
+
 		if p == 'method':
 			m = Parse.mashmethod(value)
 			r.mash.set_method(m)
 
 		elif p == 'temperature' or p == 'temperatures':
 			if isinstance(value, str):
-				mashtemps = [Parse.temp(value)]
+				mashsteps = [Parse.mashstep(value)]
 			elif isinstance(value, list):
-				mashtemps = [Parse.temp(x) for x in value]
+				mashsteps = [Parse.mashstep(x) for x in value]
 			else:
 				raise PilotError('mash temperature must be '
 				    'given as a string or list of strings')
-			r.mash.set_mash_temperature(mashtemps)
+			r.mash.set_steps(mashsteps)
 
 		else:
 			raise PilotError('unknown mash parameter: ' + str(p))
@@ -219,8 +220,8 @@ def processcsv(clist, odict, data):
 			applyparams(r, clist, odict)
 
 		elif row[0] == "mash":
-			mashtemps = [_Temperature(x) for x in row[2:]]
-			r.mash.set_mash_temperature(mashtemps)
+			mashsteps = [Parse.mashstep(x) for x in row[2:]]
+			r.mash.set_steps(mashsteps)
 
 		elif row[0] == "fermentable":
 			r.fermentable_bymass(row[1],

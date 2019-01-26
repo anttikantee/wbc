@@ -19,6 +19,23 @@ from WBC.Units import _Mass, _Temperature, _Volume
 
 from WBC.Brewutils import water_vol_at_temp
 
+class MashStep:
+	TIME_UNSPEC=	object()
+
+	def __init__(self, temperature, time = TIME_UNSPEC):
+		checktype(temperature, Temperature)
+		if time is not self.TIME_UNSPEC:
+			checktype(time, int)
+
+		self.temperature = temperature
+		self.time = time
+
+	def __str__(self):
+		rv = ''
+		if self.time is not self.TIME_UNSPEC:
+			rv = str(self.time) + 'min @ '
+		return rv + str(self.temperature)
+
 class Mash:
 	INFUSION=	object()
 
@@ -144,14 +161,14 @@ class Mash:
 
 	def __init__(self):
 		self.fermentables = []
-		self.temperature = None
+		self.giant_steps = None
 
 	def infusion_mash(self, ambient_temp, water_temp, watervol,
 	    grains_absorb):
-		if self.temperature is None:
+		if self.giant_steps is None:
 			raise PilotError('trying to mash without temperature')
-		mashtemps = self.temperature
-		assert(len(mashtemps) >= 1)
+		steps = self.giant_steps
+		assert(len(steps) >= 1)
 
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
@@ -173,8 +190,8 @@ class Mash:
 			absorb = fmass.valueas(Mass.KG) * grains_absorb
 			wmass_end = (mashin_ratio[1] / 100.0) \
 			    * (watervol + absorb)
-			wmass = origwater(mashtemps[-1], mashtemps[0],
-			    wmass_end)
+			wmass = origwater(steps[-1].temperature,
+			    steps[0].temperature, wmass_end)
 		else:
 			assert(mashin_ratio[0] == '/')
 			rat = mashin_ratio[1][0] \
@@ -187,13 +204,14 @@ class Mash:
 			if mwatermin > watervol:
 				mwatermin = watervol
 			if wmass < mwatermin:
-				wmass = origwater(mashtemps[-1], mashtemps[0],
-				    mwatermin)
+				wmass = origwater(steps[-1].temperature,
+				    steps[0].temperature, mwatermin)
 
 		# if necessary, adjust final mash volume to limit,
 		# or error if we can't
 		mvolmax = getparam('mashvol_max')
-		wmass_end = origwater(mashtemps[0], mashtemps[-1], wmass)
+		wmass_end = origwater(steps[0].temperature,
+		    steps[-1].temperature, wmass)
 		mvol = grainvol + wmass_end
 		if mvolmax is not None and mvol > mvolmax:
 			veryminvol = grainvol + getparam('mlt_loss')
@@ -201,9 +219,11 @@ class Mash:
 				raise PilotError('cannot satisfy maximum '
 				    'mash volume. adjust param or recipe')
 			wendmax = mvolmax - grainvol
-			wmass = origwater(mashtemps[-1], mashtemps[0], wendmax)
+			wmass = origwater(steps[-1].temperature,
+			    steps[0].temperature, wendmax)
 
-		wmass_end = origwater(mashtemps[0], mashtemps[-1], wmass)
+		wmass_end = origwater(steps[0].temperature,
+		    steps[-1].temperature, wmass)
 
 		# finally, if necessary adjust the lauter volume
 		# or error if either mash or lauter volume is beyond limit
@@ -223,12 +243,13 @@ class Mash:
 		res['steps'] = []
 		res['total_water'] = watervol
 
-		step = self.__Step(fmass, ambient_temp, mashtemps[0], wmass)
+		step = self.__Step(fmass, ambient_temp,
+		    steps[0].temperature, wmass)
 		totvol = watervol
 		inmash = 0
 
 		if getparam('mlt_heat') == 'transfer':
-			for i, t in enumerate(mashtemps):
+			for i, s in enumerate(steps):
 				(vol, temp) = step.waterstep()
 				totvol -= vol
 				inmash += vol
@@ -245,10 +266,10 @@ class Mash:
 
 				actualvol = water_vol_at_temp(vol,
 				    water_temp, temp)
-				res['steps'].append((t, vol, actualvol,
+				res['steps'].append((s, vol, actualvol,
 				    temp, ratio, _Volume(mashvol)))
-				if i+1 < len(mashtemps):
-					step.nextstep(mashtemps[i+1])
+				if i+1 < len(steps):
+					step.nextstep(steps[i+1].temperature)
 		else:
 			assert(getparam('mlt_heat') == 'direct')
 			(vol, temp) = step.waterstep()
@@ -257,8 +278,8 @@ class Mash:
 			actualvol = water_vol_at_temp(vol, water_temp, temp)
 			mashvol = _Volume(vol + fmass.valueas(Mass.KG)
 			      * Constants.grain_specificvolume)
-			for i, t in enumerate(mashtemps):
-				res['steps'].append((t, vol, actualvol,
+			for i, s in enumerate(steps):
+				res['steps'].append((s, vol, actualvol,
 				    temp, ratio, mashvol))
 
 		res['mashstep_water'] = _Volume(watervol - totvol)
@@ -270,37 +291,33 @@ class Mash:
 
 	def printcsv(self):
 		print('# mash|method|mashtemp1|mashtemp2...')
-		mashtemps = ''
-		for t in self.temperature:
-			mashtemps = mashtemps + '|' + str(float(t))
-		print('mash|infusion' + mashtemps)
+		steps = ''
+		for t in self.giant_steps:
+			steps = steps + '|' + str(t)
+		print('mash|infusion' + steps)
 
 	def set_fermentables(self, fermentables):
 		self.fermentables = fermentables
 
-	def set_mash_temperature(self, mashtemps):
-		if isinstance(mashtemps, Temperature):
-			mashtemps = [mashtemps]
-		elif mashtemps.__class__ is list:
+	def set_steps(self, mashsteps):
+		if isinstance(mashsteps, MashStep):
+			mashsteps = [mashsteps]
+		elif mashsteps.__class__ is list:
 			curtemp = 0
-			if len(mashtemps) == 0:
+			if len(mashsteps) == 0:
 				raise PilotError('must give at least one '
 				    + 'mashing temperature')
-			for x in mashtemps:
-				checktype(x, Temperature)
-				if x < curtemp:
-					raise PilotError('mashtemps must be ' \
-					    'given in ascending order')
+			for s in mashsteps:
+				checktype(s, MashStep)
+				if s.temperature <= curtemp:
+					raise PilotError('mash steps must be ' \
+					    'given in strictly ascending order')
+				curtemp = s.temperature
 		else:
-			raise PilotError('mash temperatures must be given as ' \
-			    'Temperature or list of')
-		highest = 0
-		for t in mashtemps:
-			if t <= highest:
-				raise PilotError('need mashtemps in strictly '
-				    'rising order')
-			highest = t
-		self.temperature = mashtemps
+			raise PilotError('mash steps must be given as ' \
+			    'MashStep or list of')
+
+		self.giant_steps = mashsteps
 
 	# mostly a placeholder
 	def set_method(self, m):
