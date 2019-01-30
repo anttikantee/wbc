@@ -28,8 +28,6 @@ from WBC.Mash import Mash
 
 from WBC import Brewutils
 
-from functools import cmp_to_key
-
 def checkconfig():
 	return True
 
