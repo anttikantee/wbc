@@ -191,7 +191,7 @@ class Mass(WBCUnit):
 			# two.... because it's logical, I guess
 			#
 			v = self / Constants.gramsperpound
-			whole = int(16*v) / 16
+			whole = int(int(16*v) / 16)
 			frac =  int(16*v) % 16
 			thestr = ""
 			if whole > 0:
