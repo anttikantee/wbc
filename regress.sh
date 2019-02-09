@@ -42,6 +42,14 @@ shift $((${OPTIND} - 1))
 
 [ $# -eq 1 ] || usage
 
+compordie ()
+{
+	if ! diff -u $1 $2; then
+		failed=$((${failed} + 1))
+	fi
+	[ ${failed} -eq 0 ] || ${FATAL}
+}
+
 if [ "$1" = 'prep' ]; then
 	mkdir -p testdata || die cannot create testdata
 	for x in recipes/*.yaml; do
@@ -49,22 +57,39 @@ if [ "$1" = 'prep' ]; then
 		python3 ./bin/wbcrecipe.py $x > testdata/$(basename $x).out
 		[ $? -eq 0 ] || die Failed: $(cat testdata/$(basename $x).out)
 	done
+
+	cat -n cmds-regress.txt | while read line; do
+		set -- ${line}
+		num=${1}
+		shift
+		[ $# -ne 0 ] || continue
+		echo Processing "$@"
+		${@} > testdata/cmdregress-${num}.cmdout
+	done
 elif [ $1 = 'test' ]; then
 	[ -n "$(ls testdata 2>/dev/null)" ] \
 	    || die no testdata, did not run prep\?
 
-	rv=0
+	failed=0
 	for x in testdata/*.out; do
 		bn=$(basename ${x%.out})
 		echo "Testing ${bn} ..."
 		python3 ./bin/wbcrecipe.py recipes/${bn} > $x.cmp
-		if ! diff -u $x $x.cmp; then
-			rv=1
-		fi
-		[ ${rv} -eq 0 ] || ${FATAL}
+		compordie $x $x.cmp
 	done
 
-	[ ${rv} -eq 0 ] || die output differs
+	cat -n cmds-regress.txt | while read line; do
+		set -- ${line}
+		num=${1}
+		shift
+		[ $# -ne 0 ] || continue
+		echo Testing "$@"
+		${@} > testdata/cmdregress-${num}.cmp
+		compordie testdata/cmdregress-${num}.cmdout \
+		    testdata/cmdregress-${num}.cmp
+	done
+
+	[ ${failed} -eq 0 ] || die output for ${failed} 'test(s)' differ
 
 	echo '>> no regressions.  run "reset" if you no longer need testdata'
 elif [ $1 = 'reset' ]; then

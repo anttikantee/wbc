@@ -1,0 +1,10 @@
+./bin/wbcabv.py 10degP 70%
+./bin/wbcabv.py 20degP 1.022
+./bin/wbcabv.py -r 18degP 1.035
+
+./bin/wbckegp.py 10degC 2.4
+./bin/wbckegp.py 10degC 12psi
+./bin/wbckegp.py 2.4 12psi
+./bin/wbckegp.py -v 20l 3.4 4degC
+
+./bin/wbccolor.py 10EBC
