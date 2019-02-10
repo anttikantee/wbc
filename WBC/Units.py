@@ -23,6 +23,10 @@ from WBC import Constants
 
 from WBC.Getparam import getparam
 
+def _checksystem(system):
+	if system != 'metric' and system != 'us':
+		raise PilotError('invalid unit system: ' + system)
+
 class WBCUnit(float):
 	def __new__(cls, value, unit):
 		rv = super(WBCUnit, cls).__new__(cls, value)
@@ -42,7 +46,7 @@ class Volume(WBCUnit):
 		if unit is Volume.BARREL:
 			value = Constants.gallonsperbarrel * value
 			unit = Volume.GALLON
-		elif unit is Volume.GALLON:
+		if unit is Volume.GALLON:
 			value = Constants.literspergallon * value
 		elif unit is Volume.QUART:
 			value = Constants.litersperquart * value
@@ -52,22 +56,35 @@ class Volume(WBCUnit):
 		return super(Volume, cls).__new__(cls, value, unit)
 
 	def __str__(self):
-		if getparam('units_output') == 'metric':
-			return self.stras(self.LITER)
-		else:
-			assert(getparam('units_output') == 'us')
-			return self.stras(self.GALLON)
+		return self.stras_system(getparam('units_output'))
 
 	def stras(self, which):
 		if which == self.LITER:
 			v = self
 			sym = 'l'
+		elif which == self.QUART:
+			v = self.valueas(self.QUART)
+			sym = 'qt'
 		elif which == self.GALLON:
 			v = self.valueas(self.GALLON)
 			sym = 'gal'
+		elif which == self.BARREL:
+			v = self.valueas(self.BARREL)
+			sym = 'bbl'
 		else:
 			raise PilotError('unsupported Volume stras unit')
 		return '{:.1f}{:s}'.format(v, sym)
+
+	def stras_system(self, system):
+		_checksystem(system)
+		if system == 'metric':
+			return self.stras(self.LITER)
+		else:
+			if self.valueas(self.GALLON) < 1:
+				return self.stras(self.QUART)
+			elif self.valueas(self.BARREL) < 1:
+				return self.stras(self.GALLON)
+			return self.stras(self.BARREL)
 
 	def valueas(self, unit):
 		if unit is Volume.LITER:
@@ -76,6 +93,9 @@ class Volume(WBCUnit):
 			return self / Constants.litersperquart
 		elif unit is Volume.GALLON:
 			return self / Constants.literspergallon
+		elif unit is Volume.BARREL:
+			return self.valueas(self.GALLON) \
+			    / Constants.gallonsperbarrel
 		else:
 			assert(False)
 
@@ -94,12 +114,15 @@ class Temperature(WBCUnit):
 
 		return super(Temperature, cls).__new__(cls, value, unit)
 
-	def __str__(self):
-		if getparam('units_output') == 'metric':
+	def stras_system(self, system):
+		_checksystem(system)
+		if system == 'metric':
 			return self.stras(self.degC)
 		else:
-			assert(getparam('units_output') == 'us')
 			return self.stras(self.degF)
+
+	def __str__(self):
+		return self.stras_system(getparam('units_output'))
 
 	def valueas(self, unit):
 		if unit is Temperature.degC:
@@ -172,7 +195,6 @@ class Mass(WBCUnit):
 		else:
 			assert(False)
 
-
 	def stras(self, unit):
 		if unit is self.G:
 			m = 1000.0 * self
@@ -208,11 +230,11 @@ class Mass(WBCUnit):
 			return thestr \
 			    + str(fractions.Fraction(frac/16.0)) + ' lb'
 
-
 	# output either in "small" units (g/oz) or "large" ones,
 	# depending on input unit
-	def __str__(self):
-		if getparam('units_output') == 'metric':
+	def stras_system(self, system):
+		_checksystem(system)
+		if system == 'metric':
 			if self < 1.0:
 				if self < 1.0 / 1000.0:
 					return self.stras(Mass.MG)
@@ -221,8 +243,6 @@ class Mass(WBCUnit):
 			else:
 				return self.stras(Mass.KG)
 		else:
-			assert(getparam('units_output') == 'us')
-
 			if self.small or self*1000.0 < Constants.gramsperpound:
 				small = True
 			else:
@@ -231,6 +251,9 @@ class Mass(WBCUnit):
 				return self.stras(Mass.OZ)
 			else:
 				return self.stras(Mass.LB)
+
+	def __str__(self):
+		return self.stras_system(getparam('units_output'))
 
 class Strength(WBCUnit):
 	PLATO	= object()
