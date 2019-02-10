@@ -53,12 +53,20 @@ class Volume(WBCUnit):
 
 	def __str__(self):
 		if getparam('units_output') == 'metric':
+			return self.stras(self.LITER)
+		else:
+			assert(getparam('units_output') == 'us')
+			return self.stras(self.GALLON)
+
+	def stras(self, which):
+		if which == self.LITER:
 			v = self
 			sym = 'l'
-		else:
-			v = self / Constants.literspergallon
+		elif which == self.GALLON:
+			v = self.valueas(self.GALLON)
 			sym = 'gal'
-
+		else:
+			raise PilotError('unsupported Volume stras unit')
 		return '{:.1f}{:s}'.format(v, sym)
 
 	def valueas(self, unit):
