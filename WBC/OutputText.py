@@ -22,7 +22,7 @@ from WBC import Constants, Sysparams
 from WBC.WBC import WBC
 
 # XXX: should not be needed in an ideal world
-from WBC.Units import _Volume, _Mass, _Strength
+from WBC.Units import Strength, _Volume, _Mass, _Strength
 
 def __reference_temp():
 	return getparam('ambient_temp')
@@ -231,7 +231,7 @@ def _keystats(input, results, miniprint):
 	print(onefmt.format('Name:', input['name']))
 	print(twofmt_tight.format('Aggregate strength:', 'TBD',
 	    'Package volume:', str(vols['package'])))
-	bugu = results['ibus'] / strens['final']
+	bugu = results['ibus'] / strens['final'].valueas(Strength.SG_PTS)
 	print(twofmt_tight.format('IBU (Tinseth):',
 	    '{:.2f}'.format(results['ibus']), 'BUGU:', '{:.2f}'.format(bugu)))
 

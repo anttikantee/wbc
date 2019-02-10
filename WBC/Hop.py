@@ -231,15 +231,14 @@ class Hop:
 	# whirlpool hops or dryhopping.
 	#
 
-	def __util(self, gravity, time):
+	def __util(self, strength, time):
 		if not isinstance(time, Hop.Boil):
 			return 0
 
 		mins = time.time
 
-		# gravity needs to be SG, not points (because sg is great
-		# for all calculations?)
-		SG = gravity.valueas(gravity.SG)
+		# strength needs to be SG
+		SG = strength.valueas(strength.SG)
 
 		bignessfact = 1.65 * pow(0.000125, SG-1)
 		boilfact = (1 - pow(math.e, -0.04 * mins)) / 4.15
@@ -248,17 +247,17 @@ class Hop:
 			bonus = 1.1
 		return bonus * bignessfact * boilfact
 
-	def IBU(self, gravity, volume, time, mass):
-		checktypes([(gravity, Strength), (mass, Mass)])
+	def IBU(self, strength, volume, time, mass):
+		checktypes([(strength, Strength), (mass, Mass)])
 
-		util = self.__util(gravity, time)
+		util = self.__util(strength, time)
 		v = util * (self.aapers/100.0) * mass.valueas(Mass.MG) / volume
 		return v
 
-	def mass(self, gravity, volume, time, IBU):
-		checktype(gravity, Strength)
+	def mass(self, strength, volume, time, IBU):
+		checktype(strength, Strength)
 
-		util = self.__util(gravity, time)
+		util = self.__util(strength, time)
 
 		# calculate mass
 		m = (IBU * volume) / (util * self.aapers/100.0)

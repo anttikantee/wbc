@@ -230,11 +230,11 @@ class Strength(WBCUnit):
 	SG_PTS	= object()
 
 	def __new__(cls, value, unit):
-		if unit is Strength.SG:
-			value = cls.to_points(value)
-		elif unit is Strength.PLATO:
-			value = cls.to_points(cls.plato_to_sg(value))
-		elif unit is not Strength.SG_PTS:
+		if unit is Strength.SG_PTS:
+			value = cls.sg_to_plato(cls.from_points(value))
+		elif unit is Strength.SG:
+			value = cls.sg_to_plato(value)
+		elif unit is not Strength.PLATO:
 			raise Exception('invalid Strength unit')
 
 		return super(Strength, cls).__new__(cls, value, unit)
@@ -276,8 +276,8 @@ class Strength(WBCUnit):
 	# tenths of a percent-unit), but we'll live with it.
 	#
 	def _attenuate(self, to, aa):
-		oe = self.valueas(self.PLATO)
-		ae = to.valueas(self.PLATO)
+		oe = self
+		ae = to
 		abw = 0.38726*(oe-ae) + 0.00307*(math.pow(oe-ae, 2))
 		abv = abw * to.valueas(to.SG) / 0.7907
 
@@ -288,13 +288,13 @@ class Strength(WBCUnit):
 		    - 0.000294307*pow(ae, 2) - 0.0084747*pow(abw, 2) \
 		    + 0.000183564*pow(abw, 3) + 0.000011151*pow(ae, 3) \
 		    + 0.000002452*pow(abw, 2) * pow(ae, 2)
-		re = Strength(re, Strength.PLATO)
+		re = _Strength(re)
 
 		# calculate extracts also in g/l.  1l weighs
 		# SG kilograms, so the weight of extract in g in 1l is
 		# 1000*SG * plato/100
-		oe_gl = 10 * self.valueas(self.PLATO) * self.valueas(self.SG)
-		re_gl = 10 * re.valueas(re.PLATO) * to.valueas(to.SG)
+		oe_gl = 10 * self * self.valueas(self.SG)
+		re_gl = 10 * re * to.valueas(to.SG)
 
 		# if original percentage was given, return it back
 		# (we could always calculate it, but might be off
@@ -302,7 +302,7 @@ class Strength(WBCUnit):
 		if aa is None:
 			aa = 100 * (1 - ae/oe)
 
-		ra = 100*(1-re.valueas(re.PLATO)/self.valueas(self.PLATO))
+		ra = 100*(1-re/self)
 
 		return {
 			'ae': to,
@@ -317,7 +317,8 @@ class Strength(WBCUnit):
 
 	def attenuate_bypercent(self, aa):
 		# use attenuation for gravity, not strength
-		fg = Strength(self * (1-aa/100.0), self.SG_PTS)
+		fg = Strength(self.valueas(self.SG_PTS) * (1-aa/100.0),
+		    self.SG_PTS)
 
 		return self._attenuate(fg, aa)
 
@@ -329,8 +330,8 @@ class Strength(WBCUnit):
 	def refractometer_correction(self, strength):
 		checktype(strength, Strength)
 
-		oe = self.valueas(self.PLATO)
-		ae = strength.valueas(strength.PLATO)
+		oe = self
+		ae = strength
 
 		# http://seanterrill.com/2011/04/07/refractometer-fg-results/
 		# (the linear equation, seems just as good as the cubic
@@ -403,22 +404,21 @@ class Strength(WBCUnit):
 
 	def valueas(self, which):
 		if which is Strength.SG:
-			return self.from_points(self)
+			return self.plato_to_sg(self)
 		elif which is Strength.SG_PTS:
-			return self
+			return self.to_points(self.plato_to_sg(self))
 		elif which is Strength.PLATO:
-			return self.sg_to_plato(self.from_points(self))
+			return self
 		else:
 			raise Exception('invalid Strength type')
 
 	def stras(self, unit):
 		if unit == self.PLATO:
-			return '{:.1f}{:}'.format(self.valueas(self.PLATO), \
-			    str(chr(0x00b0) + 'P'))
+			return '{:.1f}{:}'.format(self, str(chr(0x00b0) + 'P'))
 		elif unit == self.SG:
 			return '{:.3f}'.format(self.valueas(self.SG))
 		else:
-			raise PilotError('invalid Strength unit')
+			raise PilotError('invalid Strength string unit')
 
 	def __str__(self):
 		if getparam('strength_output') == 'plato':
@@ -532,7 +532,7 @@ class V(Volume):
 # Internally, we always use liters for volume and degC for temperature.
 # So, define internal names to avoid having to type the units every
 # time.  _Mass and _Strength use the internal value of the
-# class (G and SG_PTS, respectively).
+# class (KG and PLATO, respectively).
 class _Volume(Volume):
 	def __new__(cls, value):
 		return super(_Volume, cls).__new__(cls, value, Volume.LITER)
@@ -554,6 +554,6 @@ class _Mass(Mass):
 
 class _Strength(Strength):
 	def __new__(cls, value):
-		return super(_Strength, cls).__new__(cls,value,Strength.SG_PTS)
+		return super(_Strength, cls).__new__(cls,value,Strength.PLATO)
 	def __init__(self, value):
-		super(_Strength, self).__init__(value, Strength.SG_PTS)
+		super(_Strength, self).__init__(value, Strength.PLATO)

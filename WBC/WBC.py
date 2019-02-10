@@ -153,7 +153,7 @@ class Recipe:
 
 	def __extract(self, vol, strength):
 		m = _Mass(vol * strength.valueas(Strength.SG))
-		return _Mass(m * strength.valueas(Strength.PLATO)/100.0)
+		return _Mass(m * strength/100.0)
 
 	def __scale(self, what):
 		if self.volume_inherent is None or self.volume_scaled is None:
@@ -369,8 +369,8 @@ class Recipe:
 		return _Mass(m - self.input['stolen_wort']['extract'])
 
 	def _sanity_check(self):
-		pbs = self.results['strengths']['preboil'].valueas(Strength.PLATO)
-		fw = self.results['mash_first_wort_max'].valueas(Strength.PLATO)
+		pbs = self.results['strengths']['preboil']
+		fw = self.results['mash_first_wort_max']
 
 		if pbs > fw:
 			warn("preboil strength is greater than 100% "
@@ -568,8 +568,7 @@ class Recipe:
 		# FIXXXME: actually volume, so off-by-very-little
 		watermass = self.results['mash']['mashstep_water']
 		fw = 100 * (theor_yield / (theor_yield + watermass))
-		self.results['mash_first_wort_max'] \
-		    = Strength(fw, Strength.PLATO)
+		self.results['mash_first_wort_max'] = _Strength(fw)
 
 		mf = self._fermentables_atstage(WBC.MASH)
 		rv = _Volume(self.results['mash']['mashstep_water']
@@ -634,11 +633,12 @@ class Recipe:
 		# ok, um, so the Tinseth formula uses postboil volume ...
 		v_post = self.__volume_at_stage(self.POSTBOIL)
 
-		# ... and average strength during the boil.  *whee*
+		# ... and average gravity during the boil.  *whee*
 		v_pre = self.__volume_at_stage(self.PREBOIL)
 		y = self.total_yield(WBC.BOIL)
-		sg = _Strength((Brewutils.solve_strength(y, v_pre)
-		    + Brewutils.solve_strength(y, v_post)) / 2)
+		t = Brewutils.solve_strength(y, v_pre).valueas(Strength.SG) \
+		    + Brewutils.solve_strength(y, v_post).valueas(Strength.SG)
+		sg = Strength(t/2, Strength.SG)
 
 		# calculate IBU produced by "bymass" hops and add to printables
 		for h in self.hops_bymass:
@@ -815,7 +815,7 @@ class Recipe:
 		# calculate suggested pitch rates, using 0.75mil/ml/degP for
 		# ales and 1.5mil for lagers
 		tmp = self.__volume_at_stage(self.FERMENTER) * 1000 \
-		    * self.results['strengths']['final'].valueas(Strength.PLATO)
+		    * self.results['strengths']['final']
 		bil = 1000*1000*1000
 		self.results['pitch'] = {}
 		self.results['pitch']['ale']   = tmp * 0.75*1000*1000 / bil

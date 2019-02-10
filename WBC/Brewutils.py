@@ -16,7 +16,7 @@
 
 from WBC.Utils import PilotError
 from WBC.Units import *
-from WBC.Units import _Volume
+from WBC.Units import _Strength, _Volume
 
 from WBC import Constants
 
@@ -45,7 +45,7 @@ def solve_strength(extract, volume):
 		mass += diff
 		loop += 1
 		assert(loop < 10)
-	return Strength(plato, Strength.PLATO)
+	return _Strength(plato)
 
 def water_vol_at_temp(curvol, curtemp, totemp):
 	checktype(curvol, Volume)
