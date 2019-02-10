@@ -38,8 +38,8 @@ fine_coarse_diff= 1.5
 minconversion	= 94
 
 # hop absorption, milliliter of wort per gram of hops
-pellethop_absorption = 6
-leafhop_absorption = 10
+pellethop_absorption_mlg = 6
+leafhop_absorption_mlg = 10
 
 # specific volume of grains in l/kg.
 #
@@ -58,5 +58,5 @@ grain_specificvolume = 0.7
 # for now.
 #
 # in kg/m3 (or g/l)
-pellethop_density = 500
-leafhop_density = 135
+pellethop_density_gl = 500
+leafhop_density_gl = 135

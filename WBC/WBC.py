@@ -114,7 +114,7 @@ class Recipe:
 
 	def __grain_absorption(self):
 		rv = getparam('grain_absorption')
-		absorp = rv[0] / rv[1].valueas(Mass.KG)
+		absorp = rv[0] / rv[1]
 		return absorp
 
 	def __reference_temp(self):
@@ -146,15 +146,14 @@ class Recipe:
 			f = []
 			for stage in [WBC.MASH, WBC.STEEP]:
 				f += self._fermentables_atstage(stage)
-			m = self._fermentables_mass(f).valueas(Mass.KG)
+			m = self._fermentables_mass(f)
 			v += m*self.__grain_absorption() + getparam('mlt_loss')
 
 		return _Volume(v)
 
 	def __extract(self, vol, strength):
-		m = Mass(vol * strength.valueas(Strength.SG), Mass.KG)
-		return Mass(m.valueas(Mass.G)
-		    * strength.valueas(Strength.PLATO)/100.0, Mass.G)
+		m = _Mass(vol * strength.valueas(Strength.SG))
+		return _Mass(m * strength.valueas(Strength.PLATO)/100.0)
 
 	def __scale(self, what):
 		if self.volume_inherent is None or self.volume_scaled is None:
@@ -480,7 +479,8 @@ class Recipe:
 		# and finally set the masses of each individual fermentable
 		for x in self.fermentables_bypercent:
 			# limit mass to 0.1g accuracy
-			m = int(10 * (x['amount']/100.0 * totmass)) / 10.0
+			m = int(10000 * (x['amount']/100.0 * totmass)) / 10000.0
+			#m = round(x['amount']/100.0 * totmass, 4)
 			n = x.copy()
 			n['amount'] = _Mass(m)
 			ferms.append(n)
@@ -564,8 +564,7 @@ class Recipe:
 			self.__reference_temp(), totvol,
 			self.__grain_absorption())
 
-		theor_yield = self.total_yield(WBC.MASH,
-		    theoretical=True).valueas(Mass.KG)
+		theor_yield = self.total_yield(WBC.MASH, theoretical=True)
 		# FIXXXME: actually volume, so off-by-very-little
 		watermass = self.results['mash']['mashstep_water']
 		fw = 100 * (theor_yield / (theor_yield + watermass))
@@ -574,8 +573,7 @@ class Recipe:
 
 		mf = self._fermentables_atstage(WBC.MASH)
 		rv = _Volume(self.results['mash']['mashstep_water']
-		      - (self._fermentables_mass(mf).valueas(Mass.KG)
-		         * self.__grain_absorption()
+		      - (self._fermentables_mass(mf) * self.__grain_absorption()
 		        + getparam('mlt_loss')))
 		if rv <= 0:
 			raise PilotError('mashin ratio ridiculously low')
@@ -701,7 +699,7 @@ class Recipe:
 					packagedryhopvol += hop.volume(mass)
 			else:
 				hd['kettle'] += hop.absorption(mass)
-		self.hopsdrunk = {x: _Volume(hd[x]/1000.0) for x in hd}
+		self.hopsdrunk = {x: _Volume(hd[x]) for x in hd}
 		self.hopsdrunk['volume'] = _Volume(packagedryhopvol)
 
 		# calculate "timer" field values
@@ -769,8 +767,8 @@ class Recipe:
 		if self.__final_volume() is None:
 			raise PilotError("final volume is not set")
 
-		s = float(self.__scale(_Mass(1)))
-		if abs(s - 1) > .0001:
+		s = self.__scale(Mass(1, Mass.G))
+		if abs(s.valueas(Mass.G) - 1) > .0001:
 			notice('Scaling recipe ingredients by a factor of '
 			    + '{:.4f}'.format(s) + '\n')
 
@@ -861,7 +859,7 @@ class Recipe:
 	# by semi-humans
 	def printcsv(self):
 		self._assertcalculate()
-		print('wbcdata|1')
+		print('wbcdata|2')
 		print('# recipe|name|yeast|boiltime|volume')
 		print('recipe|' + self.input['name'] + '|'
 		    + self.input['yeast'] + '|'

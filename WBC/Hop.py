@@ -252,34 +252,44 @@ class Hop:
 		checktypes([(gravity, Strength), (mass, Mass)])
 
 		util = self.__util(gravity, time)
-		return util * self.aapers/100.0 * mass * 1000 / volume
+		v = util * (self.aapers/100.0) * mass.valueas(Mass.MG) / volume
+		return v
 
 	def mass(self, gravity, volume, time, IBU):
 		checktype(gravity, Strength)
 
 		util = self.__util(gravity, time)
 
-		# calculate mass, limit to 0.01g granularity
-		m = (IBU * volume) / (util * self.aapers/100.0 * 1000)
-		return _Mass(int(100*m)/100.0)
+		# calculate mass
+		m = (IBU * volume) / (util * self.aapers/100.0)
+
+		# store with 0.01g accuracy.
+		# need to round here and supply as the native unit,
+		# otherwise Mass will internally convert and possibly
+		# screw the roundup (not that the roundup is accurate
+		# anyway due to floats, but ...)
+		m = _Mass(round(m / (1000.0*1000.0), 5))
+		return m
 
 	def absorption(self, mass):
 		checktype(mass, Mass)
 		if self.type is self.Pellet:
-			abs_c = Constants.pellethop_absorption
+			abs_c = Constants.pellethop_absorption_mlg
 		else:
 			assert(self.type is self.Leaf)
-			abs_c = Constants.leafhop_absorption
-		return _Volume(mass * abs_c)
+			abs_c = Constants.leafhop_absorption_mlg
+		# l/kg == ml/g
+		v = _Volume(mass * abs_c)
+		return v
 
 	def volume(self, mass):
 		checktype(mass, Mass)
 		if self.type is self.Pellet:
-			density = Constants.pellethop_density
+			density = Constants.pellethop_density_gl
 		else:
 			assert(self.type is self.Leaf)
-			density = Constants.leafhop_density
-		return _Volume(mass / density)
+			density = Constants.leafhop_density_gl
+		return _Volume(mass.valueas(Mass.G) / density)
 
 	# from "smallest" to "largest" (not first-to-last)
 	_order = [Dryhop, Steep, Boil]

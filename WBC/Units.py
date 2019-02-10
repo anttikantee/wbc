@@ -132,16 +132,16 @@ class Mass(WBCUnit):
 	OZ	= object()
 	LB	= object()
 	def __new__(cls, value, unit):
-		if unit is Mass.KG:
-			value = 1000 * value
-		elif unit is Mass.MG:
+		if unit is Mass.G:
 			value = value / 1000.0
+		elif unit is Mass.MG:
+			value = value / (1000.0 * 1000.0)
 		elif unit is Mass.LB:
-			value = Constants.gramsperpound * value
+			value = Constants.gramsperpound * value / 1000.0
 		elif unit is Mass.OZ:
-			value = Constants.gramsperounce * value
+			value = Constants.gramsperounce * value / 1000.0
 		else:
-			assert(unit is Mass.G)
+			assert(unit is Mass.KG)
 
 		self = super(Mass, cls).__new__(cls, value, unit)
 		if unit is Mass.OZ:
@@ -151,35 +151,36 @@ class Mass(WBCUnit):
 		return self
 
 	def valueas(self, unit):
-		if unit is Mass.KG:
-			return self / 1000.0
-		elif unit is Mass.G:
+		if unit is Mass.G:
+			return self * 1000.0
+		elif unit is Mass.KG:
 			return self
 		elif unit is Mass.MG:
-			return self * 1000.0
+			return self * 1000.0 * 1000.0
 		elif unit is Mass.LB:
-			return self / Constants.gramsperpound
+			return (self*1000.0) / Constants.gramsperpound
 		elif unit is Mass.OZ:
-			return self / Constants.gramsperounce
+			return (self*1000.0) / Constants.gramsperounce
 		else:
 			assert(False)
 
 
 	def stras(self, unit):
 		if unit is self.G:
-			if self < 100:
+			m = 1000.0 * self
+			if m < 100:
 				dec = '1'
 			else:
 				dec = '0'
 			fmt = '{:.' + dec + 'f}'
-			return fmt.format(self) + ' g'
+			return fmt.format(m) + ' g'
 		elif unit is self.MG:
 			return '{:.0f}'.format(self.valueas(self.MG)) + ' mg'
 		elif unit is self.KG:
-			return '{:.2f}'.format(self/1000.0) + ' kg'
+			return '{:.2f}'.format(self) + ' kg'
 		elif unit is self.OZ:
 			return '{:.2f}'.\
-			    format(self/Constants.gramsperounce)+' oz'
+			    format((self*1000.0)/Constants.gramsperounce)+' oz'
 		elif unit is self.LB:
 			# format pounds in the "normal" way.  I'd use
 			# some expletives here, but it's easier to
@@ -190,7 +191,7 @@ class Mass(WBCUnit):
 			# fraction is max 1/16th and always a power of
 			# two.... because it's logical, I guess
 			#
-			v = self / Constants.gramsperpound
+			v = (self*1000.0) / Constants.gramsperpound
 			whole = int(int(16*v) / 16)
 			frac =  int(16*v) % 16
 			thestr = ""
@@ -204,8 +205,8 @@ class Mass(WBCUnit):
 	# depending on input unit
 	def __str__(self):
 		if getparam('units_output') == 'metric':
-			if self < 1000:
-				if self < 1.0:
+			if self < 1.0:
+				if self < 1.0 / 1000.0:
 					return self.stras(Mass.MG)
 				else:
 					return self.stras(Mass.G)
@@ -214,7 +215,7 @@ class Mass(WBCUnit):
 		else:
 			assert(getparam('units_output') == 'us')
 
-			if self.small or self < Constants.gramsperpound:
+			if self.small or self*1000.0 < Constants.gramsperpound:
 				small = True
 			else:
 				small = False
@@ -547,9 +548,9 @@ class _Temperature(Temperature):
 
 class _Mass(Mass):
 	def __new__(cls, value):
-		return super(_Mass, cls).__new__(cls, value, Mass.G)
+		return super(_Mass, cls).__new__(cls, value, Mass.KG)
 	def __init__(self, value):
-		super(_Mass, self).__init__(value, Mass.G)
+		super(_Mass, self).__init__(value, Mass.KG)
 
 class _Strength(Strength):
 	def __new__(cls, value):

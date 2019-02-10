@@ -86,7 +86,7 @@ class Mash:
 
 			hts['grain'] = {}
 			hts['grain']['capa'] = self.__grain_relativecapa \
-			    * grain_mass.valueas(Mass.KG)
+			    * grain_mass
 			hts['grain']['temp'] = ambient_temp
 
 			hts['water'] = {}
@@ -173,8 +173,7 @@ class Mash:
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
 		fmass = _Mass(sum(x['amount'] for x in self.fermentables))
-		grainvol = fmass.valueas(Mass.KG) \
-			      * Constants.grain_specificvolume
+		grainvol = fmass * Constants.grain_specificvolume
 
 		def origwater(fromtemp, totemp, fromwater):
 			if getparam('mlt_heat') == 'direct':
@@ -187,16 +186,15 @@ class Mash:
 
 		mashin_ratio = getparam('mashin_ratio')
 		if mashin_ratio[0] == '%':
-			absorb = fmass.valueas(Mass.KG) * grains_absorb
+			absorb = fmass * grains_absorb
 			wmass_end = (mashin_ratio[1] / 100.0) \
 			    * (watervol + absorb)
 			wmass = origwater(steps[-1].temperature,
 			    steps[0].temperature, wmass_end)
 		else:
 			assert(mashin_ratio[0] == '/')
-			rat = mashin_ratio[1][0] \
-			    * mashin_ratio[1][1].valueas(Mass.KG)
-			wmass = rat * fmass.valueas(Mass.KG)
+			rat = mashin_ratio[1][0] * mashin_ratio[1][1]
+			wmass = rat * fmass
 
 		# adjust minimum mash water, advisory parameter
 		mwatermin = getparam('mashwater_min')
@@ -254,10 +252,9 @@ class Mash:
 				totvol -= vol
 				inmash += vol
 				mashvol = _Volume(inmash
-				    + fmass.valueas(Mass.KG)
-				      * Constants.grain_specificvolume)
+				    + fmass * Constants.grain_specificvolume)
 
-				ratio = inmash / fmass.valueas(Mass.KG)
+				ratio = inmash / fmass
 				if totvol < -0.0001:
 					raise PilotError('cannot satisfy '
 					    + 'transfer infusion steps '
@@ -274,10 +271,10 @@ class Mash:
 			assert(getparam('mlt_heat') == 'direct')
 			(vol, temp) = step.waterstep()
 			totvol -= vol
-			ratio = vol / fmass.valueas(Mass.KG)
+			ratio = vol / fmass
 			actualvol = water_vol_at_temp(vol, water_temp, temp)
-			mashvol = _Volume(vol + fmass.valueas(Mass.KG)
-			      * Constants.grain_specificvolume)
+			mashvol = _Volume(vol
+			    + fmass * Constants.grain_specificvolume)
 			for i, s in enumerate(steps):
 				res['steps'].append((s, vol, actualvol,
 				    temp, ratio, mashvol))

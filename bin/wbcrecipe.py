@@ -212,7 +212,13 @@ def processcsv(clist, odict, data):
 
 		if row[0] == "wbcdata":
 			dataver = int(row[1])
-		if dataver != 1:
+		if dataver == 1:
+			massunit = Mass.G
+			masssfx = 'g'
+		elif dataver == 2:
+			massunit = Mass.KG
+			masssfx = 'kg'
+		else:
 			raise PilotError("unsupported wbcdata version")
 
 		if row[0] == "recipe":
@@ -225,7 +231,7 @@ def processcsv(clist, odict, data):
 
 		elif row[0] == "fermentable":
 			r.fermentable_bymass(row[1],
-			    Mass(row[2], Mass.G), row[3])
+			    Mass(float(row[2]), massunit), row[3])
 
 		elif row[0] == "hop":
 			hopfunmap = {
@@ -234,7 +240,7 @@ def processcsv(clist, odict, data):
 				'dryhop' : dodryhop,
 			}
 			h = Hop(row[1], float(row[3]), hoptypes[row[2]])
-			hopfunmap[row[5]](r, h, row[4] + 'g', row[6])
+			hopfunmap[row[5]](r, h, row[4] + masssfx, row[6])
 	return r
 
 

@@ -17,7 +17,7 @@
 #
 
 from WBC.WBC import Recipe
-from WBC.Units import Temperature, Pressure, Mass, Volume
+from WBC.Units import Temperature, Pressure, Mass, Volume, _Mass
 from WBC import Brewutils
 from WBC import Parse
 from WBC.Utils import PilotError
@@ -110,6 +110,6 @@ if __name__ == '__main__':
 		co2head = Mass(co2head_gl * kegvol, Mass.G)
 		print('{:24}:{:>12}{:>12}'.format('Headspace CO2 (final)',
 		    co2head.stras(Mass.G), co2head.stras(Mass.OZ)))
-		co2total = Mass(co2dis + co2head, Mass.G)
+		co2total = _Mass(co2dis + co2head)
 		print('{:24}:{:>12}{:>12}'.format('Total CO2 use',
 		    co2total.stras(Mass.G), co2total.stras(Mass.OZ)))

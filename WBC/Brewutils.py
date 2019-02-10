@@ -38,7 +38,7 @@ def solve_strength(extract, volume):
 	# accuracy in any case.
 	loop = 0
 	while True:
-		plato = 100 * ((extract/1000) / mass)
+		plato = 100 * extract / mass
 		diff = volume - mass / Strength.plato_to_sg(plato)
 		if diff < 1.0/(1000*1000):
 			break

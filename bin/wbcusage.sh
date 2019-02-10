@@ -18,11 +18,21 @@
 
 # collate first, then print sorted info
 awk -F'|' '
+$1 == "wbcdata" {
+	if ($2 == 1)
+		mscale = 1.0
+	else if ($2 == 2)
+		mscale = 1000.0
+	else {
+		print "unsupported wbcdata version" >"/dev/stderr"
+		exit(1)
+	}
+}
 $1 == "fermentable" {
-	fermentables[$2] += $3
+	fermentables[$2] += mscale *$3
 }
 $1 == "hop" {
-	hops[$2, $3, $4] += $5
+	hops[$2, $3, $4] += mscale *$5
 }
 $1 == "recipe" {
 	yeast_vol[$3] += $5
@@ -30,6 +40,10 @@ $1 == "recipe" {
 }
 
 END {
+	if (!mscale) {
+		print "invalid file, missing wbcdata version" > "/dev/stderr"
+		exit(1)
+	}
 	for (f in fermentables) {
 		v = fermentables[f]
 		printf("f|%s|%.2f\n", f, v)
