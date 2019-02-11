@@ -268,6 +268,12 @@ class Strength(WBCUnit):
 		elif unit is not Strength.PLATO:
 			raise Exception('invalid Strength unit')
 
+		# just cut things off at some point: the conversion
+		# polynomials are unlikely to work reliably, and
+		# something else "wrong" is probably happening anyway
+		if value > 42:
+			raise PilotError('strength input too high')
+
 		return super(Strength, cls).__new__(cls, value, unit)
 
 	# I did not trust the various ABV "magic number" formulae on the
