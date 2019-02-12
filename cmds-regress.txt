@@ -8,3 +8,7 @@
 ./bin/wbckegp.py -v 20l 3.4 4degC
 
 ./bin/wbccolor.py 10EBC
+
+./bin/wbcextraext.py -f 4degP,50% 15degP 20l 100g
+./bin/wbcextraext.py -f 4degP 15degP 5gal 1qt@10degP
+./bin/wbcextraext.py 15degP 20l 3.3lb@75%
