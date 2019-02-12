@@ -63,7 +63,9 @@ def volume(input):
 		'bbl'	: Volume.BARREL,
 		'gal'	: Volume.GALLON,
 		'qt'	: Volume.QUART,
+		'dl'	: Volume.DECILITER,
 		'l'	: Volume.LITER,
+		'hl'	: Volume.HECTOLITER,
 	}
 	return _unit(Volume, suffixes, input)
 

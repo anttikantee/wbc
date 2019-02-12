@@ -37,10 +37,12 @@ class WBCUnit(float):
 		super(WBCUnit, self).__init__()
 
 class Volume(WBCUnit):
-	LITER	= object()
-	QUART	= object()
-	GALLON	= object()
-	BARREL	= object()
+	LITER		= object()
+	DECILITER	= object()
+	HECTOLITER	= object()
+	QUART		= object()
+	GALLON		= object()
+	BARREL		= object()
 
 	def __new__(cls, value, unit):
 		if unit is Volume.BARREL:
@@ -50,6 +52,10 @@ class Volume(WBCUnit):
 			value = Constants.literspergallon * value
 		elif unit is Volume.QUART:
 			value = Constants.litersperquart * value
+		elif unit is Volume.DECILITER:
+			value = value / 10.0
+		elif unit is Volume.HECTOLITER:
+			value = value * 100.0
 		elif unit is not Volume.LITER:
 			raise PilotError('invalid Volume unit')
 
@@ -60,25 +66,30 @@ class Volume(WBCUnit):
 
 	def stras(self, which):
 		if which == self.LITER:
-			v = self
 			sym = 'l'
+		elif which == self.DECILITER:
+			sym = 'dl'
+		elif which == self.HECTOLITER:
+			sym = 'hl'
 		elif which == self.QUART:
-			v = self.valueas(self.QUART)
 			sym = 'qt'
 		elif which == self.GALLON:
-			v = self.valueas(self.GALLON)
 			sym = 'gal'
 		elif which == self.BARREL:
-			v = self.valueas(self.BARREL)
 			sym = 'bbl'
 		else:
 			raise PilotError('unsupported Volume stras unit')
+		v = self.valueas(which)
 		return '{:.1f}{:s}'.format(v, sym)
 
 	def stras_system(self, system):
 		_checksystem(system)
 		if system == 'metric':
-			return self.stras(self.LITER)
+			if self.valueas(self.LITER) < 1:
+				return self.stras(self.DECILITER)
+			elif self.valueas(self.HECTOLITER) < 1:
+				return self.stras(self.LITER)
+			return self.stras(self.HECTOLITER)
 		else:
 			if self.valueas(self.GALLON) < 1:
 				return self.stras(self.QUART)
@@ -89,6 +100,10 @@ class Volume(WBCUnit):
 	def valueas(self, unit):
 		if unit is Volume.LITER:
 			return self
+		elif unit is Volume.DECILITER:
+			return self * 10.0
+		elif unit is Volume.HECTOLITER:
+			return self / 100.0
 		elif unit is Volume.QUART:
 			return self / Constants.litersperquart
 		elif unit is Volume.GALLON:
