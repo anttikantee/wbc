@@ -680,8 +680,6 @@ class Recipe:
 			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
 
-		self.results['ibus'] = totibus
-
 		# Sort the hop additions of the recipe.
 		allhop = sorted(allhop, key=lambda x: x['hop'].name)
 		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
@@ -745,6 +743,10 @@ class Recipe:
 			self.results['startboil_timer'] = None
 
 		self.results['hops'] = allhop
+
+		totmass = _Mass(sum(x['mass'] for x in allhop))
+		self.results['hop_stats'] = Recipe._hopmap('all',
+		    totmass, None, totibus)
 
 	def _doferment(self):
 		self._doattenuate()

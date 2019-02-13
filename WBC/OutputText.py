@@ -154,19 +154,16 @@ def _printmash(input, results):
 	print()
 
 def _printboil(input, results):
-	# XXX: IBU sum might not be sum of displayed hop additions
-	# due to rounding.  cosmetic, but annoying.
 	namelen = 33
-	onefmt = '{:' + str(namelen) + '}{:7}{:>9}{:>11}{:>10}{:>8}'
-	print(onefmt.format("Hops", "AA%", "timespec", "timer",
-	    "amount", "IBUs"))
+	onefmt = '{:' + str(namelen) + '}{:6}{:>5}{:>12}{:>12}{:>10}'
+	print(onefmt.format("Hops", "  AA%", "IBUs", "amount",
+	    "timespec", "timer"))
 	prtsep()
 	totmass = 0
 
 	t = results['startboil_timer']
 	if t is not None:
-		print(onefmt.format('', '', '@ boil',
-		    str(t) + ' min', '', ''))
+		print(onefmt.format('', '', '', '', '@ boil', str(t) + ' min'))
 
 	# printing IBUs with a decimal point, given all
 	# other inaccuracy involved, is rather silly.
@@ -199,10 +196,8 @@ def _printboil(input, results):
 
 		ibustr = ibufmt.format(ibu)
 		print(onefmt.format(nam + typ, str(hop.aapers) + '%',
-		    timestr, h['timer'], str(mass), ibustr))
+		    ibustr, str(mass), timestr, h['timer']))
 	prtsep()
-	ibustr = ibufmt.format(results['ibus'])
-	print(onefmt.format('', '', '', '', str(_Mass(totmass)), ibustr))
 	print()
 
 def _keystats(input, results, miniprint):
@@ -228,12 +223,17 @@ def _keystats(input, results, miniprint):
 		total_water = _Volume(total_water
 		    + results['steal']['missing'])
 
+	totibus = results['hop_stats']['ibu']
 	print(onefmt.format('Name:', input['name']))
 	print(twofmt_tight.format('Aggregate strength:', 'TBD',
 	    'Package volume:', str(vols['package'])))
-	bugu = results['ibus'] / strens['final'].valueas(Strength.SG_PTS)
+	print(twofmt_tight.format('Total fermentables:',
+	    str(results['fermentable_stats_all']['amount']),
+	    'Total hops:',
+	    str(results['hop_stats']['mass'])))
+	bugu = totibus / strens['final'].valueas(Strength.SG_PTS)
 	print(twofmt_tight.format('IBU (Tinseth):',
-	    '{:.2f}'.format(results['ibus']), 'BUGU:', '{:.2f}'.format(bugu)))
+	    '{:.2f}'.format(totibus), 'BUGU:', '{:.2f}'.format(bugu)))
 
 	color = results['color']
 	srm = color.valueas(color.SRM)
