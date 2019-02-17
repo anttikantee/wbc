@@ -110,11 +110,17 @@ if __name__ == '__main__':
 			s_guess = _Strength(s_guess + s_new*ra_delta/100.0)
 
 		s_ra = s_guess
+		abv_ra = r['abv']
 		if aa is not None:
-			s_aa = s_new.attenuate_bypercent(aa)['ae']
+			r = s_new.attenuate_bypercent(aa)
+			s_aa = r['ae']
+			abv_aa = r['abv']
 
 	def printline2(fname, value1, value2):
 		print('{:28}:{:>14}{:>14}'.format(fname, value1, value2))
+	def printline3(fname, value1, value2, value3):
+		print('{:28}:{:>14}{:>14}{:>14}'.format(fname,
+		    value1, value2, value3))
 
 	printline2('Strength, Original',
 	    s_orig.stras(Strength.PLATO), s_orig.stras(Strength.SG))
@@ -143,10 +149,12 @@ if __name__ == '__main__':
 
 	if s_fin is not None:
 		print()
-		printline2('Final Strength (' + str(int(ra_add)) + '% add RA)',
-		    s_ra.stras(Strength.PLATO), s_ra.stras(Strength.SG))
+		printline3('Final Strength (' + str(int(ra_add)) + '% add RA)',
+		    s_ra.stras(Strength.PLATO), s_ra.stras(Strength.SG),
+		    '{:.1f}% ABV'.format(abv_ra))
 		if aa is not None:
-			printline2('Final Strength (' + str(int(aa)) + '% AA)',
-			    s_aa.stras(Strength.PLATO), s_aa.stras(Strength.SG))
+			printline3('Final Strength (' + str(int(aa)) + '% AA)',
+			    s_aa.stras(Strength.PLATO), s_aa.stras(Strength.SG),
+			    '{:.1f}% ABV'.format(abv_aa))
 
 	sys.exit(0)
