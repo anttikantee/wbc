@@ -25,7 +25,7 @@ import string
 
 def _unit(cls, sfxmap, input, fatal = True, name = None):
 	inputstr = str(input).strip()
-	alphastr = inputstr.lstrip(string.digits + '.')
+	alphastr = inputstr.lstrip(string.digits + '.' + '-')
 	numstr = inputstr[0:len(inputstr) - len(alphastr)]
 	alphastr = alphastr.strip()
 
