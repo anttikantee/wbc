@@ -123,6 +123,7 @@ def strength(input):
 		'SG'			: Strength.SG,
 		'pts'			: Strength.SG_PTS,
 	}
+	input = str(input)
 	if re.match(r'^\s*1\.[01][0-9][0-9]\s*$', input):
 		return Strength(float(input), Strength.SG)
 	if re.match(r'^\s*0\.9[7-9][0-9]\s*$', input):
