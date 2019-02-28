@@ -330,6 +330,11 @@ add('Crisp', 'Pale Chocolate',
 # internet sources.  seems like Crisp doesn't want to tell us.
 # guess we should be thankful that they at least tell the color
 # and moisture content.
+add('Crisp', 'Black Malt',
+	Extract(75.0, FGDB, FCD_UNKNOWN, 3.0),
+	diap_none,
+	Color(600, LOVIBOND),
+	needmash = False)
 add('Crisp', 'Brown',
 	Extract(70.0, FGDB, FCD_UNKNOWN, 2.0),
 	diap_none,
@@ -546,5 +551,35 @@ add(None, 'Table sugar',
 	Extract(100, CGDB, FCD_UNKNOWN, 0),
 	Constants.minconversion,
 	Color(0, EBC),
+	conversion = False,
+	needmash = False)
+
+# invert syrups.  really just guessing the extract content, though
+# read from somewhere that syrup at 115degC (cooking temperature)
+# is 85% sugar, so we'll start from that and guess a bit of moisture
+# loss from cooking to obtain the color.  shouldn't matter too much if
+# they're a %-point off in one direction or another.
+add(None, 'Invert No1',
+	Extract(86, CGDB, FCD_UNKNOWN, 0),
+	Constants.minconversion,
+	Color(30, EBC),
+	conversion = False,
+	needmash = False)
+add(None, 'Invert No2',
+	Extract(87, CGDB, FCD_UNKNOWN, 0),
+	Constants.minconversion,
+	Color(60, EBC),
+	conversion = False,
+	needmash = False)
+add(None, 'Invert No3',
+	Extract(88, CGDB, FCD_UNKNOWN, 0),
+	Constants.minconversion,
+	Color(130, EBC),
+	conversion = False,
+	needmash = False)
+add(None, 'Invert No4',
+	Extract(89, CGDB, FCD_UNKNOWN, 0),
+	Constants.minconversion,
+	Color(600, EBC),
 	conversion = False,
 	needmash = False)
