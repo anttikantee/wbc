@@ -16,7 +16,7 @@
 
 from WBC.Utils import PilotError
 from WBC.Units import *
-from WBC.Units import _Strength, _Volume
+from WBC.Units import _Strength, _Volume, _Mass
 
 from WBC import Constants
 
@@ -47,15 +47,10 @@ def solve_strength(extract, volume):
 		assert(loop < 10)
 	return _Strength(plato)
 
-def water_vol_at_temp(curvol, curtemp, totemp):
-	checktype(curvol, Volume)
-	def mycheck(temp):
-		checktype(temp, Temperature)
-		if temp < 0 or temp > 100:
-			raise PilotError('invalid water temperature: '
-			    + str(temp))
-	mycheck(curtemp)
-	mycheck(totemp)
+def __density_at_temp(temp):
+	checktype(temp, Temperature)
+	if temp < 0 or temp > 100:
+		raise PilotError('invalid water temperature: ' + str(temp))
 
 	# water density values from:
 	# www.engineeringtoolbox.com/water-density-specific-weight-d_595.html
@@ -85,14 +80,22 @@ def water_vol_at_temp(curvol, curtemp, totemp):
 		100: 0.95835,
 	}
 
-	def nearest(temp):
-		# assumes duplicate dict keys will be overriden
-		# (we don't care which equally close one we get)
-		tab = {abs(temp-t): __watertab[t] for t in __watertab}
-		x = min(tab)
-		return tab[x]
+	# assumes duplicate dict keys will be overriden
+	# (we don't care which equally close one we get)
+	tab = {abs(temp-t): __watertab[t] for t in __watertab}
+	x = min(tab)
+	return tab[x]
 
-	return _Volume(curvol * (nearest(curtemp) / nearest(totemp)))
+def water_vol_at_temp(curvol, curtemp, totemp):
+	checktype(curvol, Volume)
+
+	return _Volume(curvol
+	    * (__density_at_temp(curtemp) / __density_at_temp(totemp)))
+
+def water_voltemp_to_mass(vol, temp):
+	checktype(vol, Volume)
+
+	return _Mass(vol * __density_at_temp(temp))
 
 # values for carbonation equations
 _carbc1 = 0.00021705
