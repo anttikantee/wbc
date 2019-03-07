@@ -344,6 +344,12 @@ add('Crisp', 'Roasted barley',
 	diap_none,
 	Color(1350, EBC),
 	needmash = False)
+
+add('Crisp', 'Chocolate',
+	Extract(71.0, FGDB, FCD_UNKNOWN, 3.5),
+	diap_none,
+	Color(650, LOVIBOND),
+	needmash = False)
 # help legacy recipes for now
 alias(None, 'Roasted Barley', 'Crisp Roasted Barley')
 
