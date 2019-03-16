@@ -352,7 +352,8 @@ class Strength(WBCUnit):
 		# (we could always calculate it, but might be off
 		# by some decimal)
 		if aa is None:
-			aa = 100 * (1 - ae/oe)
+			aa = 1 - ae.valueas(ae.SG_PTS)/oe.valueas(oe.SG_PTS)
+			aa *= 100.
 
 		ra = 100*(1-re/self)
 
