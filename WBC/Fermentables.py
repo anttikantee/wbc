@@ -549,6 +549,25 @@ add(None, 'Flaked rye',
 	diap_none,
 	Color(3, LOVIBOND))
 
+# raw grains, as opposed to malted or flaked or torrified or whatever.
+# mostly just to be able to differentiate.  extract/moisture guesses
+# takes from the Briess raw red wheat datasheet, and colors mostly
+# just guessed.  in the typical fashion of maltster consitency, Briess
+# supplies extract only for red wheat and color only for white wheat.
+add(None, 'Raw Red wheat',
+	Extract(80, CGDB, FCD_UNKNOWN, 12.0),
+	diap_none,
+	Color(3, LOVIBOND))
+add(None, 'Raw White Wheat',
+	Extract(80, CGDB, FCD_UNKNOWN, 12.0),
+	diap_none,
+	Color(2, LOVIBOND))
+# extract from Briess, color from absolutely nowhere except a hat
+add(None, 'Raw Rye',
+	Extract(77, CGDB, FCD_UNKNOWN, 12.0),
+	diap_none,
+	Color(8, LOVIBOND))
+
 # just a guess, really (based on some random literature pieces)
 add(None, 'Rice', 70, 0, Color(1, EBC))
 
