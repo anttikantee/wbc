@@ -56,7 +56,7 @@ if __name__ == '__main__':
 			def prtln(what, f1, f2):
 				fmtstr = '\t{:16}: {:>12}{:>12}'
 				print(fmtstr.format(what, f1, f2))
-			prtln('Extract CGAI', str(x.extobj), '')
+			prtln('Extract CGAI', str(x.extract), '')
 			c = x.color
 			prtln('Color', '{:.1f} EBC'.format(c.valueas(c.EBC)),
 			    '{:.1f} L'.format(c.valueas(c.LOVIBOND)))

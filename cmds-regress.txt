@@ -17,3 +17,7 @@
 ./bin/wbccool.py 18degC 21l 7degC 50%
 ./bin/wbccool.py 18degC 21l 7degC 1hl
 ./bin/wbccool.py -s 20degP -i 2kg -t 100degF 6degC 21l 7degC
+
+./bin/wbcfermfind.py -v 'raw rye'
+./bin/wbcfermfind.py -v -m Avangard Munich
+./bin/wbcfermfind.py 'Avangard Munich'
