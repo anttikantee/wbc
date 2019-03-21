@@ -12,9 +12,9 @@ discussed below.  The other utilties are:
     required to cool wort of given strength from a starting temperature
     to a desired temperature
   * `wbcextraext`: calculate aggregate strength and predicted final
-    strength when adding extract, e.g. priming sugar, after the start
-    of fermentation
-  * `wbckegp`: takes two of {pressure, temperature, dissolved CO2) and
+    strength when adding extract to a given volume, e.g. priming sugar
+    to already fermented beer
+  * `wbckegp`: takes two of {pressure, temperature, dissolved CO2} and
     calculates the missing value, along with headspace CO2 required to
     push the beer out
 
