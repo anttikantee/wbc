@@ -30,23 +30,8 @@ class Fermentable:
 		self.product = product
 		self._setname()
 
-		# compat before all specs have been converted
-		if isinstance(extract, Extract):
-			self.extract_legacy = False
-			self.extract = extract.cgai()
-			self.extobj = extract
-		else:
-			self.extract_legacy = True
-			self.extract = extract
-			self.extobj = extract # XXX
-
-		# compat before all specs have been converted
-		if isinstance(diap, DiaP):
-			self.wk = diap.valueas(diap.WK)
-			self.diap = diap
-		else:
-			self.wk = diap
-			self.diap = DiaP(diap, DiaP.WK)
+		self.extract = extract
+		self.diap = diap
 
 		self.color = color
 		self.needmash = needmash
@@ -311,7 +296,12 @@ add('Briess', 'Midnight Wheat',
 
 # Briess generic smoked malt (any of beech / cherry / mesquite)
 # XXX: not sure diastatic power is correct (specs do say 140 degL)
-add('Briess', 'smoked', 80.5, DiaP(90, DiaP.L), Color(14.5, EBC))
+add('Briess', 'apple wood smoked',
+	Extract(80.5, FGDB, FCD_UNKNOWN, 6.0),
+	DiaP(90, DiaP.L),
+	Color(5, LOVIBOND))
+alias('Briess', 'cherry wood smoked', 'Briess apple wood smoked')
+alias('Briess', 'mesquite smoked', 'Briess apple wood smoked')
 
 # Crisp
 add('Crisp', 'Maris Otter',
@@ -406,7 +396,10 @@ add('Muntons', 'Maris Otter',
 	DiaP(156, DiaP.WK),
 	Color(5.8, EBC))
 
-add('Simpsons', 'Golden Promise', 81, 140, Color(6.5, EBC))
+add('Simpsons', 'Golden Promise',
+	Extract(81, FGDB, FCD_UNKNOWN, 3.7),
+	DiaP(140, DiaP.WK),
+	Color(6.5, EBC))
 
 add('Simpsons', 'Brown',
 	Extract(68.7, FGDB, FCD_UNKNOWN, 4.0),
@@ -568,8 +561,18 @@ add(None, 'Raw Rye',
 	diap_none,
 	Color(8, LOVIBOND))
 
-# just a guess, really (based on some random literature pieces)
-add(None, 'Rice', 70, 0, Color(1, EBC))
+# The rice packet I looked at contained 36g starch per 45g.  Of course,
+# they don't report moisture content or fine/coarse difference, so we'll
+# just guess something reasonable -- raw grains are typically 9-12% and
+# definitely not more than 14%, because they start spoiling.
+# Could theoretically measure moisture content by dehydrating in the
+# oven, but one percent point of extract here or there doesn't matter
+# too much unless you're using a lot of rice, and even if I did it,
+# it wouldn't be the same for your rice.
+add(None, 'Rice',
+	Extract(80, FGDB, FCD_UNKNOWN, 11.0),
+	diap_none,
+	Color(1, EBC))
 
 # sugars ("self-converting")
 add(None, 'Table sugar',

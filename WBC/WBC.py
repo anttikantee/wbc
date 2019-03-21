@@ -331,11 +331,7 @@ class Recipe:
 
 	def fermentable_percentage(self, what, theoretical=False):
 		f = what['fermentable']
-		if f.extract_legacy is True:
-			warn('fermentable "' + f.name + '" uses '
-			    + 'legacy extract specification\n')
-			f.extract_legacy = False
-		percent = f.extract
+		percent = f.extract.cgai()
 		if f.conversion and not theoretical:
 			percent *= getparam('mash_efficiency')/100.0
 		return percent
