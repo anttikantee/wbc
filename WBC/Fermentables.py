@@ -30,7 +30,9 @@ class Fermentable:
 		self.product = product
 		self._setname()
 
+		assert(isinstance(extract, Extract))
 		self.extract = extract
+		assert(isinstance(diap, DiaP))
 		self.diap = diap
 
 		self.color = color
@@ -137,6 +139,7 @@ class DiaP(float):
 			return self.stras(self.WK)
 
 diap_none = DiaP(0, DiaP.WK)
+diap_min = DiaP(Constants.minconversion, DiaP.WK)
 
 # return fermentable or None
 def find(name):
@@ -348,7 +351,7 @@ alias(None, 'Roasted Barley', 'Crisp Roasted Barley')
 # http://dingemansmout.be/sites/dingemansmout.be/files/downloads/ALE_MD_0.pdf
 add('Dingemans', 'Pale',
 	Extract(80, FGDB, 2.0, 4.5),
-	Constants.minconversion,
+	diap_min,
 	Color(9, EBC))
 add('Dingemans', 'Cara 120',
 	Extract(74, FGDB, FCD_UNKNOWN, 6.0),
@@ -437,10 +440,14 @@ add('Fawcett', 'Crystal II',
 	Color(65, LOVIBOND),
 	needmash = False)
 
-# XXX: no idea about the extract, but since it's supposed just regular
-# pale malt with lactic acid, we'll go with 75%.  it's not used in such
-# high amounts that it should matter if we're off even by 50%
-add('Weyermann', 'Acidulated Malt', 75, 0, Color(4.5, EBC))
+# XXX: Weyermann doesn't list acidulated malt extract, but since it's
+# supposed just regular pale malt with lactic acid, we'll go with 75%.
+# it's not used in such high amounts that it should matter if we're off
+# even by 50%
+add('Weyermann', 'Acidulated Malt',
+	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
+	diap_none,
+	Color(4.5, EBC))
 
 add('Weyermann', 'CaraFoam',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 5.5),
@@ -488,7 +495,7 @@ add('Weyermann', 'Melanoidin',
 # most likely is way too low)
 add('Weyermann', 'Munich I',
 	Extract(77.4, FGAI, FCD_UNKNOWN, 4.1),
-	Constants.minconversion,
+	diap_min,
 	Color(16, EBC))
 
 add('Weyermann', 'Chocolate Rye',
@@ -499,7 +506,7 @@ add('Weyermann', 'Chocolate Rye',
 
 add('Weyermann', 'Pale Rye',
 	Extract(77, FGAI, FCD_UNKNOWN, 5.0),
-	Constants.minconversion,
+	diap_min,
 	Color(5, EBC))
 
 # extract is an "average" of the lot analysis numbers
@@ -577,7 +584,7 @@ add(None, 'Rice',
 # sugars ("self-converting")
 add(None, 'Table sugar',
 	Extract(100, CGDB, FCD_UNKNOWN, 0),
-	Constants.minconversion,
+	diap_min,
 	Color(0, EBC),
 	conversion = False,
 	needmash = False)
@@ -589,25 +596,25 @@ add(None, 'Table sugar',
 # they're a %-point off in one direction or another.
 add(None, 'Invert No1',
 	Extract(86, CGDB, FCD_UNKNOWN, 0),
-	Constants.minconversion,
+	diap_min,
 	Color(30, EBC),
 	conversion = False,
 	needmash = False)
 add(None, 'Invert No2',
 	Extract(87, CGDB, FCD_UNKNOWN, 0),
-	Constants.minconversion,
+	diap_min,
 	Color(60, EBC),
 	conversion = False,
 	needmash = False)
 add(None, 'Invert No3',
 	Extract(88, CGDB, FCD_UNKNOWN, 0),
-	Constants.minconversion,
+	diap_min,
 	Color(130, EBC),
 	conversion = False,
 	needmash = False)
 add(None, 'Invert No4',
 	Extract(89, CGDB, FCD_UNKNOWN, 0),
-	Constants.minconversion,
+	diap_min,
 	Color(600, EBC),
 	conversion = False,
 	needmash = False)
