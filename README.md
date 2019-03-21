@@ -1,13 +1,30 @@
 WBC Brew-Calculator
 ===================
 
-_If you need a full-fledged-and-belled-and-whistled brewing software,
-look elsewhere._
+WBC is suite of homebrew software performing various calculation tasks.
+The main utility turns recipes into a brewday summary, while supporting
+utilities provide information about the beer.  The recipe utility is
+discussed below.  The other utilties are:
 
-WBC is homebrew software which takes in a recipe and dumps out a
+  * `wbcabv`: calculate ABV, ABW and residual extract (w/v) from
+    original and final strength
+  * `wbccool`: calculate cooling efficiency, water usage or ice usage
+    required to cool wort of given strength from a starting temperature
+    to a desired temperature
+  * `wbcextraext`: calculate aggregate strength and predicted final
+    strength when adding extract, e.g. priming sugar, after the start
+    of fermentation
+  * `wbckegp`: takes two of {pressure, temperature, dissolved CO2) and
+    calculates the missing value, along with headspace CO2 required to
+    push the beer out
+
+`wbcrecipe`
+-----------
+
+The `wbcrecipe` utility takes in a recipe and dumps out a
 printable brewday summary, as demonstrated by the [examples](#examples).
-The goal of WBC is to replace pen-and-paper calculations.  The goal of
-WBC is not to think for the brewer and not to be so sophisticated that
+The goal of `wbcrecipe` is to replace pen-and-paper calculations.  The goal of
+`wbcrecipe` is not to think for the brewer and not to be so sophisticated that
 the user experience becomes a matter of outsmarting the software.
 
 The main (and only?) features are:
@@ -24,6 +41,7 @@ The main (and only?) features are:
     also multi-step (decoction mass calculations are planned ... some day)
   * calculate IBUs and optionally calculate hop additions based on
     desired IBUs
+  * scales recipes to desired final volume
   * a machine-readable compiled format -- if the recipe is what
     you want to brew, the compiled format is the ingredients you used
     to achieve what you wanted.  This data can be used to track
