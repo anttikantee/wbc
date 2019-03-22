@@ -17,189 +17,12 @@
 from WBC.Units import *
 from WBC.Units import _Temperature, _Volume, _Mass
 from WBC.Utils import checktype
+from WBC import Timespec
 
 class Hop:
 	Pellet	= object()
 	Leaf	= object()
 
-	class Hoptime:
-		def __lt__(self, other):
-			scls = self.__class__
-			ocls = other.__class__
-			if scls == ocls:
-				raise TypeError('I cannot compare')
-			return Hop._order.index(scls) < Hop._order.index(ocls)
-
-		def __eq__(self, other):
-			if self.__class__ != other.__class__:
-				return False
-			raise TypeError('I cannot compare')
-
-	class Boil(Hoptime):
-		FWH		= object()
-		BOILTIME	= object()
-
-		# FWH adds this much to full boiltime for IBU calculations
-		FWH_BONUS=	20
-		assert(FWH_BONUS > 0)
-
-		def __init__(self, spec):
-			import numbers
-			if not isinstance(spec, numbers.Number) \
-			    and spec is not self.FWH \
-			    and spec is not self.BOILTIME:
-				raise PilotError('invalid boiltime format')
-			self.time = None
-			self.spec = spec
-
-		# uuuh.  not sure why I'm punishing myself with
-		# __str__() vs. timespecstr()
-		def __str__(self):
-			assert(self.time is not None)
-			if self.spec is self.FWH:
-				return 'FWH'
-			elif self.spec is self.BOILTIME:
-				return 'boiltime'
-			return str(int(self.time)) + ' min'
-
-		def timespecstr(self):
-			assert(self.time is not None)
-			if self.spec is self.BOILTIME:
-				return '@ boil'
-			else:
-				return str(self)
-
-		def __repr__(self):
-			return 'Hop boil spec: ' + str(self)
-
-		def __lt__(self, other):
-			try:
-				return super().__lt__(other)
-			except TypeError:
-				return self.time < other.time
-
-		def __eq__(self, other):
-			try:
-				return super().__eq__(other)
-			except TypeError:
-				return self.time == other.time
-
-		def resolvetime(self, boiltime):
-			assert(self.time is None)
-
-			if self.spec is self.FWH:
-				self.time = boiltime + self.FWH_BONUS
-			elif self.spec is self.BOILTIME:
-				self.time = boiltime
-			else:
-				specval = int(self.spec)
-				if specval > boiltime:
-					raise PilotError('hop boiltime ('
-					    + str(specval)+') > wort boiltime')
-				self.time = specval
-
-	class Steep(Hoptime):
-		def __init__(self, temp, time):
-			checktype(temp, Temperature)
-
-			self.temp = temp
-			self.time = time
-			self.spec = None
-
-		def __str__(self):
-			return str(self.time) + ' min @ ' + str(self.temp)
-
-		def timespecstr(self):
-			return '@ ' + str(self.temp)
-
-		def __repr__(self):
-			return 'Hop steep spec: ' + str(self)
-
-		def __lt__(self, other):
-			try:
-				return super().__lt__(other)
-			except TypeError:
-				if self.temp == other.temp:
-					return self.time < other.time
-				return self.temp < other.temp
-
-		def __eq__(self, other):
-			try:
-				return super().__eq__(other)
-			except TypeError:
-				return self.temp == other.temp and \
-				    self.time == other.time
-
-		def resolvetime(self, boiltime):
-			return
-
-	class Dryhop(Hoptime):
-		Package =	object()
-
-		def __init__(self, indays, outdays):
-			if indays == self.Package or outdays == self.Package:
-				# I guess someone *could* put hops into
-				# the fermenter for some days and transfer
-				# them into the package.  We're not going to
-				# support such activities.
-				if indays is not outdays:
-					raise PilotError('when dryhopping in '\
-					    'package, indays and outdays must '\
-					    'be "package"')
-			else:
-				if indays <= outdays:
-					raise PilotError('trying to take ' \
-					    'dryhops out before putting ' \
-					    'them in')
-			self.indays = indays
-			self.outdays = outdays
-			self.time = 0
-			self.spec = None
-
-		def __str__(self):
-			if self.indays is self.Package:
-				rv = 'package'
-			else:
-				rv = str(self.indays) \
-				    + 'd -> ' + str(self.outdays) + 'd'
-			return rv
-
-		def timespecstr(self):
-			return 'dryhop'
-
-		def __repr__(self):
-			return 'Hop dryhop spec: ' + str(self)
-
-		def __lt__(self, other):
-			try:
-				return super().__lt__(other)
-			except TypeError:
-				pass
-
-			if self.indays is self.Package:
-				if other.indays is other.Package:
-					return False
-				return True
-
-			if other.indays is other.Package:
-				return False
-
-			if self.indays < other.indays:
-				return True
-			elif self.indays == other.indays:
-				if self.outdays < other.outdays:
-					return True
-			return False
-
-		def __eq__(self, other):
-			try:
-				return super().__eq__(other)
-			except TypeError:
-				return self.indays == other.indays and \
-				    self.outdays == other.outdays
-
-		def resolvetime(self, boiltime):
-			return
 
 	def __init__(self, name, aapers, type = Pellet):
 		aalow = 1
@@ -232,7 +55,7 @@ class Hop:
 	#
 
 	def __util(self, strength, time):
-		if not isinstance(time, Hop.Boil):
+		if not isinstance(time, Timespec.Boil):
 			return 0
 
 		mins = time.time
@@ -289,6 +112,3 @@ class Hop:
 			assert(self.type is self.Leaf)
 			density = Constants.leafhop_density_gl
 		return _Volume(mass.valueas(Mass.G) / density)
-
-	# from "smallest" to "largest" (not first-to-last)
-	_order = [Dryhop, Steep, Boil]

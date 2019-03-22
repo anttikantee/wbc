@@ -31,64 +31,21 @@ import sys
 
 hoptypes = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }
 
-def doboilhop(r, hop, amountspec, timespec):
-	(fun, hu) = Parse.hopunit(amountspec)
-	fun(r, hop, hu, Parse.hopboil(timespec))
+def dohop(r, hopspec, unit, timespec):
+	typstr = hopspec[2] if len(hopspec) > 2 else 'pellet'
+	if typstr not in hoptypes:
+		raise PilotError('invalid hop type: ' + typstr)
+	typ = hoptypes[typstr]
+	aa = Parse.percent(hopspec[1])
+	hop = Hop(hopspec[0], aa, typ)
 
-def dosteephop(r, hop, amountspec, timespec):
-	ar = timespec.split("@")
-	if len(ar) != 2:
-		raise PilotError("whirlpool hops must be specified as "
-		    + "\"time @ temperature\"")
-	time = Parse.kettletime(ar[0])
-	temp = Parse.temp(ar[1])
-
-	(fun, hu) = Parse.hopunit(amountspec)
-	fun(r, hop, hu, Hop.Steep(temp, time))
-
-def dodryhop(r, hop, amountspec, timespec):
-	if timespec == 'package':
-		inday = outday = Hop.Dryhop.Package
-	else:
-		ar = timespec.split("->")
-		if len(ar) != 2:
-			raise PilotError("dryhops must be specified as "
-			    + "\"days_in -> days_out\" or \"package\"")
-		inday = Parse.days(ar[0])
-		outday = Parse.days(ar[1])
-
-	(fun, hu) = Parse.hopunit(amountspec)
-	fun(r, hop, hu, Hop.Dryhop(inday, outday))
+	fun, hu = Parse.hopunit(unit)
+	ts = Parse.timespec(timespec)
+	fun(r, hop, hu, ts)
 
 def dohops(r, d_hops):
-	hops = {}
-
-	def processhopdef(id, v):
-		typstr = v[2] if len(v) > 2 else 'pellet'
-		if typstr not in hoptypes:
-			raise PilotError('invalid hop type: ' + typstr)
-		typ = hoptypes[typstr]
-		aa = Parse.percent(v[1])
-		hops[id] = Hop(v[0], aa, typ)
-		return hops[id]
-
-	def gethopinstance(v):
-		if isinstance(v, list):
-			return processhopdef('n/a', v)
-		else:
-			return hops[v]
-
-	for hd in d_hops.get('defs', []):
-		processhopdef(hd, d_hops['defs'][hd])
-
-	for h in d_hops.get('boil', []):
-		doboilhop(r, gethopinstance(h[0]), h[1], h[2])
-
-	for h in d_hops.get('steep', []):
-		dosteephop(r, gethopinstance(h[0]), h[1], h[2])
-
-	for h in d_hops.get('dryhop', []):
-		dodryhop(r, gethopinstance(h[0]), h[1], h[2])
+	for h in d_hops:
+		dohop(r, h[0], h[1], h[2])
 
 def dofermentables(r, ferms):
 	fermtype = None
@@ -188,6 +145,7 @@ def processyaml(clist, odict, data):
 		'mashparams'	: domashparams,
 		'fermentables'	: dofermentables,
 		'hops'		: dohops,
+		'defs'		: lambda *x: None,
 		'water'		: dowater,
 	}
 
@@ -234,13 +192,8 @@ def processcsv(clist, odict, data):
 			    Mass(float(row[2]), massunit), row[3])
 
 		elif row[0] == "hop":
-			hopfunmap = {
-				'boil'   : doboilhop,
-				'steep'  : dosteephop,
-				'dryhop' : dodryhop,
-			}
-			h = Hop(row[1], float(row[3]), hoptypes[row[2]])
-			hopfunmap[row[5]](r, h, row[4] + masssfx, row[6])
+			dohop(r, [row[1], row[3] + '%', row[2]],
+			    row[4] + masssfx, row[6])
 	return r
 
 

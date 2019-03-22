@@ -26,7 +26,7 @@ from WBC.Units import _Mass, _Strength, _Temperature, _Volume
 from WBC.Hop import Hop
 from WBC.Mash import Mash
 
-from WBC import Brewutils
+from WBC import Brewutils, Timespec
 
 def checkconfig():
 	return True
@@ -685,12 +685,11 @@ class Recipe:
 		packagedryhopvol = 0
 		for h in allhop:
 			(hop, mass, time, ibu) = Recipe._hopunmap(h)
-			if isinstance(time, Hop.Dryhop):
-				if time.indays is not time.Package:
-					hd['fermenter'] += hop.absorption(mass)
-				else:
-					hd['package'] += hop.absorption(mass)
-					packagedryhopvol += hop.volume(mass)
+			if isinstance(time, Timespec.Fermentor):
+				hd['fermenter'] += hop.absorption(mass)
+			elif isinstance(time, Timespec.Package):
+				hd['package'] += hop.absorption(mass)
+				packagedryhopvol += hop.volume(mass)
 			else:
 				hd['kettle'] += hop.absorption(mass)
 		self.hopsdrunk = {x: _Volume(hd[x]) for x in hd}
@@ -706,10 +705,12 @@ class Recipe:
 				prevval = None
 				prevtype = time.__class__
 
-			if isinstance(time, Hop.Dryhop):
+			if isinstance(time, Timespec.Fermentor):
+				h['timer'] = str(time)
+			if isinstance(time, Timespec.Package):
 				h['timer'] = str(time)
 
-			if isinstance(time, Hop.Steep):
+			if isinstance(time, Timespec.Steep):
 				if prevval is not None \
 				    and prevval[0] == time.temp:
 					if prevval[1] == time.time:
@@ -721,11 +722,11 @@ class Recipe:
 					h['timer'] = str(time.time) + ' min'
 				prevval = (time.temp, time.time)
 
-			if isinstance(time, Hop.Boil):
+			if isinstance(time, Timespec.Boil):
 				cmpval = time.time
 				thisval = '=='
 
-				if time.spec is Hop.Boil.FWH:
+				if time.spec == 'FWH':
 					cmpval = self.boiltime
 
 				if cmpval != timer:

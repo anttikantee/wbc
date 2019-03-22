@@ -19,6 +19,7 @@ from WBC.Utils import PilotError
 from WBC.WBC import Recipe
 from WBC.Hop import Hop
 from WBC.Mash import Mash, MashStep
+from WBC import Timespec
 
 import re
 import string
@@ -93,6 +94,20 @@ def kettletime(input):
 		'min'	: None,
 	}
 	return _unit(int, suffixes, input, name = 'kettletime')
+
+def timespec(input):
+	if input == 'package':
+		return Timespec.Package()
+	elif '->' in input:
+		d1, d2 = split(input, '->', days, days)
+		return Timespec.Fermentor(d1, d2)
+	elif '@' in input:
+		time, temp = timedtemp(input)
+		return Timespec.Steep(time, temp)
+	elif input == 'FWH' or input == 'boiltime':
+		return Timespec.Boil(input)
+	else:
+		return Timespec.Boil(kettletime(input))
 
 def days(input):
 	suffixes = {

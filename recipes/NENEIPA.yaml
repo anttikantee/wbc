@@ -13,25 +13,15 @@ fermentables:
                 Flaked wheat            : 4 oz
 
 hops:
-        defs:
-                amarillo:       [ Amarillo,     8.2%,   pellet  ]
-                cascade_pellet: [ Cascade,      9.3%,   pellet  ]
-                cascade_leaf:   [ Cascade,      7.3%,   leaf    ]
-                chinook:        [ Chinook,      11.6%,  pellet  ]
-                nugget:         [ Nugget,       12.4%,  pellet  ]
-                simcoe:         [ Simcoe,       13.6%,  pellet  ]
+        - [     [ Chinook,      11.6%,  pellet  ],   0.25 oz,     FWH         ]
+        - [     [ Simcoe,       13.6%,  pellet  ],   1    oz,  30 min         ]
+        - [ &am [ Amarillo,     8.2%,   pellet  ],   1    oz,  12 min         ]
+        - [ &cp [ Cascade,      9.3%,   pellet  ],   0.5  oz,  8  min         ]
+        - [ &nu [ Nugget,       12.4%,  pellet  ],   0.5  oz,  8  min         ]
 
-        boil:
-                - [ chinook,            0.25 oz,    FWH ]
-                - [ simcoe,             1    oz, 30 min ]
-                - [ amarillo,           1    oz, 12 min ]
-                - [ cascade_pellet,     0.5  oz, 8  min ]
-                - [ nugget,             0.5  oz, 8  min ]
 
-        steep:
-                - [ cascade_pellet,     0.5  oz, 10min @ 90degC ]
-                - [ nugget,             0.5  oz, 10min @ 90degC ]
+        - [ *cp,                                     0.5  oz,  10min @ 90degC ]
+        - [ *nu,                                     0.5  oz,  10min @ 90degC ]
 
-        dryhop:
-                - [ amarillo,           1    oz, 3day -> 0day ]
-                - [ cascade_leaf,       1.5  oz, 3day -> 0day ]
+        - [ *am,                                     1    oz,  3day -> 0day   ]
+        - [     [ Cascade,      7.3%,   leaf    ],   1.5  oz,  3day -> 0day   ]
