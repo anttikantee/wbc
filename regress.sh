@@ -58,14 +58,14 @@ if [ "$1" = 'prep' ]; then
 		[ $? -eq 0 ] || die Failed: $(cat testdata/$(basename $x).out)
 	done
 
-	cat -n cmds-regress.txt | while read line; do
+	num=1
+	while read line; do
 		set -- ${line}
-		num=${1}
-		shift
 		[ $# -ne 0 ] || continue
 		echo Processing "$@"
 		${@} > testdata/cmdregress-${num}.cmdout
-	done
+		num=$((${num} + 1))
+	done < cmds-regress.txt
 elif [ $1 = 'test' ]; then
 	[ -n "$(ls testdata 2>/dev/null)" ] \
 	    || die no testdata, did not run prep\?
@@ -78,16 +78,16 @@ elif [ $1 = 'test' ]; then
 		compordie $x $x.cmp
 	done
 
-	cat -n cmds-regress.txt | while read line; do
+	num=1
+	while read line; do
 		set -- ${line}
-		num=${1}
-		shift
 		[ $# -ne 0 ] || continue
 		echo Testing "$@"
 		${@} > testdata/cmdregress-${num}.cmp
 		compordie testdata/cmdregress-${num}.cmdout \
 		    testdata/cmdregress-${num}.cmp
-	done
+		num=$((${num} + 1))
+	done < cmds-regress.txt
 
 	[ ${failed} -eq 0 ] || die output for ${failed} 'test(s)' differ
 
