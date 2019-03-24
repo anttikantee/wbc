@@ -414,6 +414,11 @@ add('Simpsons', 'Crystal Dark',
 	diap_none,
 	Color(267.5, EBC),
 	needmash = False)
+add('Simpsons', 'Double Roasted Crystal',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
+	diap_none,
+	Color(300, EBC),
+	needmash = False)
 
 # Hats off to Thomas Fawcett & Sons for having useful data sheets
 # easily available.  I wish all maltsters were like them.  They even
@@ -438,6 +443,17 @@ add('Fawcett', 'Crystal II',
 	Extract(70, FGAI, FCD_UNKNOWN, 4.5),
 	diap_none,
 	Color(65, LOVIBOND),
+	needmash = False)
+
+# I guess "The Swaen", strictly speaking, is the maltster, but I'll
+# list these under the brandnames only, since I don't want to start
+# doing 'The Swaen Goldswaen Red'
+#
+# http://theswaen.com/ourproducts-malt-for-beer/
+add('Goldswaen', 'Red',
+	Extract(78, FGDB, FCD_UNKNOWN, 7.0),
+	diap_none,
+	Color(50, EBC),
 	needmash = False)
 
 # XXX: Weyermann doesn't list acidulated malt extract, but since it's
