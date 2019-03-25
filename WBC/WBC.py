@@ -77,7 +77,7 @@ class Recipe:
 			'extract'	: _Mass(0),
 		}
 
-		self.hopsdrunk = {'kettle':_Volume(0), 'fermenter':_Volume(0),
+		self.hopsdrunk = {'kettle':_Volume(0), 'fermentor':_Volume(0),
 		    'package':_Volume(0)}
 
 		self._calculatestatus = 0
@@ -127,7 +127,7 @@ class Recipe:
 
 		# configured kettle loss + dryhop loss
 		if stage <= self.FERMENTER:
-			v += self.hopsdrunk['fermenter']
+			v += self.hopsdrunk['fermentor']
 			v += getparam('fermentor_loss')
 
 		# configured kettle loss + hop loss
@@ -686,7 +686,7 @@ class Recipe:
 		for h in allhop:
 			(hop, mass, time, ibu) = Recipe._hopunmap(h)
 			if isinstance(time, Timespec.Fermentor):
-				hd['fermenter'] += hop.absorption(mass)
+				hd['fermentor'] += hop.absorption(mass)
 			elif isinstance(time, Timespec.Package):
 				hd['package'] += hop.absorption(mass)
 				packagedryhopvol += hop.volume(mass)
@@ -773,7 +773,7 @@ class Recipe:
 
 		# ok, so the problem is that the amount of hops affects the
 		# kettle crud, meaning we have non-constants loss between
-		# postboil and the fermenter.  that loss, in turn, affects
+		# postboil and the fermentor.  that loss, in turn, affects
 		# the final volume.  we can't replace the lost wort with
 		# water, since that affects both the IBUs and strength.
 		#
