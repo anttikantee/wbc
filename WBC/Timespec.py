@@ -143,8 +143,7 @@ class Fermentor(Timespec):
 		return str(self.indays) + 'd -> ' + str(self.outdays) + 'd'
 
 	def timespecstr(self):
-		# XXX
-		return 'dryhop'
+		return 'fermentor'
 
 	def __repr__(self):
 		return 'Timespec fermentor: ' + str(self)
@@ -181,8 +180,7 @@ class Package(Timespec):
 		return 'package'
 
 	def timespecstr(self):
-		# XXX
-		return 'dryhop'
+		return 'package'
 
 	def __repr__(self):
 		return 'Timespec: package'
