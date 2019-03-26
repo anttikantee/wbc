@@ -218,10 +218,10 @@ def hopunit(input):
 
 	rv = _unit(float, { 'Recipe IBU':None }, input, fatal=False)
 	if rv is not None:
-		return (Recipe.hop_recipeIBU, rv)
+		return (Recipe.hop_byrecipeIBU, rv)
 
 	rv = _unit(float, { 'Recipe BUGU': None }, input, fatal=False)
 	if rv is not None:
-		return (Recipe.hop_recipeBUGU, rv)
+		return (Recipe.hop_byrecipeBUGU, rv)
 
 	raise PilotError('invalid boilhop quantity: ' + str(input))

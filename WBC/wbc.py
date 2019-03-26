@@ -192,7 +192,6 @@ class Recipe:
 	# where "amountspec" is more complicated than one variable,
 	# e.g. mass/vol, a tuple is used to retain signature
 	#
-
 	def hop_bymass(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])
 		self.hops_bymass.append(self._hopstore(hop, mass, time))
@@ -223,14 +222,14 @@ class Recipe:
 		checktype(hop, Hop)
 		self.hops_byIBU.append(self._hopstore(hop, IBU, time))
 
-	def hop_recipeIBU(self, hop, IBU, time):
+	def hop_byrecipeIBU(self, hop, IBU, time):
 		checktype(hop, Hop)
 		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
 			self.hops_recipeIBU = self._hopstore(hop, IBU, time)
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
 
-	def hop_recipeBUGU(self, hop, bugu, time):
+	def hop_byrecipeBUGU(self, hop, bugu, time):
 		checktype(hop, Hop)
 		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
 			self.hops_recipeBUGU = self._hopstore(hop, bugu, time)
