@@ -30,9 +30,6 @@ class Timespec:
 			return False
 		raise TypeError('I cannot compare')
 
-class Mash(Timespec):
-	pass
-
 class Boil(Timespec):
 	# FWH adds this much to full boiltime for IBU calculations
 	# XXX: no longer belongs here
@@ -201,4 +198,4 @@ class Package(Timespec):
 		return
 
 # from "smallest" to "largest" (opposite of first-to-last)
-_order = [Package, Fermentor, Steep, Boil, Mash]
+_order = [Package, Fermentor, Steep, Boil]
