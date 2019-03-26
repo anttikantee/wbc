@@ -14,12 +14,12 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Units import Mass, Temperature, Volume, Strength, Pressure, Color
-from WBC.Utils import PilotError
-from WBC.WBC import Recipe
-from WBC.Hop import Hop
-from WBC.Mash import Mash, MashStep
-from WBC import Timespec
+from WBC import units
+from WBC.utils import PilotError
+from WBC.wbc import Recipe
+from WBC.hop import Hop
+
+from WBC import mash
 
 import re
 import string
@@ -50,44 +50,44 @@ def _unit(cls, sfxmap, input, fatal = True, name = None):
 		return cls(float(numstr), sfx)
 
 masssfx = {
-	'mg'	: Mass.MG,
-	'g'	: Mass.G,
-	'kg'	: Mass.KG,
-	'oz'	: Mass.OZ,
-	'lb'	: Mass.LB
+	'mg'	: units.Mass.MG,
+	'g'	: units.Mass.G,
+	'kg'	: units.Mass.KG,
+	'oz'	: units.Mass.OZ,
+	'lb'	: units.Mass.LB
 }
 def mass(input):
-	return _unit(Mass, masssfx, input)
+	return _unit(units.Mass, masssfx, input)
 
 def volume(input):
 	suffixes = {
-		'bbl'	: Volume.BARREL,
-		'gal'	: Volume.GALLON,
-		'qt'	: Volume.QUART,
-		'dl'	: Volume.DECILITER,
-		'l'	: Volume.LITER,
-		'hl'	: Volume.HECTOLITER,
+		'bbl'	: units.Volume.BARREL,
+		'gal'	: units.Volume.GALLON,
+		'qt'	: units.Volume.QUART,
+		'dl'	: units.Volume.DECILITER,
+		'l'	: units.Volume.LITER,
+		'hl'	: units.Volume.HECTOLITER,
 	}
-	return _unit(Volume, suffixes, input)
+	return _unit(units.Volume, suffixes, input)
 
-def temp(input):
+def temperature(input):
 	suffixes = {
-		'degC'			: Temperature.degC,
-		chr(0x00b0) + 'C'	: Temperature.degC,
-		'degF'			: Temperature.degF,
-		chr(0x00b0) + 'F'	: Temperature.degF,
-		'K'			: Temperature.K,
+		'degC'			: units.Temperature.degC,
+		chr(0x00b0) + 'C'	: units.Temperature.degC,
+		'degF'			: units.Temperature.degF,
+		chr(0x00b0) + 'F'	: units.Temperature.degF,
+		'K'			: units.Temperature.K,
 	}
-	return _unit(Temperature, suffixes, input)
+	return _unit(units.Temperature, suffixes, input)
 
 def pressure(input):
 	suffixes = {
-		'Pa'	: Pressure.PASCAL,
-		'atm'	: Pressure.ATMOSPHERE,
-		'bar'	: Pressure.BAR,
-		'psi'	: Pressure.PSI,
+		'Pa'	: units.Pressure.PASCAL,
+		'atm'	: units.Pressure.ATMOSPHERE,
+		'bar'	: units.Pressure.BAR,
+		'psi'	: units.Pressure.PSI,
 	}
-	return _unit(Pressure, suffixes, input)
+	return _unit(units.Pressure, suffixes, input)
 
 def kettletime(input):
 	suffixes = {
@@ -96,18 +96,23 @@ def kettletime(input):
 	return _unit(int, suffixes, input, name = 'kettletime')
 
 def timespec(input):
+	# XXX: collision between timespec module and this function.
+	# however, since this function is always seen as parse.timespec()
+	# elsewhere, we can just do collision avoidance here.
+	import WBC
+
 	if input == 'package':
-		return Timespec.Package()
+		return WBC.timespec.Package()
 	elif '->' in input:
 		d1, d2 = split(input, '->', days, days)
-		return Timespec.Fermentor(d1, d2)
+		return WBC.timespec.Fermentor(d1, d2)
 	elif '@' in input:
-		time, temp = timedtemp(input)
-		return Timespec.Steep(time, temp)
+		time, temp = timedtemperature(input)
+		return WBC.timespec.Steep(time, temp)
 	elif input == 'FWH' or input == 'boiltime':
-		return Timespec.Boil(input)
+		return WBC.timespec.Boil(input)
 	else:
-		return Timespec.Boil(kettletime(input))
+		return WBC.timespec.Boil(kettletime(input))
 
 def days(input):
 	suffixes = {
@@ -119,11 +124,11 @@ def days(input):
 
 def color(input):
 	suffixes = {
-		'EBC'	: Color.EBC,
-		'SRM'	: Color.SRM,
-		'L'	: Color.LOVIBOND,
+		'EBC'	: units.Color.EBC,
+		'SRM'	: units.Color.SRM,
+		'L'	: units.Color.LOVIBOND,
 	}
-	return _unit(Color, suffixes, input)
+	return _unit(units.Color, suffixes, input)
 
 percentsfxs = {
 	'%'	: None,
@@ -133,17 +138,17 @@ def percent(input):
 
 def strength(input):
 	suffixes = {
-		'degP'			: Strength.PLATO,
-		chr(0x00b0) + 'P'	: Strength.PLATO,
-		'SG'			: Strength.SG,
-		'pts'			: Strength.SG_PTS,
+		'degP'			: units.Strength.PLATO,
+		chr(0x00b0) + 'P'	: units.Strength.PLATO,
+		'SG'			: units.Strength.SG,
+		'pts'			: units.Strength.SG_PTS,
 	}
 	input = str(input)
 	if re.match(r'^\s*1\.[01][0-9][0-9]\s*$', input):
-		return Strength(float(input), Strength.SG)
+		return units.Strength(float(input), units.Strength.SG)
 	if re.match(r'^\s*0\.9[7-9][0-9]\s*$', input):
-		return Strength(float(input), Strength.SG)
-	return _unit(Strength, suffixes, input)
+		return units.Strength(float(input), units.Strength.SG)
+	return _unit(units.Strength, suffixes, input)
 
 def split(input, splitter, i1, i2):
 	istr = str(input)
@@ -158,12 +163,12 @@ def split(input, splitter, i1, i2):
 def ratio(input, r1, r2):
 	return split(input, '/', r1, r2)
 
-def timedtemp(input):
-	return split(input, '@', kettletime, temp)
+def timedtemperature(input):
+	return split(input, '@', kettletime, temperature)
 
 def mashmethod(input):
 	methods = {
-		'infusion'	: Mash.INFUSION,
+		'infusion'	: mash.Mash.INFUSION,
 	}
 	if input in methods:
 		return methods[input]
@@ -171,10 +176,10 @@ def mashmethod(input):
 
 def mashstep(input):
 	if '@' in input:
-		r = timedtemp(input)
-		return MashStep(r[1], r[0])
+		r = timedtemperature(input)
+		return mash.MashStep(r[1], r[0])
 	else:
-		return MashStep(temp(input))
+		return mash.MashStep(temperature(input))
 
 def fermentableunit(input):
 	if input == 'rest':
@@ -183,21 +188,11 @@ def fermentableunit(input):
 	rv = _unit(float, percentsfxs, input, fatal = False)
 	if rv is not None:
 		return (Recipe.fermentable_bypercent, rv)
-	rv = _unit(Mass, masssfx, input, fatal = False)
+	rv = _unit(units.Mass, masssfx, input, fatal = False)
 	if rv is not None:
 		return (Recipe.fermentable_bymass, rv)
 
 	raise PilotError('invalid fermentable quantity: ' + str(input))
-
-def hopboil(input):
-	suffixes = {
-		'min'	: None,
-	}
-	if input == 'FWH':
-		return Hop.Boil(Hop.Boil.FWH)
-	elif input == 'boiltime':
-		return Hop.Boil(Hop.Boil.BOILTIME)
-	return _unit(Hop.Boil, suffixes, input)
 
 def hopunit(input):
 	if input.startswith('AA '):
@@ -213,7 +208,7 @@ def hopunit(input):
 		rv = ratio(input, mass, volume)
 		return (Recipe.hop_bymassvolratio, rv)
 
-	rv = _unit(Mass, masssfx, input, fatal = False)
+	rv = _unit(units.Mass, masssfx, input, fatal = False)
 	if rv is not None:
 		return (Recipe.hop_bymass, rv)
 

@@ -14,18 +14,18 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC import Constants
-from WBC import Utils
-from WBC.Utils import PilotError
-from WBC.Units import Color
-from WBC.Getparam import getparam
+from WBC import constants
+from WBC import utils
+from WBC.utils import PilotError
+from WBC.units import Color
+from WBC.getparam import getparam
 
 import copy
 
 class Fermentable:
 	def __init__(self, maltster, product, extract, diap, color, needmash,
 	    conversion):
-		Utils.checktype(color, Color)
+		utils.checktype(color, Color)
 		self.maltster = maltster
 		self.product = product
 		self._setname()
@@ -66,7 +66,7 @@ class Extract:
 		self.type = type
 
 		if fcd is self.FCD_UNKNOWN:
-			fcd = Constants.fine_coarse_diff
+			fcd = constants.fine_coarse_diff
 		if fcd < 0 or fcd > 10:
 			raise PilotError('invalid fine-coarse difference')
 
@@ -139,10 +139,10 @@ class DiaP(float):
 			return self.stras(self.WK)
 
 diap_none = DiaP(0, DiaP.WK)
-diap_min = DiaP(Constants.minconversion, DiaP.WK)
+diap_min = DiaP(constants.minconversion, DiaP.WK)
 
 # return fermentable or None
-def find(name):
+def Find(name):
 	# case-insensitive comparison
 	res = [x for x in fermentables if x.name.lower() == name.lower()]
 	if len(res) == 0:
@@ -151,8 +151,8 @@ def find(name):
 	return res[0]
 
 # return fermentable or raise error
-def get(name):
-	f = find(name)
+def Get(name):
+	f = Find(name)
 	if f is None:
 		raise PilotError("I don't know about fermentable: " + name)
 	return f
@@ -160,7 +160,7 @@ def get(name):
 # return a list of fermentables which match maltster *AND* product
 #
 # XXX: get(), find() *AND* search()??  maybe we'll get a seek() next?
-def search(maltster, product):
+def Search(maltster, product):
 	from collections import OrderedDict
 	import re
 
@@ -183,18 +183,18 @@ def search(maltster, product):
 # is to keep user recipes working even if we happen to add a fermentable
 # with the same name.
 def _scanexisting(name):
-	f = find(name)
+	f = Find(name)
 	if not f is None:
 		Utils.warn('fermentable ' + name + ' already exists')
-		fermentables.remove(f)
+		fermentables.Remove(f)
 
-def add(maltster, name, extract, wk, ebc, needmash = True, conversion = True):
+def Add(maltster, name, extract, wk, ebc, needmash = True, conversion = True):
 	_scanexisting(name)
 	fermentables.append(Fermentable(maltster, name, extract, wk, ebc,
 	    needmash, conversion))
 
-def alias(maltster, product, toclone):
-	c = find(toclone)
+def Alias(maltster, product, toclone):
+	c = Find(toclone)
 	if c is None:
 		raise PilotError('trying to alias nonexisting fermentable '
 		    + toclone)
@@ -211,71 +211,71 @@ def alias(maltster, product, toclone):
 EBC=		Color.EBC
 LOVIBOND=	Color.LOVIBOND
 
-add('Avangard', 'Pale',
+Add('Avangard', 'Pale',
 	Extract(80, FGDB, 2.0, 4.5),
 	DiaP(200, DiaP.WK),
 	Color(6.5, EBC))
-add('Avangard', 'Pilsner',
+Add('Avangard', 'Pilsner',
 	Extract(81, FGDB, 2.0, 4.5),
 	DiaP(220, DiaP.WK),
 	Color(3.25, EBC))
-add('Avangard', 'Vienna',
+Add('Avangard', 'Vienna',
 	Extract(80, FGDB, 2.0, 4.5),
 	DiaP(200, DiaP.WK),
 	Color(11, EBC))
-add('Avangard', 'Munich light',
+Add('Avangard', 'Munich light',
 	Extract(80.5, FGDB, 2.0, 4.5),
 	DiaP(200, DiaP.WK),
 	Color(18.5, EBC))
-add('Avangard', 'Munich dark',
+Add('Avangard', 'Munich dark',
 	Extract(80.5, FGDB, 2.0, 4.5),
 	DiaP(200, DiaP.WK),
 	Color(30, EBC))
-add('Avangard', 'Wheat',
+Add('Avangard', 'Wheat',
 	Extract(83, FGDB, 2.0, 5.0),
 	DiaP(150, DiaP.WK),
 	Color(4.5, EBC))
 
-add('Briess', 'Pale',
+Add('Briess', 'Pale',
 	Extract(78.5, CGDB, 1.5, 4.0),
 	DiaP(85, DiaP.L),
 	Color(3.5, LOVIBOND))
-add('Briess', 'Aromatic Munich 20 L',
+Add('Briess', 'Aromatic Munich 20 L',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 2.5),
 	DiaP(20, DiaP.L),
 	Color(20, LOVIBOND))
-add('Briess', 'Victory',
+Add('Briess', 'Victory',
 	Extract(75.0, FGDB, FCD_UNKNOWN, 2.5),
 	diap_none,
 	Color(28, LOVIBOND))
 
-add('Briess', 'Carapils',
+Add('Briess', 'Carapils',
 	Extract(75.0, FGDB, FCD_UNKNOWN, 6.5),
 	diap_none,
 	Color(1.5, LOVIBOND),
 	needmash = False)
 
-add('Briess', 'Caramel 20 L',
+Add('Briess', 'Caramel 20 L',
 	Extract(76.0, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(20, LOVIBOND),
 	needmash = False)
-add('Briess', 'Caramel 40 L',
+Add('Briess', 'Caramel 40 L',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 5.5),
 	diap_none,
 	Color(40, LOVIBOND),
 	needmash = False)
-add('Briess', 'Caramel 60 L',
+Add('Briess', 'Caramel 60 L',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
 	Color(60, LOVIBOND),
 	needmash = False)
-add('Briess', 'Caramel 80 L',
+Add('Briess', 'Caramel 80 L',
 	Extract(76.0, FGDB, FCD_UNKNOWN, 4.5),
 	diap_none,
 	Color(80, LOVIBOND),
 	needmash = False)
-add('Briess', 'Caramel 120 L',
+Add('Briess', 'Caramel 120 L',
 	Extract(75.0, FGDB, FCD_UNKNOWN, 3.0),
 	diap_none,
 	Color(120, LOVIBOND),
@@ -286,12 +286,12 @@ add('Briess', 'Caramel 120 L',
 # anywhere else for that matter.  Guessing 50% -- it's going to be
 # max 50 %-units wrong ;)
 # (and in all likelyhood it's in the 50-70 range ...)
-add('Briess', 'Blackprinz',
+Add('Briess', 'Blackprinz',
 	Extract(50.0, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(500, LOVIBOND),
 	needmash = False)
-add('Briess', 'Midnight Wheat',
+Add('Briess', 'Midnight Wheat',
 	Extract(50.0, FGDB, FCD_UNKNOWN, 6.5),
 	diap_none,
 	Color(550, LOVIBOND),
@@ -299,21 +299,21 @@ add('Briess', 'Midnight Wheat',
 
 # Briess generic smoked malt (any of beech / cherry / mesquite)
 # XXX: not sure diastatic power is correct (specs do say 140 degL)
-add('Briess', 'apple wood smoked',
+Add('Briess', 'apple wood smoked',
 	Extract(80.5, FGDB, FCD_UNKNOWN, 6.0),
 	DiaP(90, DiaP.L),
 	Color(5, LOVIBOND))
-alias('Briess', 'cherry wood smoked', 'Briess apple wood smoked')
-alias('Briess', 'mesquite smoked', 'Briess apple wood smoked')
+Alias('Briess', 'cherry wood smoked', 'Briess apple wood smoked')
+Alias('Briess', 'mesquite smoked', 'Briess apple wood smoked')
 
 # Crisp
-add('Crisp', 'Maris Otter',
+Add('Crisp', 'Maris Otter',
 	Extract(82.0, FGDB, FCD_UNKNOWN, 3.5),
 	DiaP(50, DiaP.L),
 	Color(3.0, LOVIBOND))
 # well, as usual, can't find this on the maltsters page, but pretty much
 # all vendors agree that it's 200-250 Lovibond, so I guess mostly correct
-add('Crisp', 'Pale Chocolate',
+Add('Crisp', 'Pale Chocolate',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 3.0),
 	diap_none,
 	Color(225, LOVIBOND),
@@ -323,43 +323,43 @@ add('Crisp', 'Pale Chocolate',
 # internet sources.  seems like Crisp doesn't want to tell us.
 # guess we should be thankful that they at least tell the color
 # and moisture content.
-add('Crisp', 'Black Malt',
+Add('Crisp', 'Black Malt',
 	Extract(75.0, FGDB, FCD_UNKNOWN, 3.0),
 	diap_none,
 	Color(600, LOVIBOND),
 	needmash = False)
-add('Crisp', 'Brown',
+Add('Crisp', 'Brown',
 	Extract(70.0, FGDB, FCD_UNKNOWN, 2.0),
 	diap_none,
 	Color(135, EBC))
-add('Crisp', 'Roasted barley',
+Add('Crisp', 'Roasted barley',
 	Extract(70.0, FGDB, FCD_UNKNOWN, 2.0),
 	diap_none,
 	Color(1350, EBC),
 	needmash = False)
 
-add('Crisp', 'Chocolate',
+Add('Crisp', 'Chocolate',
 	Extract(71.0, FGDB, FCD_UNKNOWN, 3.5),
 	diap_none,
 	Color(650, LOVIBOND),
 	needmash = False)
 # help legacy recipes for now
-alias(None, 'Roasted Barley', 'Crisp Roasted Barley')
+Alias(None, 'Roasted Barley', 'Crisp Roasted Barley')
 
 # XXX: probably better diastatic power, but can't figure it out
 # from the datasheet at:
 # http://dingemansmout.be/sites/dingemansmout.be/files/downloads/ALE_MD_0.pdf
-add('Dingemans', 'Pale',
+Add('Dingemans', 'Pale',
 	Extract(80, FGDB, 2.0, 4.5),
 	diap_min,
 	Color(9, EBC))
-add('Dingemans', 'Cara 120',
+Add('Dingemans', 'Cara 120',
 	Extract(74, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(120, EBC),
 	needmash = False)
-alias('Dingemans', 'Cara 45 L', 'Dingemans Cara 120')
-add('Dingemans', 'Special B',
+Alias('Dingemans', 'Cara 45 L', 'Dingemans Cara 120')
+Add('Dingemans', 'Special B',
 	Extract(72, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
 	Color(310, EBC),
@@ -369,7 +369,7 @@ add('Dingemans', 'Special B',
 # guessing the coarse grind from that.
 # you're not going to use this for a significant amount of the grainbill,
 # even if the guess is a bit wrong, not the end of the world.
-add('Meussdoerffer', 'Sour Malt',
+Add('Meussdoerffer', 'Sour Malt',
 	extract_unknown75,
 	diap_none,
 	Color(2, LOVIBOND))
@@ -378,43 +378,43 @@ add('Meussdoerffer', 'Sour Malt',
 # rest together from two sources:
 # http://www.muntonsmicrobrewing.com/wp-content/uploads/2018/04/171122-Craft-Brewer-Guide-October-2017_stg-5_email.pdf
 # http://www.muntonsmicrobrewing.com/products/typical-analysis/
-add('Muntons', 'Black Malt',
+Add('Muntons', 'Black Malt',
 	Extract(60, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
 	Color(1300, EBC),
 	needmash = False)
-add('Muntons', 'Chocolate',
+Add('Muntons', 'Chocolate',
 	Extract(65.5, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(1100, EBC),
 	needmash = False)
-add('Muntons', 'Crystal 150 EBC',
+Add('Muntons', 'Crystal 150 EBC',
 	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(150, EBC),
 	needmash = False)
-alias('Muntons', 'Crystal 60 L', 'Muntons Crystal 150 EBC')
-add('Muntons', 'Maris Otter',
+Alias('Muntons', 'Crystal 60 L', 'Muntons Crystal 150 EBC')
+Add('Muntons', 'Maris Otter',
 	Extract(81.5, FGDB, FCD_UNKNOWN, 3.0),
 	DiaP(156, DiaP.WK),
 	Color(5.8, EBC))
 
-add('Simpsons', 'Golden Promise',
+Add('Simpsons', 'Golden Promise',
 	Extract(81, FGDB, FCD_UNKNOWN, 3.7),
 	DiaP(140, DiaP.WK),
 	Color(6.5, EBC))
 
-add('Simpsons', 'Brown',
+Add('Simpsons', 'Brown',
 	Extract(68.7, FGDB, FCD_UNKNOWN, 4.0),
 	diap_none,
 	Color(515, EBC))
 
-add('Simpsons', 'Crystal Dark',
+Add('Simpsons', 'Crystal Dark',
 	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
 	Color(267.5, EBC),
 	needmash = False)
-add('Simpsons', 'Double Roasted Crystal',
+Add('Simpsons', 'Double Roasted Crystal',
 	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
 	Color(300, EBC),
@@ -426,7 +426,7 @@ add('Simpsons', 'Double Roasted Crystal',
 # http://www.fawcett-maltsters.co.uk/spec.html
 # (well, ok, they don't apparently supply the diastatic power, but
 # until we hit base malts for them, doesn't really matter)
-add('Fawcett', 'Brown',
+Add('Fawcett', 'Brown',
 	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
 	diap_none,
 	Color(188, EBC))
@@ -434,12 +434,12 @@ add('Fawcett', 'Brown',
 # well, ok, Fawcett apparently has different malts for different regions.
 # or at least there doesn't seem to be a naming consistency, plus the
 # specs don't match exactly.  so, yea, hats back on.
-add('Fawcett', 'Crystal I',
+Add('Fawcett', 'Crystal I',
 	Extract(70, FGAI, FCD_UNKNOWN, 4.5),
 	diap_none,
 	Color(45, LOVIBOND),
 	needmash = False)
-add('Fawcett', 'Crystal II',
+Add('Fawcett', 'Crystal II',
 	Extract(70, FGAI, FCD_UNKNOWN, 4.5),
 	diap_none,
 	Color(65, LOVIBOND),
@@ -450,7 +450,7 @@ add('Fawcett', 'Crystal II',
 # doing 'The Swaen Goldswaen Red'
 #
 # http://theswaen.com/ourproducts-malt-for-beer/
-add('Goldswaen', 'Red',
+Add('Goldswaen', 'Red',
 	Extract(78, FGDB, FCD_UNKNOWN, 7.0),
 	diap_none,
 	Color(50, EBC),
@@ -460,48 +460,48 @@ add('Goldswaen', 'Red',
 # supposed just regular pale malt with lactic acid, we'll go with 75%.
 # it's not used in such high amounts that it should matter if we're off
 # even by 50%
-add('Weyermann', 'Acidulated Malt',
+Add('Weyermann', 'Acidulated Malt',
 	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(4.5, EBC))
 
-add('Weyermann', 'CaraFoam',
+Add('Weyermann', 'CaraFoam',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 5.5),
 	diap_none,
 	Color(5, EBC),
 	needmash = False)
-add('Weyermann', 'CaraHell',
+Add('Weyermann', 'CaraHell',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 7.0),
 	diap_none,
 	Color(25, EBC),
 	needmash = False)
-add('Weyermann', 'CaraRed',
+Add('Weyermann', 'CaraRed',
 	Extract(76.0, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(50, EBC),
 	needmash = False)
-add('Weyermann', 'CaraAroma',
+Add('Weyermann', 'CaraAroma',
 	Extract(76.9, FGDB, FCD_UNKNOWN, 5.8),
 	diap_none,
 	Color(300, EBC),
 	needmash = False)
-add('Weyermann', 'CaraMunich 1',
+Add('Weyermann', 'CaraMunich 1',
 	Extract(76.4, FGDB, FCD_UNKNOWN, 5.8),
 	diap_none,
 	Color(90, EBC),
 	needmash = False)
-add('Weyermann', 'CaraMunich 2',
+Add('Weyermann', 'CaraMunich 2',
 	Extract(76.2, FGDB, FCD_UNKNOWN, 5.8),
 	diap_none,
 	Color(130, EBC),
 	needmash = False)
-add('Weyermann', 'CaraMunich 3',
+Add('Weyermann', 'CaraMunich 3',
 	Extract(76.1, FGDB, FCD_UNKNOWN, 5.8),
 	diap_none,
 	Color(160, EBC),
 	needmash = False)
 
-add('Weyermann', 'Melanoidin',
+Add('Weyermann', 'Melanoidin',
 	Extract(76.5, FGDB, FCD_UNKNOWN, 4.3),
 	diap_none,
 	Color(70, EBC))
@@ -509,34 +509,34 @@ add('Weyermann', 'Melanoidin',
 # XXX: couldn't find diastatic power, so we'll just guess
 # (it's self-convering for sure, so err on the low side,
 # most likely is way too low)
-add('Weyermann', 'Munich I',
+Add('Weyermann', 'Munich I',
 	Extract(77.4, FGAI, FCD_UNKNOWN, 4.1),
 	diap_min,
 	Color(16, EBC))
 
-add('Weyermann', 'Chocolate Rye',
+Add('Weyermann', 'Chocolate Rye',
 	Extract(65, FGDB, FCD_UNKNOWN, 4.0),
 	diap_none,
 	Color(600, EBC),
 	needmash = False)
 
-add('Weyermann', 'Pale Rye',
+Add('Weyermann', 'Pale Rye',
 	Extract(77, FGAI, FCD_UNKNOWN, 5.0),
 	diap_min,
 	Color(5, EBC))
 
 # extract is an "average" of the lot analysis numbers
-add('Weyermann', 'Carafa 1',
+Add('Weyermann', 'Carafa 1',
 	Extract(70, FGAI, FCD_UNKNOWN, 3.8),
 	diap_none,
 	Color(900, EBC),
 	needmash = False)
-add('Weyermann', 'Carafa 2',
+Add('Weyermann', 'Carafa 2',
 	Extract(70, FGAI, FCD_UNKNOWN, 3.8),
 	diap_none,
 	Color(1150, EBC),
 	needmash = False)
-add('Weyermann', 'Carafa 3',
+Add('Weyermann', 'Carafa 3',
 	Extract(70, FGAI, FCD_UNKNOWN, 3.8),
 	diap_none,
 	Color(1400, EBC),
@@ -544,23 +544,23 @@ add('Weyermann', 'Carafa 3',
 # the special versions of Carafa have the same extract/color
 # specifications, so we can alias them
 # (and they have completely different flavor, so we *must* alias them!)
-alias('Weyermann', 'Carafa 1 Special', 'Weyermann Carafa 1')
-alias('Weyermann', 'Carafa 2 Special', 'Weyermann Carafa 2')
-alias('Weyermann', 'Carafa 3 Special', 'Weyermann Carafa 3')
+Alias('Weyermann', 'Carafa 1 Special', 'Weyermann Carafa 1')
+Alias('Weyermann', 'Carafa 2 Special', 'Weyermann Carafa 2')
+Alias('Weyermann', 'Carafa 3 Special', 'Weyermann Carafa 3')
 
 # Extract yields for non-malts from 'How To Brew' [Palmer]
 # Moisture content from BSG website
-add(None, 'Flaked wheat',
+Add(None, 'Flaked wheat',
 	Extract(77, CGDB, FCD_UNKNOWN, 7.0),
 	diap_none,
 	Color(1, LOVIBOND))
-add(None, 'Flaked oats',
+Add(None, 'Flaked oats',
 	Extract(70, CGDB, FCD_UNKNOWN, 8.0),
 	diap_none,
 	Color(1, LOVIBOND))
 
 # guess and assume
-add(None, 'Flaked rye',
+Add(None, 'Flaked rye',
 	Extract(70, CGDB, FCD_UNKNOWN, 12),
 	diap_none,
 	Color(3, LOVIBOND))
@@ -570,16 +570,16 @@ add(None, 'Flaked rye',
 # takes from the Briess raw red wheat datasheet, and colors mostly
 # just guessed.  in the typical fashion of maltster consitency, Briess
 # supplies extract only for red wheat and color only for white wheat.
-add(None, 'Raw Red wheat',
+Add(None, 'Raw Red wheat',
 	Extract(80, CGDB, FCD_UNKNOWN, 12.0),
 	diap_none,
 	Color(3, LOVIBOND))
-add(None, 'Raw White Wheat',
+Add(None, 'Raw White Wheat',
 	Extract(80, CGDB, FCD_UNKNOWN, 12.0),
 	diap_none,
 	Color(2, LOVIBOND))
 # extract from Briess, color from absolutely nowhere except a hat
-add(None, 'Raw Rye',
+Add(None, 'Raw Rye',
 	Extract(77, CGDB, FCD_UNKNOWN, 12.0),
 	diap_none,
 	Color(8, LOVIBOND))
@@ -592,13 +592,13 @@ add(None, 'Raw Rye',
 # oven, but one percent point of extract here or there doesn't matter
 # too much unless you're using a lot of rice, and even if I did it,
 # it wouldn't be the same for your rice.
-add(None, 'Rice',
+Add(None, 'Rice',
 	Extract(80, FGDB, FCD_UNKNOWN, 11.0),
 	diap_none,
 	Color(1, EBC))
 
 # sugars ("self-converting")
-add(None, 'Table sugar',
+Add(None, 'Table sugar',
 	Extract(100, CGDB, FCD_UNKNOWN, 0),
 	diap_min,
 	Color(0, EBC),
@@ -610,25 +610,25 @@ add(None, 'Table sugar',
 # is 85% sugar, so we'll start from that and guess a bit of moisture
 # loss from cooking to obtain the color.  shouldn't matter too much if
 # they're a %-point off in one direction or another.
-add(None, 'Invert No1',
+Add(None, 'Invert No1',
 	Extract(86, CGDB, FCD_UNKNOWN, 0),
 	diap_min,
 	Color(30, EBC),
 	conversion = False,
 	needmash = False)
-add(None, 'Invert No2',
+Add(None, 'Invert No2',
 	Extract(87, CGDB, FCD_UNKNOWN, 0),
 	diap_min,
 	Color(60, EBC),
 	conversion = False,
 	needmash = False)
-add(None, 'Invert No3',
+Add(None, 'Invert No3',
 	Extract(88, CGDB, FCD_UNKNOWN, 0),
 	diap_min,
 	Color(130, EBC),
 	conversion = False,
 	needmash = False)
-add(None, 'Invert No4',
+Add(None, 'Invert No4',
 	Extract(89, CGDB, FCD_UNKNOWN, 0),
 	diap_min,
 	Color(600, EBC),

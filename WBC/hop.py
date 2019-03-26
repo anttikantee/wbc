@@ -14,10 +14,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Units import *
-from WBC.Units import _Temperature, _Volume, _Mass
-from WBC.Utils import checktype
-from WBC import Timespec
+from WBC.units import *
+from WBC.units import _Temperature, _Volume, _Mass
+from WBC.utils import checktype
+from WBC import timespec
 
 class Hop:
 	Pellet	= object()
@@ -55,7 +55,7 @@ class Hop:
 	#
 
 	def __util(self, strength, time):
-		if not isinstance(time, Timespec.Boil):
+		if not isinstance(time, timespec.Boil):
 			return 0
 
 		mins = time.time
@@ -96,10 +96,10 @@ class Hop:
 	def absorption(self, mass):
 		checktype(mass, Mass)
 		if self.type is self.Pellet:
-			abs_c = Constants.pellethop_absorption_mlg
+			abs_c = constants.pellethop_absorption_mlg
 		else:
 			assert(self.type is self.Leaf)
-			abs_c = Constants.leafhop_absorption_mlg
+			abs_c = constants.leafhop_absorption_mlg
 		# l/kg == ml/g
 		v = _Volume(mass * abs_c)
 		return v
@@ -107,8 +107,8 @@ class Hop:
 	def volume(self, mass):
 		checktype(mass, Mass)
 		if self.type is self.Pellet:
-			density = Constants.pellethop_density_gl
+			density = constants.pellethop_density_gl
 		else:
 			assert(self.type is self.Leaf)
-			density = Constants.leafhop_density_gl
+			density = constants.leafhop_density_gl
 		return _Volume(mass.valueas(Mass.G) / density)

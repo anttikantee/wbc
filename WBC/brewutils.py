@@ -14,11 +14,11 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Utils import PilotError
-from WBC.Units import *
-from WBC.Units import _Strength, _Volume, _Mass
+from WBC.utils import PilotError
+from WBC.units import *
+from WBC.units import _Strength, _Volume, _Mass
 
-from WBC import Constants
+from WBC import constants
 
 import math
 
@@ -150,7 +150,7 @@ def co2_vols_at_pressuretemperature(p, t):
 	# the carbonation anyway.
 
 	cgl = _carbc1*_ptotal(p) * math.exp(_carbc2/t.valueas(t.K))
-	return cgl / Constants.co2_stp_gl
+	return cgl / constants.co2_stp_gl
 
 def co2_pressure_at_temperaturevols(t, v):
 	checktype(t, Temperature)
@@ -160,7 +160,7 @@ def co2_pressure_at_temperaturevols(t, v):
 	#
 	#   ptot = Cgl / (0.00021705 * e^(2617.25/t))
 
-	cgl = v * Constants.co2_stp_gl
+	cgl = v * constants.co2_stp_gl
 	p = cgl / (_carbc1 * math.exp(_carbc2/t.valueas(t.K)))
 
 	pval = p - Pressure(1, Pressure.ATM).valueas(Pressure.BAR)
@@ -174,7 +174,7 @@ def co2_temperature_at_pressurevols(p, v):
 	#
 	#   t = 2617.25 / ln(Cgl / 0.00021705 * ptot)
 
-	cgl = v * Constants.co2_stp_gl
+	cgl = v * constants.co2_stp_gl
 	t = _carbc2 / math.log(cgl / (_carbc1 * _ptotal(p)))
 
 	return Temperature(t, Temperature.K)
@@ -195,4 +195,4 @@ def co2_headspace(p1, t1):
 	ratio = (ptotal.valueas(ptotal.BAR) * stp_t.valueas(stp_t.K)) \
 	    / (stp_p.valueas(stp_p.BAR) * t1.valueas(t1.K))
 
-	return ratio * Constants.co2_stp_gl
+	return ratio * constants.co2_stp_gl

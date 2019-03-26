@@ -16,10 +16,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe
-from WBC import Parse
-from WBC.Units import Color
-from WBC.Utils import PilotError
+from WBC.wbc import Recipe
+from WBC import parse
+from WBC.units import Color
+from WBC.utils import PilotError
 
 import getopt
 import sys
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 		usage()
 
 	try:
-		c = Parse.color(args[0])
+		c = parse.color(args[0])
 	except PilotError as e:
 		print(e)
 		sys.exit(1)

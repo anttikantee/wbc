@@ -14,10 +14,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Units import *
-from WBC.Units import _Mass, _Temperature, _Volume
+from WBC.units import *
+from WBC.units import _Mass, _Temperature, _Volume
 
-from WBC.Brewutils import water_vol_at_temp
+from WBC.brewutils import water_vol_at_temp
 
 class MashStep:
 	TIME_UNSPEC=	object()
@@ -173,7 +173,7 @@ class Mash:
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
 		fmass = _Mass(sum(x['amount'] for x in self.fermentables))
-		grainvol = fmass * Constants.grain_specificvolume
+		grainvol = fmass * constants.grain_specificvolume
 
 		def origwater(fromtemp, totemp, fromwater):
 			if getparam('mlt_heat') == 'direct':
@@ -252,7 +252,7 @@ class Mash:
 				totvol -= vol
 				inmash += vol
 				mashvol = _Volume(inmash
-				    + fmass * Constants.grain_specificvolume)
+				    + fmass * constants.grain_specificvolume)
 
 				ratio = inmash / fmass
 				if totvol < -0.0001:
@@ -274,7 +274,7 @@ class Mash:
 			ratio = vol / fmass
 			actualvol = water_vol_at_temp(vol, water_temp, temp)
 			mashvol = _Volume(vol
-			    + fmass * Constants.grain_specificvolume)
+			    + fmass * constants.grain_specificvolume)
 			for i, s in enumerate(steps):
 				res['steps'].append((s, vol, actualvol,
 				    temp, ratio, mashvol))

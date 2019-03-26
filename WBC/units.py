@@ -17,11 +17,11 @@
 import fractions
 import math
 
-from WBC.Utils import checktype, checktypes, PilotError
+from WBC.utils import checktype, checktypes, PilotError
 
-from WBC import Constants
+from WBC import constants
 
-from WBC.Getparam import getparam
+from WBC.getparam import getparam
 
 def _checksystem(system):
 	if system != 'metric' and system != 'us':
@@ -46,12 +46,12 @@ class Volume(WBCUnit):
 
 	def __new__(cls, value, unit):
 		if unit is Volume.BARREL:
-			value = Constants.gallonsperbarrel * value
+			value = constants.gallonsperbarrel * value
 			unit = Volume.GALLON
 		if unit is Volume.GALLON:
-			value = Constants.literspergallon * value
+			value = constants.literspergallon * value
 		elif unit is Volume.QUART:
-			value = Constants.litersperquart * value
+			value = constants.litersperquart * value
 		elif unit is Volume.DECILITER:
 			value = value / 10.0
 		elif unit is Volume.HECTOLITER:
@@ -105,12 +105,12 @@ class Volume(WBCUnit):
 		elif unit is Volume.HECTOLITER:
 			return self / 100.0
 		elif unit is Volume.QUART:
-			return self / Constants.litersperquart
+			return self / constants.litersperquart
 		elif unit is Volume.GALLON:
-			return self / Constants.literspergallon
+			return self / constants.literspergallon
 		elif unit is Volume.BARREL:
 			return self.valueas(self.GALLON) \
-			    / Constants.gallonsperbarrel
+			    / constants.gallonsperbarrel
 		else:
 			assert(False)
 
@@ -123,7 +123,7 @@ class Temperature(WBCUnit):
 		if unit is Temperature.degF:
 			value = Temperature.FtoC(value)
 		elif unit is Temperature.K:
-			value = value + Constants.absolute_zero_c
+			value = value + constants.absolute_zero_c
 		elif unit is not Temperature.degC:
 			raise PilotError('invalid Temperature unit')
 
@@ -145,13 +145,13 @@ class Temperature(WBCUnit):
 		if unit is Temperature.degF:
 			return self.CtoF(self)
 		elif unit is Temperature.K:
-			return self - Constants.absolute_zero_c
+			return self - constants.absolute_zero_c
 		else:
 			raise PilotError('invalid Temperature unit')
 
 	def stras(self, which):
 		if which is self.K:
-			return '{:.2f}'.format(self - Constants.absolute_zero_c)
+			return '{:.2f}'.format(self - constants.absolute_zero_c)
 
 		if which is self.degC:
 			t = self
@@ -183,9 +183,9 @@ class Mass(WBCUnit):
 		elif unit is Mass.MG:
 			value = value / (1000.0 * 1000.0)
 		elif unit is Mass.LB:
-			value = Constants.gramsperpound * value / 1000.0
+			value = constants.gramsperpound * value / 1000.0
 		elif unit is Mass.OZ:
-			value = Constants.gramsperounce * value / 1000.0
+			value = constants.gramsperounce * value / 1000.0
 		else:
 			assert(unit is Mass.KG)
 
@@ -204,9 +204,9 @@ class Mass(WBCUnit):
 		elif unit is Mass.MG:
 			return self * 1000.0 * 1000.0
 		elif unit is Mass.LB:
-			return (self*1000.0) / Constants.gramsperpound
+			return (self*1000.0) / constants.gramsperpound
 		elif unit is Mass.OZ:
-			return (self*1000.0) / Constants.gramsperounce
+			return (self*1000.0) / constants.gramsperounce
 		else:
 			assert(False)
 
@@ -225,7 +225,7 @@ class Mass(WBCUnit):
 			return '{:.2f}'.format(self) + ' kg'
 		elif unit is self.OZ:
 			return '{:.2f}'.\
-			    format((self*1000.0)/Constants.gramsperounce)+' oz'
+			    format((self*1000.0)/constants.gramsperounce)+' oz'
 		elif unit is self.LB:
 			# format pounds in the "normal" way.  I'd use
 			# some expletives here, but it's easier to
@@ -236,7 +236,7 @@ class Mass(WBCUnit):
 			# fraction is max 1/16th and always a power of
 			# two.... because it's logical, I guess
 			#
-			v = (self*1000.0) / Constants.gramsperpound
+			v = (self*1000.0) / constants.gramsperpound
 			whole = int(int(16*v) / 16)
 			frac =  int(16*v) % 16
 			thestr = ""
@@ -258,7 +258,7 @@ class Mass(WBCUnit):
 			else:
 				return self.stras(Mass.KG)
 		else:
-			if self.small or self*1000.0 < Constants.gramsperpound:
+			if self.small or self*1000.0 < constants.gramsperpound:
 				small = True
 			else:
 				small = False
@@ -506,11 +506,11 @@ class Color(float):
 	# formulae from https://en.wikipedia.org/wiki/Standard_Reference_Method
 	@staticmethod
 	def SRMtoEBC(v):
-		return v * Constants.ebcpersrm
+		return v * constants.ebcpersrm
 
 	@staticmethod
 	def EBCtoSRM(v):
-		return v / Constants.ebcpersrm
+		return v / constants.ebcpersrm
 
 	@staticmethod
 	def LtoEBC(v):
@@ -529,11 +529,11 @@ class Pressure(WBCUnit):
 
 	def __new__(cls, value, unit):
 		if unit is Pressure.PSI:
-			value = value * Constants.pascalsperpsi
+			value = value * constants.pascalsperpsi
 		elif unit is Pressure.BAR:
-			value = value * Constants.pascalsperbar
+			value = value * constants.pascalsperbar
 		elif unit is Pressure.ATMOSPHERE:
-			value = value * Constants.pascalsperatm
+			value = value * constants.pascalsperatm
 		elif unit is not Pressure.PASCAL:
 			raise Exception('invalid Pressure unit')
 
@@ -543,11 +543,11 @@ class Pressure(WBCUnit):
 		if which is Pressure.PASCAL:
 			return self
 		elif which is Pressure.BAR:
-			return self / Constants.pascalsperbar
+			return self / constants.pascalsperbar
 		elif which is Pressure.ATMOSPHERE:
-			return self / Constants.pascalsperatm
+			return self / constants.pascalsperatm
 		elif which is Pressure.PSI:
-			return self / Constants.pascalsperpsi
+			return self / constants.pascalsperpsi
 		else:
 			raise Exception('invalid Pressure type')
 

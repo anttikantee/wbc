@@ -16,10 +16,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe
-from WBC.Units import Mass, Temperature, Volume, Strength, _Strength
-from WBC.Utils import PilotError
-from WBC import Parse
+from WBC.wbc import Recipe
+from WBC.units import Mass, Temperature, Volume, Strength, _Strength
+from WBC.utils import PilotError
+from WBC import parse
 
 import getopt
 import sys
@@ -37,14 +37,14 @@ if __name__ == '__main__':
 	if len(args) != 2:
 		usage()
 
-	s_orig = Parse.strength(args[0])
+	s_orig = parse.strength(args[0])
 
 	if '%' in args[1]:
 		if rflag: raise PilotError('use refractometer reading with -r')
-		attn = Parse.percent(args[1])
+		attn = parse.percent(args[1])
 		r = s_orig.attenuate_bypercent(attn)
 	else:
-		s_fin_arg = Parse.strength(args[1])
+		s_fin_arg = parse.strength(args[1])
 
 		if rflag:
 			s_fin = s_orig.refractometer_correction(s_fin_arg)

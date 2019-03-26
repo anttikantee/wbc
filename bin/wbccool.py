@@ -61,12 +61,12 @@
 # purposes.
 #
 
-from WBC.WBC import Recipe
-from WBC.Units import Temperature, _Temperature, Strength, _Strength
-from WBC.Units import Mass, _Mass, Volume, _Volume
-from WBC import Parse
-from WBC.Utils import PilotError
-from WBC import Brewutils
+from WBC.wbc import Recipe
+from WBC.units import Temperature, _Temperature, Strength, _Strength
+from WBC.units import Mass, _Mass, Volume, _Volume
+from WBC import parse
+from WBC.utils import PilotError
+from WBC import brewutils
 
 import getopt
 import sys
@@ -107,32 +107,32 @@ if __name__ == '__main__':
 			# just for playing around.  undocumented.
 			cc = float(a)
 		elif o == '-d':
-			cd = Parse.volume(a)
+			cd = parse.volume(a)
 		elif o == '-i':
 			if '@' in a:
-				icemass, icetemp = Parse.split(a, '@',
-				    Parse.mass, Parse.temp)
+				icemass, icetemp = parse.split(a, '@',
+				    parse.mass, parse.temperature)
 			else:
-				icemass = Parse.mass(a)
+				icemass = parse.mass(a)
 				icetemp = _Temperature(-10)
 		elif o == '-s':
-			ws = Parse.strength(a)
+			ws = parse.strength(a)
 			strenset = True
 		elif o == '-t':
-			wt_orig = Parse.temp(a)
+			wt_orig = parse.temperature(a)
 		elif o == '-h':
 			usage()
 
 	whr = (waterc - (0.0293*ws)) / cc
 	wt = wt_orig
 
-	tt = Parse.temp(args[0])
-	wv = Parse.volume(args[1])
-	ct = Parse.temp(args[2])
+	tt = parse.temperature(args[0])
+	wv = parse.volume(args[1])
+	ct = parse.temperature(args[2])
 
 	# compensate for temperature.  assume wort follows water
 	# heat expansion (probably ok?)
-	wm = _Mass(Brewutils.water_voltemp_to_mass(wv, wt)
+	wm = _Mass(brewutils.water_voltemp_to_mass(wv, wt)
 	    * ws.valueas(Strength.SG))
 
 	# solve "perfect score".  if the differential size isn't
@@ -195,8 +195,8 @@ if __name__ == '__main__':
 		solutions['volume'] = cv
 
 	stab = {
-		Parse.volume : solve_efficiency,
-		Parse.percent : solve_volume,
+		parse.volume : solve_efficiency,
+		parse.percent : solve_volume,
 	}
 
 	# solve what we want, volume or efficiency

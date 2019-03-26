@@ -16,9 +16,9 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe
-from WBC import Fermentables
-from WBC.Utils import PilotError
+from WBC.wbc import Recipe
+from WBC import fermentables
+from WBC.utils import PilotError
 
 import getopt
 import sys
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 		elif o == '-v':
 			verbose = True
 
-	l = Fermentables.search(maltster, product)
+	l = fermentables.Search(maltster, product)
 	if len(l) == 0:
 		print('No match')
 		sys.exit(0)

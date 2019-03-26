@@ -16,12 +16,12 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe
-from WBC.Units import Temperature, Pressure, Mass, Volume, _Mass
-from WBC import Brewutils
-from WBC import Parse
-from WBC.Utils import PilotError
-from WBC import Constants
+from WBC.wbc import Recipe
+from WBC.units import Temperature, Pressure, Mass, Volume, _Mass
+from WBC import brewutils
+from WBC import parse
+from WBC.utils import PilotError
+from WBC import constants
 
 import getopt
 import sys
@@ -42,14 +42,14 @@ if __name__ == '__main__':
 	kegvol = None
 	for o, a in opts:
 		if o == '-v':
-			kegvol = Parse.volume(a)
+			kegvol = parse.volume(a)
 		elif o == '-h':
 			usage()
 
 	wegot = {}
 	def attempt(what):
-		for m in [ Parse.pressure, Parse.temp,
-		    lambda x: Parse.ratio(x, Parse.mass, Parse.volume), float ]:
+		for m in [ parse.pressure, parse.temperature,
+		    lambda x: parse.ratio(x, parse.mass, parse.volume), float ]:
 			try:
 				v = m(what)
 				wegot[v.__class__] = v
@@ -63,24 +63,24 @@ if __name__ == '__main__':
 	# if wegot CO2 w/v, convert to volumes
 	if tuple in wegot:
 		t = wegot[tuple]
-		wegot[float] = (t[0] / t[1]) / Constants.co2_stp_gl
+		wegot[float] = (t[0] / t[1]) / constants.co2_stp_gl
 
 	def p(): return wegot[Pressure]
 	def t(): return wegot[Temperature]
 	def v(): return wegot[float]
 
 	if Pressure in wegot and Temperature in wegot:
-		v3 = Brewutils.co2_vols_at_pressuretemperature(p(), t())
+		v3 = brewutils.co2_vols_at_pressuretemperature(p(), t())
 	elif Pressure in wegot and float in wegot:
-		v3 = Brewutils.co2_temperature_at_pressurevols(p(), v())
+		v3 = brewutils.co2_temperature_at_pressurevols(p(), v())
 	elif Temperature in wegot and float in wegot:
-		v3 = Brewutils.co2_pressure_at_temperaturevols(t(), v())
+		v3 = brewutils.co2_pressure_at_temperaturevols(t(), v())
 	else:
 		sys.stderr.write('ERROR: need two different types\n')
 		usage()
 	wegot[v3.__class__] = v3
 
-	co2head_gl = Brewutils.co2_headspace(p(), t())
+	co2head_gl = brewutils.co2_headspace(p(), t())
 
 	def wvtous(x):
 		return Mass(x, Mass.G).valueas(Mass.OZ) \
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 	print('{:24}:{:>12.1f}'.format('CO2 (v/v)', v()))
 	print()
 
-	co2gl = v() * Constants.co2_stp_gl
+	co2gl = v() * constants.co2_stp_gl
 	print('{:24}:{:>12}{:>12}'.format('Dissolved CO2 (w/v)',
 	    '{:.2f}'.format(co2gl) + ' g/l',
 	    '{:.2f}'.format(wvtous(co2gl)) + ' oz/qt'))

@@ -14,11 +14,11 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Utils import PilotError, notice
-from WBC.Getparam import getparam
+from WBC.utils import PilotError, notice
+from WBC.getparam import getparam
 
-from WBC import Constants
-from WBC import Parse
+from WBC import constants
+from WBC import parse
 
 def _getparam(what):
 	rv = wbcparams[what]
@@ -122,21 +122,19 @@ def _currystring(strings):
 
 def _curryratio(p1, p2):
 	def x(input):
-		return Parse.ratio(input, p1, p2)
+		return parse.ratio(input, p1, p2)
 	return x
 
 def _parsemashinratio(input):
 	if '%' in input:
-		rv = Parse.percent(input)
+		rv = parse.percent(input)
 		return ('%', rv)
 	else:
-		rv = Parse.ratio(input, Parse.volume, Parse.mass)
+		rv = parse.ratio(input, parse.volume, parse.mass)
 		return ('/', rv)
 
 def _parsefloat(input):
 	return float(input)
-
-from WBC import Parse
 
 paraminputs = {}		# longname  -> unparsed text input
 paramparsers = {}		# longname  -> param "struct"
@@ -145,29 +143,29 @@ paramshorts = {}		# shortname -> longname
 _addparam('units_output',	'uo',	_currystring(['metric', 'us']))
 _addparam('strength_output',	'so',	_currystring(['plato','sg']))
 
-_addparam('mash_efficiency',	'me',	Parse.percent)
+_addparam('mash_efficiency',	'me',	parse.percent)
 
-_addparam('boiloff_perhour',	'bo',	Parse.volume)
+_addparam('boiloff_perhour',	'bo',	parse.volume)
 
-_addparam('mlt_loss',		'ml',	Parse.volume)
+_addparam('mlt_loss',		'ml',	parse.volume)
 _addparam('mlt_heatcapacity',	'mh',	_parsefloat)
 _addparam('mlt_heat',		'mt',	_currystring(['transfer','direct']))
 
-_addparam('grain_absorption',	'ga',	_curryratio(Parse.volume, Parse.mass))
+_addparam('grain_absorption',	'ga',	_curryratio(parse.volume, parse.mass))
 
-_addparam('kettle_loss',	'kl',	Parse.volume)
-_addparam('fermentor_loss',	'fl',	Parse.volume)
+_addparam('kettle_loss',	'kl',	parse.volume)
+_addparam('fermentor_loss',	'fl',	parse.volume)
 
-_addparam('ambient_temp',	'ta',	Parse.temp)
-_addparam('preboil_temp',	'tp',	Parse.temp)
-_addparam('postboil_temp',	'tb',	Parse.temp)
-_addparam('sparge_temp',	'st',	Parse.temp)
+_addparam('ambient_temp',	'ta',	parse.temperature)
+_addparam('preboil_temp',	'tp',	parse.temperature)
+_addparam('postboil_temp',	'tb',	parse.temperature)
+_addparam('sparge_temp',	'st',	parse.temperature)
 
 _addparam('mashin_ratio',	'mr',	_parsemashinratio)
 
-_addoptparam('mashwater_min',	'mm',	Parse.volume)
-_addoptparam('mashvol_max',	'mM',	Parse.volume)
-_addoptparam('lautervol_max',	'lM',	Parse.volume)
+_addoptparam('mashwater_min',	'mm',	parse.volume)
+_addoptparam('mashvol_max',	'mM',	parse.volume)
+_addoptparam('lautervol_max',	'lM',	parse.volume)
 
 _defaults = {
 	# water absortion for 1kg of grain, net (i.e. apparent absorption).

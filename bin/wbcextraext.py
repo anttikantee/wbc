@@ -16,10 +16,10 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe
-from WBC.Units import Mass, _Mass, Strength, _Strength, Volume, _Volume
-from WBC import Parse
-from WBC.Utils import PilotError
+from WBC.wbc import Recipe
+from WBC.units import Mass, _Mass, Strength, _Strength, Volume, _Volume
+from WBC import parse
+from WBC.utils import PilotError
 
 import getopt
 import os
@@ -41,30 +41,30 @@ if __name__ == '__main__':
 	for o, a in opts:
 		if o == '-f':
 			if ',' in a:
-				s_fin, ra_arg = Parse.split(a, ',',
-				    Parse.strength, Parse.percent)
+				s_fin, ra_arg = parse.split(a, ',',
+				    parse.strength, parse.percent)
 				if ra_arg < 0.0 or ra_arg > 100.0:
 					raise PilotError('need 0 < RA <= 100')
 			else:
-				s_fin = Parse.strength(a)
+				s_fin = parse.strength(a)
 		elif o == '-h':
 			usage()
 
-	s_orig = Parse.strength(args[0])
-	vol_orig = Parse.volume(args[1])
+	s_orig = parse.strength(args[0])
+	vol_orig = parse.volume(args[1])
 
 	if '@' in args[2]:
 		if '%' in args[2]:
-			mass_add, percent = Parse.split(args[2], '@',
-			    Parse.mass, Parse.percent)
+			mass_add, percent = parse.split(args[2], '@',
+			    parse.mass, parse.percent)
 			ext_add = _Mass(mass_add * percent/100.0)
 		else:
-			vol_add, s_add = Parse.split(args[2], '@',
-			    Parse.volume, Parse.strength)
+			vol_add, s_add = parse.split(args[2], '@',
+			    parse.volume, parse.strength)
 			mass_add = _Mass(s_add.valueas(s_add.SG) * vol_add)
 			ext_add = _Mass(mass_add * s_add/100.0)
 	else:
-		ext_add = mass_add = Parse.mass(args[2])
+		ext_add = mass_add = parse.mass(args[2])
 
 	mass_orig = _Mass(s_orig.valueas(s_orig.SG) * vol_orig)
 	ext_orig = _Mass(mass_orig * s_orig/100.0)

@@ -14,8 +14,8 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Utils import PilotError, checktype
-from WBC.Units import Temperature
+from WBC.utils import PilotError, checktype
+from WBC.units import Temperature
 
 class Timespec:
 	def __lt__(self, other):

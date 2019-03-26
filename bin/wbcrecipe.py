@@ -16,14 +16,14 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.WBC import Recipe, WBC
-from WBC.Hop import Hop
-from WBC.Mash import Mash
-from WBC.Units import Mass, Temperature, Volume, Strength
-from WBC.Units import _Mass, _Temperature, _Volume
-from WBC.Utils import PilotError
-from WBC import Sysparams
-from WBC import Parse
+from WBC.wbc import Recipe, WBC
+from WBC.hop import Hop
+from WBC.mash import Mash
+from WBC.units import Mass, Temperature, Volume, Strength
+from WBC.units import _Mass, _Temperature, _Volume
+from WBC.utils import PilotError
+from WBC import sysparams
+from WBC import parse
 
 import getopt
 import io
@@ -36,11 +36,11 @@ def dohop(r, hopspec, unit, timespec):
 	if typstr not in hoptypes:
 		raise PilotError('invalid hop type: ' + typstr)
 	typ = hoptypes[typstr]
-	aa = Parse.percent(hopspec[1])
+	aa = parse.percent(hopspec[1])
 	hop = Hop(hopspec[0], aa, typ)
 
-	fun, hu = Parse.hopunit(unit)
-	ts = Parse.timespec(timespec)
+	fun, hu = parse.hopunit(unit)
+	ts = parse.timespec(timespec)
 	fun(r, hop, hu, ts)
 
 def dohops(r, d_hops):
@@ -51,16 +51,16 @@ def dofermentables(r, ferms):
 	fermtype = None
 	for stage in WBC.stages:
 		for f in ferms.get(stage, []):
-			(fun, v) = Parse.fermentableunit(ferms[stage][f])
+			(fun, v) = parse.fermentableunit(ferms[stage][f])
 			fun(r, f, v, stage)
 
 	a = ferms.get('anchor', [])
 	if len(a) > 0:
 		# XXX: validate input length
 		if a[0] == 'strength':
-			r.anchor_bystrength(Parse.strength(a[1]))
+			r.anchor_bystrength(parse.strength(a[1]))
 		elif a[0] == 'mass':
-			r.anchor_bymass(a[1], Parse.mass(a[2]))
+			r.anchor_bymass(a[1], parse.mass(a[2]))
 		else:
 			raise PilotError('unexpected fermentable anchor: '
 			    + a[0])
@@ -70,14 +70,14 @@ def domashparams(r, mashparams):
 		value = mashparams[p]
 
 		if p == 'method':
-			m = Parse.mashmethod(value)
+			m = parse.mashmethod(value)
 			r.mash.set_method(m)
 
 		elif p == 'temperature' or p == 'temperatures':
 			if isinstance(value, str):
-				mashsteps = [Parse.mashstep(value)]
+				mashsteps = [parse.mashstep(value)]
 			elif isinstance(value, list):
-				mashsteps = [Parse.mashstep(x) for x in value]
+				mashsteps = [parse.mashstep(x) for x in value]
 			else:
 				raise PilotError('mash temperature must be '
 				    'given as a string or list of strings')
@@ -91,9 +91,9 @@ def dowater(r, v):
 
 def applyparams(r, clist, odict):
 	for f in odict.get('wbcparamfiles', []):
-		Sysparams.processfile(f)
+		sysparams.processfile(f)
 	for pl in odict.get('wbcparams', []):
-		Sysparams.processline(pl)
+		sysparams.processline(pl)
 
 	for c in clist:
 		c[0](r, *c[1:])
@@ -128,7 +128,7 @@ def processyaml(clist, odict, data):
 	yeast = getdef('yeast')
 
 	if 'volume' in d:
-		volume = Parse.volume(getdef('volume'))
+		volume = parse.volume(getdef('volume'))
 	else:
 		volume = None
 
@@ -137,7 +137,7 @@ def processyaml(clist, odict, data):
 	else:
 		boiltime = '60min'
 
-	r = Recipe(name, yeast, volume, Parse.kettletime(boiltime))
+	r = Recipe(name, yeast, volume, parse.kettletime(boiltime))
 
 	applyparams(r, clist, odict)
 
@@ -184,7 +184,7 @@ def processcsv(clist, odict, data):
 			applyparams(r, clist, odict)
 
 		elif row[0] == "mash":
-			mashsteps = [Parse.mashstep(x) for x in row[2:]]
+			mashsteps = [parse.mashstep(x) for x in row[2:]]
 			r.mash.set_steps(mashsteps)
 
 		elif row[0] == "fermentable":
@@ -227,17 +227,17 @@ def processopts(opts):
 			optarg = a.split(',')
 			if len(optarg) != 2:
 				usage()
-			v = Parse.volume(optarg[0])
-			s = Parse.strength(optarg[1])
+			v = parse.volume(optarg[0])
+			s = parse.strength(optarg[1])
 			clist.append((Recipe.steal_preboil_wort, v, s))
 
 		elif o == '-v':
-			v = Parse.volume(a)
+			v = parse.volume(a)
 			if 'volume_scale' in odict:
 				raise PilotError('can give max one of -v/-V')
 			odict['volume_noscale'] = v
 		elif o == '-V':
-			v = Parse.volume(a)
+			v = parse.volume(a)
 			if 'volume_noscale' in odict:
 				raise PilotError('can give max one of -v/-V')
 			odict['volume_scale'] = v
@@ -263,8 +263,8 @@ if __name__ == '__main__':
 		if '-c' in flags:
 			r.printcsv()
 		else:
-			from WBC import OutputText
-			OutputText.printit(r.input, r.results,
+			from WBC import output_text
+			output_text.printit(r.input, r.results,
 			    odict.get('miniprint', False))
 	except PilotError as pe:
 		print('Pilot Error: ' + str(pe))

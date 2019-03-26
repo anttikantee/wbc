@@ -14,15 +14,15 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.Utils import prtsep, prettyprint_withsugarontop
-from WBC.Getparam import getparam
+from WBC.utils import prtsep, prettyprint_withsugarontop
+from WBC.getparam import getparam
 
-from WBC import Constants, Sysparams
+from WBC import constants, sysparams
 
-from WBC.WBC import WBC
+from WBC.wbc import WBC
 
 # XXX: should not be needed in an ideal world
-from WBC.Units import Strength, _Volume, _Mass, _Strength
+from WBC.units import Strength, _Volume, _Mass, _Strength
 
 def __reference_temp():
 	return getparam('ambient_temp')
@@ -337,7 +337,7 @@ def _printattenuate(results):
 
 def printit(input, results, miniprint):
 	_keystats(input, results, miniprint)
-	ps = Sysparams.getparamshorts()
+	ps = sysparams.getparamshorts()
 	prettyprint_withsugarontop('', '', ps, 78, sep='|')
 	prtsep()
 	print()

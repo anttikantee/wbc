@@ -18,6 +18,6 @@
 # right way to do it, but, meh, works
 
 def getparam(what):
-	from WBC.Sysparams import _getparam
+	from WBC.sysparams import _getparam
 	rv = _getparam(what)
 	return rv

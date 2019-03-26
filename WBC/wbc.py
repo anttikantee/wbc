@@ -16,17 +16,17 @@
 
 import copy
 
-from WBC import Constants
-from WBC import Fermentables
-from WBC.Getparam import getparam
+from WBC import constants
+from WBC import fermentables
+from WBC.getparam import getparam
 
-from WBC.Utils import *
-from WBC.Units import *
-from WBC.Units import _Mass, _Strength, _Temperature, _Volume
-from WBC.Hop import Hop
-from WBC.Mash import Mash
+from WBC.utils import *
+from WBC.units import *
+from WBC.units import _Mass, _Strength, _Temperature, _Volume
+from WBC.hop import Hop
+from WBC.mash import Mash
 
-from WBC import Brewutils, Timespec
+from WBC import brewutils, timespec
 
 def checkconfig():
 	return True
@@ -84,7 +84,7 @@ class Recipe:
 
 		self.mash = Mash()
 
-		Sysparams.processdefaults()
+		sysparams.processdefaults()
 
 	def paramfile(self, filename):
 		Sysparams.processfile(filename)
@@ -250,7 +250,7 @@ class Recipe:
 	def anchor_bymass(self, fermentable, mass):
 		checktype(mass, Mass)
 
-		f = Fermentables.get(fermentable)
+		f = fermentables.Get(fermentable)
 		self.__doanchor('mass', {
 			'fermentable' : f,
 			'mass' : mass,
@@ -292,7 +292,7 @@ class Recipe:
 	def fermentable_bymass(self, name, mass, when=WBC.MASH):
 		checktype(mass, Mass)
 
-		fermentable = Fermentables.get(name)
+		fermentable = fermentables.Get(name)
 		self.__validate_ferm(name, fermentable, when)
 
 		f = self._fermmap(name, fermentable, mass, when)
@@ -304,7 +304,7 @@ class Recipe:
 			raise PilotError('grain percentage must be positive '\
 			  '(it is a fun thing!)')
 
-		fermentable = Fermentables.get(name)
+		fermentable = fermentables.Get(name)
 		self.__validate_ferm(name, fermentable, when)
 
 		f = self._fermmap(name, fermentable, percent, when)
@@ -583,7 +583,7 @@ class Recipe:
 		def v_at_temp(name, stage):
 			v = self.__volume_at_stage(stage)
 			res[name] = v
-			vt = Brewutils.water_vol_at_temp(v,
+			vt = brewutils.water_vol_at_temp(v,
 			    self.__reference_temp(), getparam(name + '_temp'))
 			res[name + '_attemp'] = vt
 		v_at_temp('preboil', self.PREBOIL)
@@ -602,11 +602,11 @@ class Recipe:
 		vols = self.results['volumes']
 
 		strens = {}
-		strens['preboil'] = Brewutils.solve_strength(
+		strens['preboil'] = brewutils.solve_strength(
 		    self.total_yield(WBC.STEEP), vols['preboil'])
-		strens['final'] = Brewutils.solve_strength(
+		strens['final'] = brewutils.solve_strength(
 		    self.total_yield(WBC.FERMENT), vols['fermentor'])
-		strens['postboil'] = Brewutils.solve_strength(
+		strens['postboil'] = brewutils.solve_strength(
 		    self.total_yield(WBC.BOIL), vols['postboil'])
 		self.results['strengths'] = strens
 
@@ -632,8 +632,8 @@ class Recipe:
 		# ... and average gravity during the boil.  *whee*
 		v_pre = self.__volume_at_stage(self.PREBOIL)
 		y = self.total_yield(WBC.BOIL)
-		t = Brewutils.solve_strength(y, v_pre).valueas(Strength.SG) \
-		    + Brewutils.solve_strength(y, v_post).valueas(Strength.SG)
+		t = brewutils.solve_strength(y, v_pre).valueas(Strength.SG) \
+		    + brewutils.solve_strength(y, v_post).valueas(Strength.SG)
 		sg = Strength(t/2, Strength.SG)
 
 		# calculate IBU produced by "bymass" hops and add to printables
@@ -685,9 +685,9 @@ class Recipe:
 		packagedryhopvol = 0
 		for h in allhop:
 			(hop, mass, time, ibu) = Recipe._hopunmap(h)
-			if isinstance(time, Timespec.Fermentor):
+			if isinstance(time, timespec.Fermentor):
 				hd['fermentor'] += hop.absorption(mass)
-			elif isinstance(time, Timespec.Package):
+			elif isinstance(time, timespec.Package):
 				hd['package'] += hop.absorption(mass)
 				packagedryhopvol += hop.volume(mass)
 			else:
@@ -705,12 +705,12 @@ class Recipe:
 				prevval = None
 				prevtype = time.__class__
 
-			if isinstance(time, Timespec.Fermentor):
+			if isinstance(time, timespec.Fermentor):
 				h['timer'] = str(time)
-			if isinstance(time, Timespec.Package):
+			if isinstance(time, timespec.Package):
 				h['timer'] = str(time)
 
-			if isinstance(time, Timespec.Steep):
+			if isinstance(time, timespec.Steep):
 				if prevval is not None \
 				    and prevval[0] == time.temp:
 					if prevval[1] == time.time:
@@ -722,7 +722,7 @@ class Recipe:
 					h['timer'] = str(time.time) + ' min'
 				prevval = (time.temp, time.time)
 
-			if isinstance(time, Timespec.Boil):
+			if isinstance(time, timespec.Boil):
 				cmpval = time.time
 				thisval = '=='
 
@@ -757,7 +757,7 @@ class Recipe:
 		self.results['attenuation'] = res
 
 	def calculate(self):
-		Sysparams.checkset()
+		sysparams.checkset()
 
 		if self._calculatestatus:
 			raise PilotError("you can calculate() a recipe once")
@@ -831,7 +831,7 @@ class Recipe:
 
 		# calculate brewhouse estimated afficiency ... NO, efficiency
 		maxyield = self.total_yield(WBC.FERMENT, theoretical=True)
-		maxstren = Brewutils.solve_strength(maxyield,
+		maxstren = brewutils.solve_strength(maxyield,
 		    self.__final_volume())
 		self.results['brewhouse_efficiency'] = \
 		    self.results['strengths']['final'] / maxstren
@@ -980,4 +980,4 @@ class Recipe:
 		print('4) Run', Volume((firstrun_vol+vr)-bigbeer_vol),
 		    'from BK1 to BK2')
 
-from WBC import Sysparams
+from WBC import sysparams
