@@ -53,12 +53,19 @@ class Hop:
 	# XXXTODO: that formula doesn't take into account bittering from
 	# whirlpool hops or dryhopping.
 	#
-
 	def __util(self, strength, time):
 		if not isinstance(time, timespec.Boil):
 			return 0
 
+		# FWH gets this much more mins for IBU calculations.
+		# (some sources say it should get IBUs for this many minutes
+		# total boil time.  we'll just roll with the bonus and
+		# leave the sith to deal with absolutes)
+		FWH_BONUS= 20
+
 		mins = time.time
+		if time.spec == 'FWH':
+			mins += FWH_BONUS
 
 		# strength needs to be SG
 		SG = strength.valueas(strength.SG)

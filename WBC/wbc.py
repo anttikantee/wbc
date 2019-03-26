@@ -53,6 +53,7 @@ class Recipe:
 		input['notes'] = []
 
 		self.boiltime = input['boiltime'] = boiltime
+		timespec.set_boiltime(self.boiltime)
 		self.input = input
 
 		self.volume_inherent = volume
@@ -184,7 +185,6 @@ class Recipe:
 		self.input['notes'].append(note)
 
 	def _hopstore(self, hop, amount, time):
-		time.resolvetime(self.boiltime)
 		return [hop, amount, time]
 
 	#

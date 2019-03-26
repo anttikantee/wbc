@@ -17,6 +17,11 @@
 from WBC.utils import PilotError, checktype
 from WBC.units import Temperature
 
+_boiltime = None
+def set_boiltime(boiltime):
+	global _boiltime
+	_boiltime = boiltime
+
 class Timespec:
 	def __lt__(self, other):
 		scls = self.__class__
@@ -31,11 +36,6 @@ class Timespec:
 		raise TypeError('I cannot compare')
 
 class Boil(Timespec):
-	# FWH adds this much to full boiltime for IBU calculations
-	# XXX: no longer belongs here
-	FWH_BONUS=	20
-	assert(FWH_BONUS > 0)
-
 	specials = [ 'FWH', 'boiltime' ]
 
 	def __init__(self, spec):
@@ -43,7 +43,20 @@ class Boil(Timespec):
 		if not isinstance(spec, numbers.Number) \
 		    and spec not in Boil.specials:
 			raise PilotError('invalid boiltime format')
-		self.time = None
+
+		assert(_boiltime is not None)
+		if spec in Boil.specials:
+			self.time = _boiltime
+		else:
+			specval = int(spec)
+			if specval > _boiltime:
+				raise PilotError('boiltime ('
+				    + str(specval)+') > wort boiltime')
+			self.time = specval
+		if spec == 'FWH':
+			self._cmptime = self.time + 1
+		else:
+			self._cmptime = self.time
 		self.spec = spec
 
 	# uuuh.  not sure why I'm punishing myself with
@@ -68,27 +81,13 @@ class Boil(Timespec):
 		try:
 			return super().__lt__(other)
 		except TypeError:
-			return self.time < other.time
+			return self._cmptime < other._cmptime
 
 	def __eq__(self, other):
 		try:
 			return super().__eq__(other)
 		except TypeError:
-			return self.time == other.time
-
-	def resolvetime(self, boiltime):
-		assert(self.time is None)
-
-		if self.spec == 'FWH':
-			self.time = boiltime + self.FWH_BONUS
-		elif self.spec == 'boiltime':
-			self.time = boiltime
-		else:
-			specval = int(self.spec)
-			if specval > boiltime:
-				raise PilotError('hop boiltime ('
-				    + str(specval)+') > wort boiltime')
-			self.time = specval
+			return self._cmptime == other._cmptime
 
 class Steep(Timespec):
 	def __init__(self, time, temp):
@@ -121,9 +120,6 @@ class Steep(Timespec):
 		except TypeError:
 			return self.temp == other.temp and \
 			    self.time == other.time
-
-	def resolvetime(self, boiltime):
-		return
 
 class Fermentor(Timespec):
 	def __init__(self, indays, outdays):
@@ -165,9 +161,6 @@ class Fermentor(Timespec):
 			return self.indays == other.indays and \
 			    self.outdays == other.outdays
 
-	def resolvetime(self, boiltime):
-		return
-
 class Package(Timespec):
 	def __init__(self):
 		self.time = 0
@@ -193,9 +186,6 @@ class Package(Timespec):
 			return super().__eq__(other)
 		except TypeError:
 			return True
-
-	def resolvetime(self, boiltime):
-		return
 
 # from "smallest" to "largest" (opposite of first-to-last)
 _order = [Package, Fermentor, Steep, Boil]
