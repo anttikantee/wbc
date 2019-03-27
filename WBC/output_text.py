@@ -154,8 +154,8 @@ def _printmash(input, results):
 	print()
 
 def _printboil(input, results):
-	namelen = 33
-	onefmt = '{:' + str(namelen) + '}{:6}{:>5}{:>12}{:>12}{:>10}'
+	namelen = 32
+	onefmt = '{:' + str(namelen) + '}{:>6}{:>6}{:>12}{:>12}{:>10}'
 	print(onefmt.format("Hops", "  AA%", "IBUs", "amount",
 	    "timespec", "timer"))
 	prtsep()
