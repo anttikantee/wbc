@@ -107,8 +107,8 @@ def _printmash(input, results):
 			ratio = x[4]
 			ratiounit = 'l/kg'
 		else:
-			ratio = (x[4]*Constants.litersperquart) \
-			    / (Constants.gramsperpound / 1000.0)
+			ratio = (x[4]*constants.litersperquart) \
+			    / (constants.gramsperpound / 1000.0)
 			ratiounit = 'qt/lb'
 		ratiostr = '{:.2f} {:}'.format(ratio, ratiounit)
 
