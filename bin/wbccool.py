@@ -123,7 +123,8 @@ if __name__ == '__main__':
 		elif o == '-h':
 			usage()
 
-	whr = (waterc - (0.0293*ws)) / cc
+	whc = waterc - 0.0293*ws
+	whr = whc / cc
 	wt = wt_orig
 
 	tt = parse.temperature(args[0])
@@ -154,9 +155,9 @@ if __name__ == '__main__':
 	if icemass is not None:
 		icecool = icemass * icec * (-icetemp) + icemass * icemelt
 
-		wh = wm * whr * wt
-		wh_new = max(tt * whr * wm, wh - icecool)
-		wt = wh_new / (wm * whr)
+		wh = wm * whc * wt
+		wh_new = max(tt * whc * wm, wh - icecool)
+		wt = wh_new / (wm * whc)
 
 		icepost = _Temperature(wt)
 		iceused = 100.0*(wh-wh_new) / icecool
