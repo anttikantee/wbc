@@ -253,12 +253,16 @@ def _keystats(input, results, miniprint):
 	    + srmprec.format(srm) + ' SRM'))
 	print()
 
-	if input['water_notes'] is not None or len(input['notes']) > 0:
-		if input['water_notes'] is not None:
+	if input['notes']['water'] is not None \
+	    or len(input['notes']['recipe'] + input['notes']['brewday']) > 0:
+		if input['notes']['water'] is not None:
 			prettyprint_withsugarontop('Water notes:',
-			    cols[0], input['water_notes'],
+			    cols[0], input['notes']['water'],
 			    sum(cols) - cols[0])
-		for n in input['notes']:
+		for n in input['notes']['recipe']:
+			prettyprint_withsugarontop('Recipe notes:',
+			    cols[0], n, sum(cols) - cols[0])
+		for n in input['notes']['brewday']:
 			prettyprint_withsugarontop('Brewday notes:',
 			    cols[0], n, sum(cols) - cols[0])
 		print()

@@ -87,7 +87,10 @@ def domashparams(r, mashparams):
 			raise PilotError('unknown mash parameter: ' + str(p))
 
 def dowater(r, v):
-	r.set_water_notes(v)
+	r.set_waternotes(v)
+
+def dorecipenotes(r, v):
+	r.add_recipenote(v)
 
 def applyparams(r, clist, odict):
 	for f in odict.get('wbcparamfiles', []):
@@ -103,8 +106,8 @@ def applyparams(r, clist, odict):
 	if 'volume_noscale' in odict:
 		r.set_volume(odict['volume_noscale'])
 
-	for n in odict.get('notes', []):
-		r.add_note(n)
+	for n in odict.get('brewday_notes', []):
+		r.add_brewdaynote(n)
 
 def processyaml(clist, odict, data):
 	# importing yaml is unfathomably slow, so do it only if we need it
@@ -147,6 +150,7 @@ def processyaml(clist, odict, data):
 		'hops'		: dohops,
 		'defs'		: lambda *x: None,
 		'water'		: dowater,
+		'notes'		: dorecipenotes,
 	}
 
 	for p in d:
@@ -200,7 +204,7 @@ def processcsv(clist, odict, data):
 def usage():
 	sys.stderr.write('usage: ' + sys.argv[0]
 	    + ' [-s volume,strength] [-v final volume] [-c] [-d] [-m]\n'
-	    + '\t[-n note] [-n note ...]\n'
+	    + '\t[-n brewday note] [-n brewday note ...]\n'
 	    + '\t[-p paramsfile] [-P param=value] recipefile\n')
 	sys.exit(1)
 
@@ -215,7 +219,7 @@ def processopts(opts):
 			odict['miniprint'] = True
 
 		elif o == '-n':
-			odict.setdefault('notes', []).append(a)
+			odict.setdefault('brewday_notes', []).append(a)
 
 		elif o == '-p':
 			odict.setdefault('wbcparamfiles', []).append(a)

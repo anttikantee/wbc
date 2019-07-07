@@ -49,8 +49,10 @@ class Recipe:
 		input['name' ] = name
 		input['yeast'] = yeast
 
-		input['water_notes'] = None
-		input['notes'] = []
+		input['notes'] = {}
+		input['notes']['water'] = None
+		input['notes']['brewday'] = []
+		input['notes']['recipe'] = []
 
 		self.boiltime = input['boiltime'] = boiltime
 		timespec.set_boiltime(self.boiltime)
@@ -174,15 +176,19 @@ class Recipe:
 		self.volume_inherent = volume
 
 	# set opaque water notes to be printed with recipe
-	def set_water_notes(self, waternotes):
+	def set_waternotes(self, waternotes):
 		checktype(waternotes, str)
-		if self.input['water_notes'] is not None:
+		if self.input['notes']['water'] is not None:
 			warn('water notes already set')
-		self.input['water_notes'] = waternotes
+		self.input['notes']['water'] = waternotes
 
-	def add_note(self, note):
+	def add_brewdaynote(self, note):
 		checktype(note, str)
-		self.input['notes'].append(note)
+		self.input['notes']['brewday'].append(note)
+
+	def add_recipenote(self, note):
+		checktype(note, str)
+		self.input['notes']['recipe'].append(note)
 
 	def _hopstore(self, hop, amount, time):
 		return [hop, amount, time]
