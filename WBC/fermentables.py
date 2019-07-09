@@ -409,6 +409,10 @@ Add('Simpsons', 'Brown',
 	diap_none,
 	Color(515, EBC))
 
+Add('Simpsons', 'Aromatic',
+	Extract(70, FGDB, FCD_UNKNOWN, 5.0),
+	diap_none,
+	Color(60, EBC))
 Add('Simpsons', 'Crystal Dark',
 	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	diap_none,
