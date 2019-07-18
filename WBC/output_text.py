@@ -156,7 +156,7 @@ def _printmash(input, results):
 def _printtimers(input, results):
 	namelen = 32
 	onefmt = '{:' + str(namelen) + '}{:>6}{:>6}{:>12}{:>12}{:>10}'
-	print(onefmt.format("Hops", "  AA%", "IBUs",
+	print(onefmt.format("Additions & Hops", "  AA%", "IBUs",
 	    "amount", "timespec", "timer"))
 	prtsep()
 
