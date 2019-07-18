@@ -194,6 +194,13 @@ def fermentableunit(input):
 
 	raise PilotError('invalid fermentable quantity: ' + str(input))
 
+def opaquemassunit(input):
+	if '/' in input:
+		rv = ratio(input, mass, volume)
+		return (Recipe.opaque_bymassvolratio, rv)
+	else:
+		return (Recipe.opaque_bymass, mass(input))
+
 def hopunit(input):
 	if input.startswith('AA '):
 		input = input[3:]

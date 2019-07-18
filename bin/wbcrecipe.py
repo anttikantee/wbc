@@ -47,6 +47,23 @@ def dohops(r, d_hops):
 	for h in d_hops:
 		dohop(r, h[0], h[1], h[2])
 
+def doopaques(r, opaques):
+	def doopaque_bymass(r, opaque, input, timespec):
+		mu = parse.opaquemassunit(input)
+		time = parse.timespec(timespec)
+		mu[0](r, opaque, mu[1], time)
+
+	def doopaque_byopaque(r, opaque, input, timespec):
+		time = parse.timespec(timespec)
+		r.opaque_byopaque(opaque, str(input), time)
+
+	for o in opaques.pop('bymass', []):
+		doopaque_bymass(r, o[0], o[1], o[2])
+	for o in opaques.pop('byopaque', []):
+		doopaque_byopaque(r, o[0], o[1], o[2])
+	if len(opaques) > 0:
+		raise PilotError('invalid opaque(s): '+','.join(opaques.keys()))
+
 def dofermentables(r, ferms):
 	fermtype = None
 	for stage in WBC.stages:
@@ -148,6 +165,7 @@ def processyaml(clist, odict, data):
 		'mashparams'	: domashparams,
 		'fermentables'	: dofermentables,
 		'hops'		: dohops,
+		'opaques'	: doopaques,
 		'defs'		: lambda *x: None,
 		'water'		: dowater,
 		'notes'		: dorecipenotes,

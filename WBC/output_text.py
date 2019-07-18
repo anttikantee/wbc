@@ -153,40 +153,44 @@ def _printmash(input, results):
 	prtsep()
 	print()
 
-def _printboil(input, results):
+def _printtimers(input, results):
 	namelen = 32
 	onefmt = '{:' + str(namelen) + '}{:>6}{:>6}{:>12}{:>12}{:>10}'
-	print(onefmt.format("Hops", "  AA%", "IBUs", "amount",
-	    "timespec", "timer"))
+	print(onefmt.format("Hops", "  AA%", "IBUs",
+	    "amount", "timespec", "timer"))
 	prtsep()
-	totmass = 0
-
-	t = results['startboil_timer']
-	if t is not None:
-		print(onefmt.format('', '', '', '', '@ boil', str(t) + ' min'))
 
 	# printing IBUs with a decimal point, given all
 	# other inaccuracy involved, is rather silly.
 	# but what would we be if not silly?
 	ibufmt = '{:.1f}'
 
-	prevstage = None
-	for h in results['hops']:
-		(hop,mass,time,ibu) = (h['hop'],h['mass'],h['time'],h['ibu'])
+	def hopvals(h):
+		(hop,mass,ibu) = (h['hop'],h['mass'],h['ibu'])
 		nam = hop.name
 		typ = hop.typestr
 		if len(nam) + len(typ) + len(' ()') >= namelen:
 			typ = hop.typestr[0]
 		typ = ' (' + typ + ')'
-		if prevstage is not None and \
-		    prevstage is not time.__class__:
-			prtsep('-')
 		maxlen = (namelen-1) - len(typ)
 		if len(nam) > maxlen:
 			nam = nam[0:maxlen-2] + '..'
 
-		prevstage = time.__class__
-		totmass = mass + totmass
+		ibustr = ibufmt.format(ibu)
+
+		return (nam+typ, str(hop.aapers)+'%', ibustr, str(mass))
+
+	def opaquevals(o):
+		(opaque,amount) = (o['opaque'],o['amount'])
+		return (opaque, '' ,'', str(amount))
+
+	prevstage = None
+	for t in results['timer_additions']:
+		time = t['time']
+		if 'hop' in t:
+			v = hopvals(t)
+		elif 'opaque' in t:
+			v = opaquevals(t)
 
 		if time.spec == input['boiltime']:
 			# XXX
@@ -194,9 +198,12 @@ def _printboil(input, results):
 		else:
 			timestr = time.timespecstr()
 
-		ibustr = ibufmt.format(ibu)
-		print(onefmt.format(nam + typ, str(hop.aapers) + '%',
-		    ibustr, str(mass), timestr, h['timer']))
+		if prevstage is not None and \
+		    prevstage is not time.__class__:
+			prtsep('-')
+		prevstage = time.__class__
+
+		print(onefmt.format(*v, timestr, t['timer']))
 	prtsep()
 	print()
 
@@ -347,6 +354,6 @@ def printit(input, results, miniprint):
 	print()
 
 	_printmash(input, results)
-	_printboil(input, results)
+	_printtimers(input, results)
 	if not miniprint:
 		_printattenuate(results)

@@ -27,6 +27,7 @@ from WBC.hop import Hop
 from WBC.mash import Mash
 
 from WBC import brewutils, timespec
+from WBC.timespec import Timespec
 
 def checkconfig():
 	return True
@@ -70,6 +71,10 @@ class Recipe:
 		self.fermentables_bymass = []
 		self.fermentables_bypercent = []
 		self.fermentables_therest = []
+
+		self.opaques_bymass = []
+		self.opaques_bymassvolume = []
+		self.opaques_byopaque = []
 
 		# final strength or mass of one fermentable
 		self.anchor = None
@@ -241,6 +246,38 @@ class Recipe:
 			self.hops_recipeBUGU = self._hopstore(hop, bugu, time)
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
+
+
+	# opaque additions.  not used for in-recipe calculations,
+	# just printed out in timed additions.
+	@staticmethod
+	def _opaquestore(opaque, amount, time):
+		return {
+			'opaque': opaque,
+			'amount': amount,
+			'time'  : time,
+		}
+
+	def opaque_bymass(self, opaque, mass, time):
+		checktypes([(mass, Mass), (time, Timespec)])
+		self.opaques_bymass.append(self._opaquestore(opaque,
+		    mass, time))
+
+	# mass per final volume
+	def opaque_bymassvolratio(self, opaque, mv, time):
+		(mass, vol) = mv
+		checktypes([(mass, Mass), (vol, Volume), (time, Timespec)])
+		opaquemass = _Mass(mass / vol)
+		self.opaques_bymassvolume.append(self._opaquestore(opaque,
+		    opaquemass, time))
+
+	# mass per final volume
+	def opaque_byopaque(self, opaque, ospec, time):
+		checktype(time, Timespec)
+		if ospec.__class__ != str:
+			raise PilotError('opaque spec must be a string')
+		self.opaques_byopaque.append(self._opaquestore(opaque,
+		    ospec, time))
 
 	def __doanchor(self, what, value):
 		if not self.anchor is None:
@@ -622,7 +659,6 @@ class Recipe:
 		    'mass' : mass,
 		    'time' : time,
 		    'ibu' : ibu,
-		    'timer' : '', # filled in later
 		}
 	@staticmethod
 	def _hopunmap(h):
@@ -681,9 +717,8 @@ class Recipe:
 			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
 			totibus += missibus
 
-		# Sort the hop additions of the recipe.
+		# sort alphabetically here (generic code doesn't know how)
 		allhop = sorted(allhop, key=lambda x: x['hop'].name)
-		allhop = sorted(allhop, key=lambda x: x['time'], reverse=True)
 
 		# calculate amount of wort that hops will drink
 		hd = {x: 0 for x in self.hopsdrunk}
@@ -700,34 +735,55 @@ class Recipe:
 		self.hopsdrunk = {x: _Volume(hd[x]) for x in hd}
 		self.hopsdrunk['volume'] = _Volume(packagedryhopvol)
 
+		self.results['hops'] = allhop
+
+		totmass = _Mass(sum(x['mass'] for x in allhop))
+		self.results['hop_stats'] = Recipe._hopmap('all',
+		    totmass, None, totibus)
+
+	def _dotimers(self):
+		opaques = self.opaques_bymass + self.opaques_byopaque
+		for o in self.opaques_bymassvolume:
+			mass = _Mass(self.__scale(o['amount'])
+			    * self.__final_volume())
+			opaques.append(self._opaquestore(o['opaque'], mass,
+			    o['time']))
+
+		# sort the timerable additions
+		timers = self.results['hops'] + opaques
+		timers = sorted(timers, key=lambda x: x['time'], reverse=True)
+
 		# calculate "timer" field values
 		prevtype = None
 		timer = 0
-		for h in reversed(allhop):
-			(hop, _, time, _) = Recipe._hopunmap(h)
+		hasboil = False
+		for t in reversed(timers):
+			time = t['time']
 			if prevtype is None or not isinstance(time, prevtype):
 				timer = 0
 				prevval = None
 				prevtype = time.__class__
 
 			if isinstance(time, timespec.Fermentor):
-				h['timer'] = str(time)
+				t['timer'] = str(time)
 			if isinstance(time, timespec.Package):
-				h['timer'] = str(time)
+				t['timer'] = str(time)
 
 			if isinstance(time, timespec.Steep):
 				if prevval is not None \
 				    and prevval[0] == time.temp:
 					if prevval[1] == time.time:
-						h['timer'] = '=='
+						t['timer'] = '=='
 					else:
 						v = time.time - prevval[1]
-						h['timer'] = str(v) + ' min'
+						t['timer'] = str(v) + ' min'
 				else:
-					h['timer'] = str(time.time) + ' min'
+					t['timer'] = str(time.time) + ' min'
 				prevval = (time.temp, time.time)
 
 			if isinstance(time, timespec.Boil):
+				hasboil = True
+
 				cmpval = time.time
 				thisval = '=='
 
@@ -737,18 +793,17 @@ class Recipe:
 				if cmpval != timer:
 					thisval = str(cmpval - timer) + ' min'
 					timer = cmpval
-				h['timer'] = thisval
+				t['timer'] = thisval
 
-		if timer != self.boiltime:
-			self.results['startboil_timer'] = self.boiltime - timer
-		else:
-			self.results['startboil_timer'] = None
+		# if timers don't start from start of boil, add an opaque
+		# to specify initial timer value
+		if hasboil and timer != self.boiltime:
+			sb = self._opaquestore('', '',
+			    timespec.Boil(self.boiltime))
+			sb['timer'] = str(self.boiltime - timer) + ' min'
+			timers = [sb] + timers
 
-		self.results['hops'] = allhop
-
-		totmass = _Mass(sum(x['mass'] for x in allhop))
-		self.results['hop_stats'] = Recipe._hopmap('all',
-		    totmass, None, totibus)
+		self.results['timer_additions'] = timers
 
 	def _doferment(self):
 		self._doattenuate()
@@ -812,6 +867,8 @@ class Recipe:
 		# do the volumes once more to finalize them with the
 		# final hop thirst
 		self._dovolumes()
+
+		self._dotimers()
 
 		self._dofermentablestats()
 		self._doferment()
