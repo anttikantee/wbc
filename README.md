@@ -37,8 +37,8 @@ The main (and only?) features are:
   * handle fermentable yields and estimated strength / ABV, and
     optionally convert grainbill percentages to masses (per target
     strength and volume)
-  * calculate water temperatures and volumes for infusion mashes,
-    also multi-step (decoction mass calculations are planned ... some day)
+  * calculate water temperatures and volumes for multi-step infusion
+    mashes.  calculate decoction sizes.
   * calculate IBUs and optionally calculate hop additions based on
     desired IBUs
   * scales recipes to desired final volume
