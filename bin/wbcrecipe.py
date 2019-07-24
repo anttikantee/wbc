@@ -53,12 +53,19 @@ def doopaques(r, opaques):
 		time = parse.timespec(timespec)
 		mu[0](r, opaque, mu[1], time)
 
+	def doopaque_byvolume(r, opaque, input, timespec):
+		mu = parse.opaquevolumeunit(input)
+		time = parse.timespec(timespec)
+		mu[0](r, opaque, mu[1], time)
+
 	def doopaque_byopaque(r, opaque, input, timespec):
 		time = parse.timespec(timespec)
 		r.opaque_byopaque(opaque, str(input), time)
 
 	for o in opaques.pop('bymass', []):
 		doopaque_bymass(r, o[0], o[1], o[2])
+	for o in opaques.pop('byvolume', []):
+		doopaque_byvolume(r, o[0], o[1], o[2])
 	for o in opaques.pop('byopaque', []):
 		doopaque_byopaque(r, o[0], o[1], o[2])
 	if len(opaques) > 0:

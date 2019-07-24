@@ -209,6 +209,13 @@ def opaquemassunit(input):
 	else:
 		return (Recipe.opaque_bymass, mass(input))
 
+def opaquevolumeunit(input):
+	if '/' in input:
+		rv = ratio(input, volume, volume)
+		return (Recipe.opaque_byvolvolratio, rv)
+	else:
+		return (Recipe.opaque_byvol, volume(input))
+
 def hopunit(input):
 	if input.startswith('AA '):
 		input = input[3:]

@@ -74,6 +74,8 @@ class Recipe:
 
 		self.opaques_bymass = []
 		self.opaques_bymassvolume = []
+		self.opaques_byvolume = []
+		self.opaques_byvolumevolume = []
 		self.opaques_byopaque = []
 
 		# final strength or mass of one fermentable
@@ -262,14 +264,23 @@ class Recipe:
 		checktypes([(mass, Mass), (time, Timespec)])
 		self.opaques_bymass.append(self._opaquestore(opaque,
 		    mass, time))
+	def opaque_byvol(self, opaque, volume, time):
+		checktypes([(volume, Volume), (time, Timespec)])
+		self.opaques_byvolume.append(self._opaquestore(opaque,
+		    volume, time))
 
-	# mass per final volume
 	def opaque_bymassvolratio(self, opaque, mv, time):
 		(mass, vol) = mv
 		checktypes([(mass, Mass), (vol, Volume), (time, Timespec)])
 		opaquemass = _Mass(mass / vol)
 		self.opaques_bymassvolume.append(self._opaquestore(opaque,
 		    opaquemass, time))
+	def opaque_byvolvolratio(self, opaque, vv, time):
+		(v1, v2) = vv
+		checktypes([(v1, Volume), (v2, Volume), (time, Timespec)])
+		opaquevolume = _Volume(v1 / v2)
+		self.opaques_byvolumevolume.append(self._opaquestore(opaque,
+		    opaquevolume, time))
 
 	# mass per final volume
 	def opaque_byopaque(self, opaque, ospec, time):
@@ -742,11 +753,17 @@ class Recipe:
 		    totmass, None, totibus)
 
 	def _dotimers(self):
-		opaques = self.opaques_bymass + self.opaques_byopaque
+		opaques = self.opaques_bymass + self.opaques_byvolume \
+		    + self.opaques_byopaque
 		for o in self.opaques_bymassvolume:
 			mass = _Mass(self.__scale(o['amount'])
 			    * self.__final_volume())
 			opaques.append(self._opaquestore(o['opaque'], mass,
+			    o['time']))
+		for o in self.opaques_byvolumevolume:
+			volume = _Volume(self.__scale(o['amount'])
+			    * self.__final_volume())
+			opaques.append(self._opaquestore(o['opaque'], volume,
 			    o['time']))
 
 		# sort the timerable additions
