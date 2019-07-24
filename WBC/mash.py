@@ -354,6 +354,7 @@ class Mash:
 			for i, s in enumerate(steps):
 				stepres.append((s, vol, actualvol,
 				    temp, ratio, mashvol))
+				vol = _Volume(0)
 
 		return stepres
 
@@ -387,7 +388,6 @@ class Mash:
 			stepres.append((steps[i+1], _Volume(0),
 			    decoctionvol, nxttemp, ratio, mashvol))
 		return stepres
-
 
 	def printcsv(self):
 		print('# mash|method|mashtemp1|mashtemp2...')
