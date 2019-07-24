@@ -15,7 +15,7 @@
 #
 
 from WBC.utils import PilotError, checktype
-from WBC.units import Temperature
+from WBC.units import Temperature, _Temperature
 
 _boiltime = None
 def set_boiltime(boiltime):
@@ -34,6 +34,50 @@ class Timespec:
 		if self.__class__ != other.__class__:
 			return False
 		raise TypeError('I cannot compare')
+
+# Note: for mashing, unlike boiling, a smaller value means an *earlier*
+# addition, so smaller is actually larger (i.e. earlier).
+class Mash(Timespec):
+	def __init__(self, temp = None):
+		if temp is not None:
+			checktype(temp, Temperature)
+		self.temp = temp
+		self.spec = None
+
+	def __str__(self):
+		if self.temp is None:
+			return 'mashin'
+		else:
+			return str(self.temp)
+
+	def timespecstr(self):
+		return 'mash'
+
+	def __repr__(self):
+		return 'Timespec mash: ' + str(self)
+
+	def __adjtemp(self, other):
+		ts = self.temp
+		to = other.temp
+		if ts is None:
+			ts = _Temperature(0)
+		if to is None:
+			to = _Temperature(0)
+		return (ts, to)
+
+	def __lt__(self, other):
+		try:
+			return super().__lt__(other)
+		except TypeError:
+			ts, to = self.__adjtemp(other)
+			return ts > to
+
+	def __eq__(self, other):
+		try:
+			return super().__eq__(other)
+		except TypeError:
+			ts, to = self.__adjtemp(other)
+			return ts == to
 
 class Boil(Timespec):
 	specials = [ 'FWH', 'boiltime' ]
@@ -188,4 +232,4 @@ class Package(Timespec):
 			return True
 
 # from "smallest" to "largest" (opposite of first-to-last)
-_order = [Package, Fermentor, Steep, Boil]
+_order = [Package, Fermentor, Steep, Boil, Mash]

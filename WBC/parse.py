@@ -103,6 +103,12 @@ def timespec(input):
 
 	if input == 'package':
 		return WBC.timespec.Package()
+	elif 'mash' in input:
+		t = None
+		if '@' in input:
+			r = input.split('@')
+			t = temperature(r[1])
+		return WBC.timespec.Mash(t)
 	elif '->' in input:
 		d1, d2 = split(input, '->', days, days)
 		return WBC.timespec.Fermentor(d1, d2)

@@ -756,7 +756,7 @@ class Recipe:
 		# calculate "timer" field values
 		prevtype = None
 		timer = 0
-		hasboil = False
+		boiltimer = None
 		for t in reversed(timers):
 			time = t['time']
 			if prevtype is None or not isinstance(time, prevtype):
@@ -764,6 +764,8 @@ class Recipe:
 				prevval = None
 				prevtype = time.__class__
 
+			if isinstance(time, timespec.Mash):
+				t['timer'] = str(time)
 			if isinstance(time, timespec.Fermentor):
 				t['timer'] = str(time)
 			if isinstance(time, timespec.Package):
@@ -782,8 +784,6 @@ class Recipe:
 				prevval = (time.temp, time.time)
 
 			if isinstance(time, timespec.Boil):
-				hasboil = True
-
 				cmpval = time.time
 				thisval = '=='
 
@@ -794,10 +794,11 @@ class Recipe:
 					thisval = str(cmpval - timer) + ' min'
 					timer = cmpval
 				t['timer'] = thisval
+				boiltimer = timer
 
 		# if timers don't start from start of boil, add an opaque
 		# to specify initial timer value
-		if hasboil and timer != self.boiltime:
+		if boiltimer != self.boiltime:
 			sb = self._opaquestore('', '',
 			    timespec.Boil(self.boiltime))
 			sb['timer'] = str(self.boiltime - timer) + ' min'
