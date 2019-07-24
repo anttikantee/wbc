@@ -598,7 +598,7 @@ class Recipe:
 		v = self.__volume_at_stage(self.POSTBOIL)
 
 		self.results['mash'] \
-		    = self.mash.infusion_mash(getparam('ambient_temp'),
+		    = self.mash.do_mash(getparam('ambient_temp'),
 			self.__reference_temp(), totvol,
 			self.__grain_absorption())
 

@@ -80,7 +80,8 @@ def _printmash(input, results):
 
 	stepfmt = '{:12}{:>10}{:>26}{:>16}{:>14}'
 
-	print(stepfmt.format('Mashstep', 'Time', 'Addition', 'Ratio', 'Volume'))
+	print(stepfmt.format('Mashstep', 'Time', 'Adjustment',
+	    'Ratio', 'Volume'))
 	prtsep()
 
 	totvol = 0
@@ -96,7 +97,9 @@ def _printmash(input, results):
 		# XXX: should probably be more rigorously structured
 		# in the computation so that we don't need so much
 		# logic here on the "dumb" output side
-		if getparam('mlt_heat') == 'direct' and i != 0:
+		if results['mash']['method'] == 'decoction' and i != 0:
+			addition = 'decoct ' + str(x[2])
+		elif getparam('mlt_heat') == 'direct' and i != 0:
 			addition = 'heat'
 		else:
 			addition = '{:>8}'.format(str(x[2])) \

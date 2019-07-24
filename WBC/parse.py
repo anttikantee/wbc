@@ -169,6 +169,7 @@ def timedtemperature(input):
 def mashmethod(input):
 	methods = {
 		'infusion'	: mash.Mash.INFUSION,
+		'decoction'	: mash.Mash.DECOCTION,
 	}
 	if input in methods:
 		return methods[input]
