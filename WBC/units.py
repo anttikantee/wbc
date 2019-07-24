@@ -39,6 +39,7 @@ class WBCUnit(float):
 class Volume(WBCUnit):
 	LITER		= object()
 	DECILITER	= object()
+	MILLILITER	= object()
 	HECTOLITER	= object()
 	QUART		= object()
 	GALLON		= object()
@@ -52,6 +53,8 @@ class Volume(WBCUnit):
 			value = constants.literspergallon * value
 		elif unit is Volume.QUART:
 			value = constants.litersperquart * value
+		elif unit is Volume.MILLILITER:
+			value = value / 1000.0
 		elif unit is Volume.DECILITER:
 			value = value / 10.0
 		elif unit is Volume.HECTOLITER:
@@ -67,6 +70,8 @@ class Volume(WBCUnit):
 	def stras(self, which):
 		if which == self.LITER:
 			sym = 'l'
+		elif which == self.MILLILITER:
+			sym = 'ml'
 		elif which == self.DECILITER:
 			sym = 'dl'
 		elif which == self.HECTOLITER:
@@ -85,7 +90,9 @@ class Volume(WBCUnit):
 	def stras_system(self, system):
 		_checksystem(system)
 		if system == 'metric':
-			if self.valueas(self.LITER) < 1:
+			if self.valueas(self.LITER) < 0.1:
+				return self.stras(self.MILLILITER)
+			elif self.valueas(self.LITER) < 1:
 				return self.stras(self.DECILITER)
 			elif self.valueas(self.HECTOLITER) < 1:
 				return self.stras(self.LITER)
@@ -100,6 +107,8 @@ class Volume(WBCUnit):
 	def valueas(self, unit):
 		if unit is Volume.LITER:
 			return self
+		elif unit is Volume.MILLILITER:
+			return self * 1000.0
 		elif unit is Volume.DECILITER:
 			return self * 10.0
 		elif unit is Volume.HECTOLITER:

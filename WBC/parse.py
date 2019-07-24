@@ -64,6 +64,7 @@ def volume(input):
 		'bbl'	: units.Volume.BARREL,
 		'gal'	: units.Volume.GALLON,
 		'qt'	: units.Volume.QUART,
+		'ml'	: units.Volume.MILLILITER,
 		'dl'	: units.Volume.DECILITER,
 		'l'	: units.Volume.LITER,
 		'hl'	: units.Volume.HECTOLITER,
