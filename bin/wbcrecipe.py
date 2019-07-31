@@ -284,6 +284,9 @@ if __name__ == '__main__':
 		with io.open(args[0], "r", encoding='utf-8') \
 		    if (len(args) > 0 and args[0] is not "-") \
 		    else sys.stdin as data:
+			if data is sys.stdin:
+				sys.stderr.write('>> Reading recipe from '
+				    + 'stdin ...\n')
 			if '-d' in flags:
 				r = processcsv(clist, odict, data)
 			else:
