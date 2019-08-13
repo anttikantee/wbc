@@ -110,8 +110,12 @@ def timespec(input):
 			r = input.split('@')
 			s = r[1].strip()
 
-			try: t = { 'mashin'  : WBC.timespec.Mash.MASHIN,
-				   'mashout' : WBC.timespec.Mash.MASHOUT }[s]
+			try:
+				t = {
+					'mashin'  : WBC.timespec.Mash.MASHIN,
+					'mashout' : WBC.timespec.Mash.MASHOUT,
+					'sparge'  : WBC.timespec.Mash.SPARGE
+				}[s]
 			except KeyError:
 				t = temperature(r[1])
 		return WBC.timespec.Mash(t)

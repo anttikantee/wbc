@@ -38,9 +38,12 @@ class Timespec:
 class Mash(Timespec):
 	MASHIN=		'mashin'
 	MASHOUT=	'mashout'
+	SPARGE=		'sparge'
+
+	_specials=	[ MASHIN, MASHOUT, SPARGE ]
 
 	def __init__(self, when = MASHIN):
-		if when is not self.MASHIN and when is not self.MASHOUT:
+		if when not in self._specials:
 			checktype(when, Temperature)
 			if when < 1 or when > 99:
 				raise PilotError('unbelievable mash '
@@ -63,6 +66,7 @@ class Mash(Timespec):
 		tmap = {
 			self.MASHIN  : 0,
 			self.MASHOUT : 100,
+			self.SPARGE  : 101,
 		}
 		if ts in tmap:
 			ts = _Temperature(tmap[ts])
