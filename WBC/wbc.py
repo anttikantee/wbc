@@ -773,7 +773,7 @@ class Recipe:
 		# calculate "timer" field values
 		prevtype = None
 		timer = 0
-		boiltimer = None
+		boiltimer = 0
 		for t in reversed(timers):
 			time = t['time']
 			if prevtype is None or not isinstance(time, prevtype):
@@ -815,11 +815,12 @@ class Recipe:
 
 		# if timers don't start from start of boil, add an opaque
 		# to specify initial timer value
-		if boiltimer != self.boiltime:
+		if self.boiltime > 0 and boiltimer != self.boiltime:
 			sb = self._opaquestore('', '',
 			    timespec.Boil(self.boiltime))
-			sb['timer'] = str(self.boiltime - timer) + ' min'
-			timers = [sb] + timers
+			sb['timer'] = str(self.boiltime - boiltimer) + ' min'
+			timers = sorted([sb] + timers,
+			    key=lambda x: x['time'], reverse=True)
 
 		self.results['timer_additions'] = timers
 
