@@ -105,10 +105,15 @@ def timespec(input):
 	if input == 'package':
 		return WBC.timespec.Package()
 	elif 'mash' in input:
-		t = None
+		t = WBC.timespec.Mash.MASHIN
 		if '@' in input:
 			r = input.split('@')
-			t = temperature(r[1])
+			s = r[1].strip()
+
+			try: t = { 'mashin'  : WBC.timespec.Mash.MASHIN,
+				   'mashout' : WBC.timespec.Mash.MASHOUT }[s]
+			except KeyError:
+				t = temperature(r[1])
 		return WBC.timespec.Mash(t)
 	elif '->' in input:
 		d1, d2 = split(input, '->', days, days)

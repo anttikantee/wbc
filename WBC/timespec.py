@@ -35,20 +35,21 @@ class Timespec:
 			return False
 		raise TypeError('I cannot compare')
 
-# Note: for mashing, unlike boiling, a smaller value means an *earlier*
-# addition, so smaller is actually larger (i.e. earlier).
 class Mash(Timespec):
-	def __init__(self, temp = None):
-		if temp is not None:
-			checktype(temp, Temperature)
-		self.temp = temp
+	MASHIN=		'mashin'
+	MASHOUT=	'mashout'
+
+	def __init__(self, when = MASHIN):
+		if when is not self.MASHIN and when is not self.MASHOUT:
+			checktype(when, Temperature)
+			if when < 1 or when > 99:
+				raise PilotError('unbelievable mash '
+				    + 'temperature: ' + when)
+		self.when = when
 		self.spec = None
 
 	def __str__(self):
-		if self.temp is None:
-			return 'mashin'
-		else:
-			return str(self.temp)
+		return str(self.when)
 
 	def timespecstr(self):
 		return 'mash'
@@ -56,28 +57,34 @@ class Mash(Timespec):
 	def __repr__(self):
 		return 'Timespec mash: ' + str(self)
 
-	def __adjtemp(self, other):
-		ts = self.temp
-		to = other.temp
-		if ts is None:
-			ts = _Temperature(0)
-		if to is None:
-			to = _Temperature(0)
+	def __cmpvalue(self, other):
+		ts = self.when
+		to = other.when
+		tmap = {
+			self.MASHIN  : 0,
+			self.MASHOUT : 100,
+		}
+		if ts in tmap:
+			ts = _Temperature(tmap[ts])
+		if to in tmap:
+			to = _Temperature(tmap[to])
 		return (ts, to)
 
+	# Note: for mashing, unlike boiling, a smaller value means
+	# an *earlier* addition, so smaller is larger (i.e. earlier).
 	def __lt__(self, other):
 		try:
 			return super().__lt__(other)
 		except TypeError:
-			ts, to = self.__adjtemp(other)
-			return ts > to
+			c1, c2 = self.__cmpvalue(other)
+			return c1 > c2
 
 	def __eq__(self, other):
 		try:
 			return super().__eq__(other)
 		except TypeError:
-			ts, to = self.__adjtemp(other)
-			return ts == to
+			c1, c2 = self.__cmpvalue(other)
+			return c1 == c2
 
 class Boil(Timespec):
 	specials = [ 'FWH', 'boiltime' ]
