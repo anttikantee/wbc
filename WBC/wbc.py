@@ -100,7 +100,7 @@ class Recipe:
 		Sysparams.processfile(filename)
 
 	def __havefermentable(self, fermentable, when):
-		v = [x for x in self.fermentables_bymass 
+		v = [x for x in self.fermentables_bymass
 		    + self.fermentables_bypercent
 		    if x['fermentable'].name==fermentable and x['when']==when]
 		if len(v) > 0:
