@@ -74,13 +74,17 @@ def doopaques(r, opaques):
 def dofermentables(r, ferms):
 	fermtype = None
 	for stage in WBC.stages:
-		for f in ferms.get(stage, []):
-			(fun, v) = parse.fermentableunit(ferms[stage][f])
+		fs = ferms.pop(stage, [])
+		for f in fs:
+			(fun, v) = parse.fermentableunit(fs[f])
 			fun(r, f, v, stage)
 
-	s = ferms.get('strength', None)
+	s = ferms.pop('strength', None)
 	if s is not None:
 		r.anchor_bystrength(parse.strength(s))
+
+	if len(ferms) > 0:
+		raise PilotError('invalid ferms(s): '+', '.join(ferms.keys()))
 
 def domashparams(r, mashparams):
 	for p in mashparams:
