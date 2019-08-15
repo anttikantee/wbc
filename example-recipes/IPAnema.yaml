@@ -7,7 +7,7 @@ mashparams:
         temperature: 66degC
 
 fermentables:
-        anchor: [ strength, 16degP ]
+        strength: 16degP
 
         mash:
                 Briess Pale:     rest
@@ -17,23 +17,20 @@ fermentables:
         ferment:
                 table sugar:       5%
 
+defs:
+        - [ &mosaic [ Mosaic,    12.4%,  pellet ] ]
+        - [ &citra  [ Citra,     14.0%,  pellet ] ]
+
 hops:
-        defs:
-                mosaic:         [ Mosaic,     12.4%,   pellet  ]
-                citra:          [ Citra,      14.0%,   pellet  ]
+        - [ *citra,      10g, 20 min ]
+        - [ *mosaic,     10g, 20 min ]
+        - [ *citra,      10g,  2 min ]
+        - [ *mosaic,     10g,  2 min ]
 
-        boil:
-                - [ citra,      10g, 20 min ]
-                - [ mosaic,     10g, 20 min ]
-                - [ citra,      10g,  2 min ]
-                - [ mosaic,     10g,  2 min ]
+        - [ *citra,      15g, 10min @ 85degC ]
+        - [ *mosaic,     15g, 10min @ 85degC ]
 
-        steep:
-                - [ citra,      15g, 10min @ 85degC ]
-                - [ mosaic,     15g, 10min @ 85degC ]
-
-        dryhop:
-                - [ citra,      11g, 3 day -> 0 day ]
-                - [ mosaic,     11g, 3 day -> 0 day ]
-                - [ citra,      52g, package ]
-                - [ mosaic,     52g, package ]
+        - [ *citra,      11g, 3 day -> 0 day ]
+        - [ *mosaic,     11g, 3 day -> 0 day ]
+        - [ *citra,      52g, package ]
+        - [ *mosaic,     52g, package ]
