@@ -290,24 +290,12 @@ class Recipe:
 		self.opaques_byopaque.append(self._opaquestore(opaque,
 		    ospec, time))
 
-	def __doanchor(self, what, value):
-		if not self.anchor is None:
-			raise PilotError('anchor already set')
-		self.anchor = {'what' : what, 'value' : value }
-
 	def anchor_bystrength(self, strength):
 		checktype(strength, Strength)
 
-		self.__doanchor('strength', strength)
-
-	def anchor_bymass(self, fermentable, mass):
-		checktype(mass, Mass)
-
-		f = fermentables.Get(fermentable)
-		self.__doanchor('mass', {
-			'fermentable' : f,
-			'mass' : mass,
-		})
+		if self.anchor is not None:
+			raise PilotError('anchor already set')
+		self.anchor = strength
 
 	def __validate_ferm(self, name, fermentable, when):
 		if when not in WBC.stages:
@@ -478,52 +466,34 @@ class Recipe:
 			raise PilotError('anchor must be set for '
 			    + 'by-percent fermentables')
 
-		if self.anchor['what'] == 'strength':
-			# calculate extract required for strength, and derive
-			# masses of fermentables from that
+		# calculate extract required for strength, and derive
+		# masses of fermentables from that
 
-			extract = self.__extract(
-			    self.__volume_at_stage(self.POSTBOIL),
-			    self.anchor['value']) \
-			      + self.input['stolen_wort']['extract']
+		extract = self.__extract(self.__volume_at_stage(self.POSTBOIL),
+		    self.anchor) + self.input['stolen_wort']['extract']
 
-			# take into account any yield we already get from
-			# per-mass additions
-			if bmyield > extract:
-				raise PilotError('strength anchor and '
-				    'by-mass addition mismatch')
-			extract -= bmyield
+		# take into account any yield we already get from
+		# per-mass additions
+		if bmyield > extract:
+			raise PilotError('strength anchor and '
+			    'by-mass addition mismatch')
+		extract -= bmyield
 
-			# now, solve for the total mass:
-			# extract = yield1 * m1 + yield2 * m2 + ...
-			# where yieldn = extract% * mash_efficiency / 100.0
-			# and   mn = pn * totmass
-			# and then solve: totmass = extract / (sum(yieldn*pn))
-			thesum = sum([self.fermentable_percentage(x)/100.0
-			    * x['amount']/100.0
-			    for x in self.fermentables_bypercent])
-			totmass = _Mass(extract / thesum)
+		# now, solve for the total mass:
+		# extract = yield1 * m1 + yield2 * m2 + ...
+		# where yieldn = extract% * mash_efficiency / 100.0
+		# and   mn = pn * totmass
+		# and then solve: totmass = extract / (sum(yieldn*pn))
+		thesum = sum([self.fermentable_percentage(x)/100.0
+		    * x['amount']/100.0 for x in self.fermentables_bypercent])
+		totmass = _Mass(extract / thesum)
 
-			# Note: solution isn't 100% correct when we consider
-			# adding sugars into the fermentor: the same amount
-			# of sugar as into the boil will increase the strength
-			# more in the fermentor due to a smaller volume.
-			# But the math behind the correct calculation seems to
-			# get hairy fast, so we'll let it slip at least for now.
-
-		elif self.anchor['what'] == 'mass':
-			# mass of one fermentable is set, others are
-			# simply scaled to that value
-
-			a = self.anchor['value']
-			aname = a['fermentable'].name
-			f = [x for x in self.fermentables_bypercent
-			    if x['fermentable'].name == aname]
-			if len(f) == 0:
-				raise PilotError("could not find anchor "
-				    "fermentable: " + aname)
-			anchorpers = sum(x['amount'] for x in f)
-			totmass = a['mass'] / (anchorpers/100.0)
+		# Note: solution isn't 100% correct when we consider
+		# adding sugars into the fermentor: the same amount
+		# of sugar as into the boil will increase the strength
+		# more in the fermentor due to a smaller volume.
+		# But the math behind the correct calculation seems to
+		# get hairy fast, so we'll let it slip at least for now.
 
 		# and finally set the masses of each individual fermentable
 		for x in self.fermentables_bypercent:

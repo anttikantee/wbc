@@ -78,16 +78,9 @@ def dofermentables(r, ferms):
 			(fun, v) = parse.fermentableunit(ferms[stage][f])
 			fun(r, f, v, stage)
 
-	a = ferms.get('anchor', [])
-	if len(a) > 0:
-		# XXX: validate input length
-		if a[0] == 'strength':
-			r.anchor_bystrength(parse.strength(a[1]))
-		elif a[0] == 'mass':
-			r.anchor_bymass(a[1], parse.mass(a[2]))
-		else:
-			raise PilotError('unexpected fermentable anchor: '
-			    + a[0])
+	s = ferms.get('strength', None)
+	if s is not None:
+		r.anchor_bystrength(parse.strength(s))
 
 def domashparams(r, mashparams):
 	for p in mashparams:
