@@ -15,6 +15,7 @@
 #
 
 import copy
+import inspect
 
 from WBC import constants
 from WBC import fermentables
@@ -93,6 +94,8 @@ class Recipe:
 		self._calculatestatus = 0
 
 		self.mash = Mash()
+
+		self.__once = []
 
 		sysparams.processdefaults()
 
@@ -173,6 +176,15 @@ class Recipe:
 
 		scale = self.volume_scaled / self.volume_inherent
 		return _Mass(scale * what)
+
+	def once(self, callme, *args):
+		cf = inspect.stack()[1]
+		caller = cf[1] + '/' + str(cf[2]) + '/' + cf[3]
+		if caller in self.__once:
+			return
+
+		self.__once.append(caller)
+		callme(*args)
 
 	def set_volume_and_scale(self, volume):
 		checktype(volume, Volume)
