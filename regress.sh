@@ -23,6 +23,12 @@ die ()
 	exit 1
 }
 
+msg ()
+{
+
+	echo '>>' $* 1>&2
+}
+
 usage ()
 {
 
@@ -71,10 +77,12 @@ elif [ $1 = 'test' ]; then
 	    || die no testdata, did not run prep\?
 
 	failed=0
+	rm -f testdata/failed-recipes
 	for x in testdata/*.out; do
 		bn=$(basename ${x%.out})
 		echo "Testing ${bn} ..."
 		python3 ./bin/wbcrecipe.py recipes/${bn} > $x.cmp
+		[ $? -eq 0 ] || echo ${bn} >> testdata/failed-recipes
 		compordie $x $x.cmp
 	done
 
@@ -89,7 +97,11 @@ elif [ $1 = 'test' ]; then
 		num=$((${num} + 1))
 	done < cmds-regress.txt
 
-	[ ${failed} -eq 0 ] || die output for ${failed} 'test(s)' differ
+	fr=testdata/failed-recipes
+	[ ${failed} -eq 0 ] || msg output for ${failed} 'test(s)' differ
+	[ ! -f ${fr} ] || {
+	    msg Following recipes failed \(n = $(wc -l < ${fr})\):; cat ${fr}; }
+	[ ${failed} -eq 0 -a ! -f ${fr} ] || die 'failed'
 
 	echo '>> no regressions.  run "reset" if you no longer need testdata'
 elif [ $1 = 'reset' ]; then
