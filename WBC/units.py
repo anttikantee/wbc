@@ -28,9 +28,10 @@ def _checksystem(system):
 		raise PilotError('invalid unit system: ' + system)
 
 class WBCUnit(float):
-	def __new__(cls, value, unit):
+	def __new__(cls, value, unit, defunit):
 		rv = super(WBCUnit, cls).__new__(cls, value)
 		rv.inputunit = unit
+		rv.defaultunit = defunit
 		return rv
 
 	def __init__(self, value, unit):
@@ -62,7 +63,8 @@ class Volume(WBCUnit):
 		elif unit is not Volume.LITER:
 			raise PilotError('invalid Volume unit')
 
-		return super(Volume, cls).__new__(cls, value, unit)
+		return super(Volume, cls).__new__(cls, value, unit,
+		    Volume.LITER)
 
 	def __str__(self):
 		return self.stras_system(getparam('units_output'))
@@ -136,7 +138,8 @@ class Temperature(WBCUnit):
 		elif unit is not Temperature.degC:
 			raise PilotError('invalid Temperature unit')
 
-		return super(Temperature, cls).__new__(cls, value, unit)
+		return super(Temperature, cls).__new__(cls, value, unit,
+		    Temperature.degC)
 
 	def stras_system(self, system):
 		_checksystem(system)
@@ -198,7 +201,7 @@ class Mass(WBCUnit):
 		else:
 			assert(unit is Mass.KG)
 
-		self = super(Mass, cls).__new__(cls, value, unit)
+		self = super(Mass, cls).__new__(cls, value, unit, Mass.KG)
 		if unit is Mass.OZ:
 			self.small = True
 		else:
@@ -298,7 +301,8 @@ class Strength(WBCUnit):
 		if value > 42:
 			raise PilotError('strength input too high')
 
-		return super(Strength, cls).__new__(cls, value, unit)
+		return super(Strength, cls).__new__(cls, value, unit,
+		    Strength.PLATO)
 
 	# I did not trust the various ABV "magic number" formulae on the
 	# internet because they lacked explanation.  So, I did a long
@@ -546,7 +550,8 @@ class Pressure(WBCUnit):
 		elif unit is not Pressure.PASCAL:
 			raise Exception('invalid Pressure unit')
 
-		return super(Pressure, cls).__new__(cls, value, unit)
+		return super(Pressure, cls).__new__(cls, value, unit,
+		    Pressure.PASCAL)
 
 	def valueas(self, which):
 		if which is Pressure.PASCAL:
@@ -587,25 +592,33 @@ class Pressure(WBCUnit):
 # class (KG and PLATO, respectively).
 class _Volume(Volume):
 	def __new__(cls, value):
-		return super(_Volume, cls).__new__(cls, value, Volume.LITER)
+		rv = super(_Volume, cls).__new__(cls, value, Volume.LITER)
+		rv.__class__ = Volume
+		return rv
 	def __init__(self, value):
 		super(_Volume, self).__init__(value, Volume.LITER)
 
 class _Temperature(Temperature):
 	def __new__(cls, value):
-		return super(_Temperature, cls).__new__(cls,
+		rv = super(_Temperature, cls).__new__(cls,
 		    value, Temperature.degC)
+		rv.__class__ = Temperature
+		return rv
 	def __init__(self, value):
 		super(_Temperature, self).__init__(value, Temperature.degC)
 
 class _Mass(Mass):
 	def __new__(cls, value):
-		return super(_Mass, cls).__new__(cls, value, Mass.KG)
+		rv = super(_Mass, cls).__new__(cls, value, Mass.KG)
+		rv.__class__ = Mass
+		return rv
 	def __init__(self, value):
 		super(_Mass, self).__init__(value, Mass.KG)
 
 class _Strength(Strength):
 	def __new__(cls, value):
-		return super(_Strength, cls).__new__(cls,value,Strength.PLATO)
+		rv = super(_Strength, cls).__new__(cls,value,Strength.PLATO)
+		rv.__class__ = Strength
+		return rv
 	def __init__(self, value):
 		super(_Strength, self).__init__(value, Strength.PLATO)
