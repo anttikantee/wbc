@@ -581,16 +581,6 @@ class Pressure(WBCUnit):
 		else:
 			raise PilotError('invalid pressure unit')
 
-# shorthand names.  if they're confusing to you, use longhand instead.
-class M(Mass):
-	pass
-class S(Strength):
-	pass
-class T(Temperature):
-	pass
-class V(Volume):
-	pass
-
 # Internally, we always use liters for volume and degC for temperature.
 # So, define internal names to avoid having to type the units every
 # time.  _Mass and _Strength use the internal value of the
