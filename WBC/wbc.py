@@ -827,8 +827,8 @@ class Recipe:
 		if self.__final_volume() is None:
 			raise PilotError("final volume is not set")
 
-		s = self.__scale(Mass(1, Mass.G))
-		if abs(s.valueas(Mass.G) - 1) > .0001:
+		s = self.__scale(_Mass(1))
+		if abs(s - 1.0) > .0001:
 			notice('Scaling recipe ingredients by a factor of '
 			    + '{:.4f}'.format(s) + '\n')
 
