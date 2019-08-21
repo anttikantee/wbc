@@ -162,6 +162,8 @@ class Recipe:
 			m = self._fermentables_mass(f)
 			v += m*self.__grain_absorption() + getparam('mlt_loss')
 
+			v += self.mash.evaporation()
+
 		return _Volume(v)
 
 	def __extract(self, vol, strength):

@@ -55,9 +55,9 @@ class Mash:
 		# relative to capa of equivalent mass of water
 		__grain_relativecapa = 0.38
 
-		# thick decoction composition
+		# thick decoction composition (by mass)
 		# 1 = all grain, 0 = all water
-		__decoctionsplit = 0.5
+		__decoctionsplit = 0.7
 
 		def _setvalues(self, nwater_capa, nwater_temp, newtemp):
 			hts = self.hts
@@ -163,13 +163,13 @@ class Mash:
 			self._setvalues(nw, boiltemp, target_temp)
 
 		# figure out how much decoction to pull to reach temp
-		def next_decoction(self, target_temp):
+		def next_decoction(self, target_temp, evap):
 			_c = self._capa
 			_h = self._heat
 			_t = self._temp
 
 			# assume more slight loss while decoction is transferred
-			decoction_temp = _Temperature(96)
+			decoction_temp = _Temperature(95)
 
 			# the new temperature of the system is:
 			# mlt_heat + ((water/grainheat-decoctioncapa) * oldtemp)
@@ -191,7 +191,7 @@ class Mash:
 			dm = (target_temp*self._allc()
 			     - (_h('mlt')+_h('grain')+_h('water'))) \
 			    / ((ds * grc + 1 - ds) * (dt - _t()))
-			self._setvalues(0, 0, target_temp)
+			self._setvalues(-evap, 0, target_temp)
 			return (_Mass(ds*dm), _Mass((1-ds)*dm))
 
 		def waterstep(self):
@@ -358,17 +358,32 @@ class Mash:
 
 		return stepres
 
+	def __decoction_evaporation(self):
+		# assume a 15min boil per decoction, with the same
+		# boiloff rate as in the main boil.
+		#
+		# XXX: make configurable
+		return _Volume(getparam('boiloff_perhour') * .25)
+
 	def decoction_mash(self, first_step, water_temp, totvol, fmass):
 		steps = self.giant_steps
 		stepres = []
 
 		step = first_step
 		(vol, temp) = first_step.waterstep()
-		actualvol = water_vol_at_temp(vol, water_temp, temp)
-		ratio = vol / fmass
-		mashvol = _Volume(vol + fmass * constants.grain_specificvolume)
-		stepres.append((steps[0], vol,
-		    actualvol, temp, ratio, _Volume(mashvol)))
+
+		def calcvols(vol, fmass, temp, evaporation):
+			vol = _Volume(vol - evaporation)
+			actvol = water_vol_at_temp(vol, water_temp, temp)
+			ratio = vol / fmass
+			mvol = _Volume(actvol
+			    + fmass*constants.grain_specificvolume)
+			return vol, actvol, ratio, mvol
+
+		vol, actvol, ratio, mvol = calcvols(vol,
+		    fmass, steps[0].temperature, 0)
+		stepres.append((steps[0], vol, actvol, temp, ratio, mvol))
+		evap = self.__decoction_evaporation()
 
 		for i, s in enumerate(steps):
 			if not i+1 < len(steps):
@@ -376,18 +391,26 @@ class Mash:
 
 			curtemp = s.temperature
 			nxttemp = steps[i+1].temperature
-			(gm, wm) = step.next_decoction(nxttemp)
+			(gm, wm) = step.next_decoction(nxttemp, evap)
 
 			wvol = water_vol_at_temp(_Volume(wm),
 			    water_temp, curtemp)
 			gvol = gm * constants.grain_specificvolume
-
 			decoctionvol = _Volume(wvol + gvol)
 
-			# XXX: account for evaporation
+			vol, actvol, ratio, mvol = calcvols(vol,
+			    fmass, nxttemp, evap)
+
 			stepres.append((steps[i+1], _Volume(0),
-			    decoctionvol, nxttemp, ratio, mashvol))
+			    decoctionvol, nxttemp, ratio, mvol))
 		return stepres
+
+	def evaporation(self):
+		v = 0
+		if self.method is Mash.DECOCTION:
+			evap = self.__decoction_evaporation()
+			v = evap * (len(self.giant_steps)-1)
+		return _Volume(v)
 
 	def printcsv(self):
 		print('# mash|method|mashtemp1|mashtemp2...')
