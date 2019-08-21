@@ -172,10 +172,10 @@ class Recipe:
 		if self.volume_inherent is None or self.volume_scaled is None:
 			return what
 
-		assert(isinstance(what, Mass))
+		assert(isinstance(what, Mass) or isinstance(what, Volume))
 
 		scale = self.volume_scaled / self.volume_inherent
-		return _Mass(scale * what)
+		return what.__class__(scale * what, what.defaultunit)
 
 	def once(self, callme, *args):
 		cf = inspect.stack()[1]
@@ -454,8 +454,7 @@ class Recipe:
 			self.results['fermentables'] = ferms
 			return # all done already
 
-		bmyield = sum([self.fermentable_yield(x) \
-		    for x in self.fermentables_bymass])
+		bmyield = sum([self.fermentable_yield(x) for x in ferms])
 
 		totpers = sum(x['amount'] for x in self.fermentables_bypercent)
 		missing = 100 - float(totpers)
@@ -680,7 +679,7 @@ class Recipe:
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
 		for h in self.hops_bymassvolume:
-			mass = _Mass(self.__scale(h[1]) * self.__final_volume())
+			mass = _Mass(h[1] * self.__final_volume())
 			ibu = h[0].IBU(sg, v_post, h[2], mass)
 			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
 
@@ -738,13 +737,11 @@ class Recipe:
 		opaques = self.opaques_bymass + self.opaques_byvolume \
 		    + self.opaques_byopaque
 		for o in self.opaques_bymassvolume:
-			mass = _Mass(self.__scale(o['amount'])
-			    * self.__final_volume())
+			mass = _Mass(o['amount'] * self.__final_volume())
 			opaques.append(self._opaquestore(o['opaque'], mass,
 			    o['time']))
 		for o in self.opaques_byvolumevolume:
-			volume = _Volume(self.__scale(o['amount'])
-			    * self.__final_volume())
+			volume = _Volume(o['amount'] * self.__final_volume())
 			opaques.append(self._opaquestore(o['opaque'], volume,
 			    o['time']))
 
