@@ -393,7 +393,7 @@ class Strength(WBCUnit):
 
 		return self._attenuate(strength, None)
 
-	def refractometer_correction(self, strength):
+	def refractometer_correct_beer(self, strength):
 		checktype(strength, Strength)
 
 		oe = self
@@ -409,6 +409,21 @@ class Strength(WBCUnit):
 		    #+ 0.00027581*pow(oe, 2) - 0.0012717*pow(ae, 2)
 		    #- 0.0000072800*pow(oe, 3) + 0.000063293*pow(ae, 3),
 		    #Strength.SG)
+
+	def refractometer_correct_wine(self, strength):
+		checktype(strength, Strength)
+
+		oe = self
+		ae = strength
+
+		# supposedly the generic wine industry correction formula, via:
+		# http://seanterrill.com/
+		#    2010/06/11/refractometer-estimates-of-final-gravity/
+		return Strength(1.001843
+		    - 0.002318474*oe - 0.000007775*pow(oe,2)
+		      - 0.000000034*pow(oe, 3)
+		    + 0.00574*ae + 0.00003344*pow(ae,2) + 0.000000086*pow(ae,3),
+		    Strength.SG)
 
 	# from:
 	# "Specific Gravity Measurement Methods and Applications in Brewing"

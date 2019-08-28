@@ -1,6 +1,6 @@
 ./bin/wbcabv.py 10degP 70%
 ./bin/wbcabv.py 20degP 1.022
-./bin/wbcabv.py -r 18degP 1.035
+./bin/wbcabv.py -r beer 18degP 1.035
 
 ./bin/wbckegp.py 10degC 2.4
 ./bin/wbckegp.py 10degC 12psi

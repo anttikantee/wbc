@@ -25,44 +25,49 @@ import getopt
 import sys
 
 def usage():
-        sys.stderr.write('usage: ' + sys.argv[0] + ' [-r]\n'
+        sys.stderr.write('usage: ' + sys.argv[0] + ' [-r beer|wine]\n'
             + '\toriginal_strength final_strength|apparent_attenuation%\n')
         sys.exit(1)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'r')
+	opts, args = getopt.getopt(sys.argv[1:], 'r:')
 
-	rflag = '-r' in [x[0] for x in opts]
-
-	if len(args) != 2:
+	if len(opts) > 1 or len(args) != 2:
 		usage()
 
+	r_fix = ([x[1] for x in opts if x[0] == '-r'] + [None])[0]
 	s_orig = parse.strength(args[0])
 
 	if '%' in args[1]:
-		if rflag: raise PilotError('use refractometer reading with -r')
+		if r_fix is not None:
+			raise PilotError('use refractometer reading with -r')
 		attn = parse.percent(args[1])
 		r = s_orig.attenuate_bypercent(attn)
 	else:
 		s_fin_arg = parse.strength(args[1])
 
-		if rflag:
-			s_fin = s_orig.refractometer_correction(s_fin_arg)
-		else:
-			s_fin = s_fin_arg
+		r_correct = {
+			'beer' : s_orig.refractometer_correct_beer,
+			'wine' : s_orig.refractometer_correct_wine,
+			None   : lambda x: x
+		}
+		if r_fix not in r_correct:
+			usage()
+
+		s_fin = r_correct[r_fix](s_fin_arg)
 		r = s_orig.attenuate_bystrength(s_fin)
 
 	def printline(fname, value):
-		print('{:28}:{:>12}'.format(fname, value))
+		print('{:30}:{:>12}'.format(fname, value))
 	def printline2(fname, value1, value2):
-		print('{:28}:{:>12}{:>12}'.format(fname, value1, value2))
+		print('{:30}:{:>12}{:>12}'.format(fname, value1, value2))
 	def printstrength(what, s):
 		printline2(what, s.stras(Strength.PLATO), s.stras(Strength.SG))
 
 	printstrength('Original Strength', s_orig)
-	if rflag:
+	if r_fix is not None:
 		printstrength('Final Strength (apparent)', s_fin_arg)
-		printstrength('Final Strength (refract fix)', r['ae'])
+		printstrength('Refractometer Adj. (for ' + r_fix + ')', r['ae'])
 	else:
 		printstrength('Final Strength (apparent)', r['ae'])
 
