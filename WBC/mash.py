@@ -225,7 +225,7 @@ class Mash:
 
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
-		fmass = _Mass(sum(x['amount'] for x in self.fermentables))
+		fmass = _Mass(sum(x['mass'] for x in self.fermentables))
 		grainvol = fmass * constants.grain_specificvolume
 
 		def origwater(fromtemp, totemp, fromwater):
