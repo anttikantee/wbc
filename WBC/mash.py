@@ -442,7 +442,6 @@ class Mash:
 
 		self.giant_steps = mashsteps
 
-	# mostly a placeholder
 	def set_method(self, m):
 		if m is not Mash.INFUSION and m is not Mash.DECOCTION:
 			raise PilotError('unsupported mash method')
