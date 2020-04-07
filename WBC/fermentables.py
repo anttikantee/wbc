@@ -454,6 +454,31 @@ Add('Fawcett', 'Crystal II',
 # doing 'The Swaen Goldswaen Red'
 #
 # http://theswaen.com/ourproducts-malt-for-beer/
+Add('Swaen', 'Ale',
+	Extract(81, FGDB, FCD_UNKNOWN, 4.5),
+	DiaP(250, DiaP.WK),
+	Color(7.5, EBC))
+Add('Swaen', 'Lager',
+	Extract(81, FGDB, FCD_UNKNOWN, 4.5),
+	DiaP(250, DiaP.WK),
+	Color(3.5, EBC))
+Add('Swaen', 'Munich Dark',
+	Extract(80, FGDB, FCD_UNKNOWN, 4.5),
+	diap_min,
+	Color(20, EBC))
+Add('Swaen', 'Munich Light',
+	Extract(80, FGDB, FCD_UNKNOWN, 4.6),
+	diap_min,
+	Color(13.5, EBC))
+Add('Swaen', 'Pilsner',
+	Extract(81, FGDB, FCD_UNKNOWN, 4.5),
+	DiaP(250, DiaP.WK),
+	Color(3.75, EBC))
+Add('Swaen', 'Vienna',
+	Extract(80, FGDB, FCD_UNKNOWN, 4.5),
+	diap_min,
+	Color(10.5, EBC))
+
 Add('Goldswaen', 'Red',
 	Extract(78, FGDB, FCD_UNKNOWN, 7.0),
 	diap_none,
