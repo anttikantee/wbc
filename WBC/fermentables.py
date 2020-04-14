@@ -449,6 +449,17 @@ Add('Fawcett', 'Crystal II',
 	Color(65, LOVIBOND),
 	needmash = False)
 
+Add('Fawcett', 'Dark Crystal',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(300, EBC),
+	needmash = False)
+Add('Fawcett', 'Red Crystal',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(400, EBC),
+	needmash = False)
+
 # I guess "The Swaen", strictly speaking, is the maltster, but I'll
 # list these under the brandnames only, since I don't want to start
 # doing 'The Swaen Goldswaen Red'
@@ -610,6 +621,11 @@ Add(None, 'Raw White Wheat',
 # extract from Briess, color from absolutely nowhere except a hat
 Add(None, 'Raw Rye',
 	Extract(77, CGDB, FCD_UNKNOWN, 12.0),
+	diap_none,
+	Color(8, LOVIBOND))
+# aaaand we just guess
+Add(None, 'Raw Oats',
+	Extract(70, CGDB, FCD_UNKNOWN, 12.0),
 	diap_none,
 	Color(8, LOVIBOND))
 
