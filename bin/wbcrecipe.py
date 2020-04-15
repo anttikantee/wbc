@@ -143,7 +143,7 @@ def processyaml(clist, odict, data):
 
 	def getdef(x):
 		if x not in d:
-			raise PilotError('mandatory element missing: ' + str(v))
+			raise PilotError('mandatory element missing: ' + str(x))
 		rv = d[x]
 		del d[x]
 		return rv
