@@ -83,7 +83,7 @@ class Extract:
 
 		# account for fine-coarse difference
 		if self.type == self.FGDB or self.type == self.FGAI:
-			v *= (1 - self.fcd/100.0)
+			v -= self.fcd
 
 		return v
 
