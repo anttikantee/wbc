@@ -44,11 +44,15 @@ class Volume(WBCUnit):
 	HECTOLITER	= object()
 	QUART		= object()
 	GALLON		= object()
+	TEASPOON	= object()
 	BARREL		= object()
 
 	def __new__(cls, value, unit):
 		if unit is Volume.BARREL:
 			value = constants.gallonsperbarrel * value
+			unit = Volume.GALLON
+		if unit is Volume.TEASPOON:
+			value = value / constants.tsppergallon
 			unit = Volume.GALLON
 		if unit is Volume.GALLON:
 			value = constants.literspergallon * value
@@ -82,6 +86,8 @@ class Volume(WBCUnit):
 			sym = 'qt'
 		elif which == self.GALLON:
 			sym = 'gal'
+		elif which == self.TEASPOON:
+			sym = 'tsp'
 		elif which == self.BARREL:
 			sym = 'bbl'
 		else:
@@ -100,7 +106,10 @@ class Volume(WBCUnit):
 				return self.stras(self.LITER)
 			return self.stras(self.HECTOLITER)
 		else:
-			if self.valueas(self.GALLON) < 1:
+			# could add cups etc, but just go with <0.1qt => tsp
+			if self.valueas(self.QUART) < 0.1:
+				return self.stras(self.TEASPOON)
+			elif self.valueas(self.GALLON) < 1:
 				return self.stras(self.QUART)
 			elif self.valueas(self.BARREL) < 1:
 				return self.stras(self.GALLON)
@@ -115,6 +124,9 @@ class Volume(WBCUnit):
 			return self * 10.0
 		elif unit is Volume.HECTOLITER:
 			return self / 100.0
+		elif unit is Volume.TEASPOON:
+			return self.valueas(self.GALLON) \
+			    * constants.tsppergallon
 		elif unit is Volume.QUART:
 			return self / constants.litersperquart
 		elif unit is Volume.GALLON:

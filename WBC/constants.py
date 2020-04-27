@@ -19,6 +19,8 @@ gramsperpound	= 16 * gramsperounce
 litersperquart	= 0.94635295
 literspergallon	= 4 * litersperquart
 gallonsperbarrel= 31
+		  # tbsp * cup * quart * gallon
+tsppergallon	= 3 * 16 * 4 * 4
 
 pascalsperbar	= 100000
 pascalsperatm	= 101325
