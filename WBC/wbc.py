@@ -70,6 +70,7 @@ class Recipe:
 		self.hops_recipeBUGU = None
 
 		self.fermentables_bymass = []
+		self.fermentables_bymassvol = []
 		self.fermentables_bypercent = []
 		self.fermentables_restguess = []
 		self.fermentables_therest = []
@@ -350,6 +351,18 @@ class Recipe:
 		f = self._fermmap(name, fermentable, 'mass', mass, when)
 		self.fermentables_bymass.append(f)
 
+	def fermentable_bymassvolratio(self, name, mv, when=WBC.MASH):
+		(mass, vol) = mv
+		checktype(mass, Mass)
+		checktype(vol, Volume)
+		normmass = _Mass(mass / vol)
+
+		fermentable = fermentables.Get(name)
+		self.__validate_ferm(name, fermentable, when)
+
+		f = self._fermmap(name, fermentable, 'massvol', normmass, when)
+		self.fermentables_bymassvol.append(f)
+
 	# percent of fermentable's mass, not extract's mass
 	def fermentable_bypercent(self, name, percent, when=WBC.MASH):
 		if percent is not self.THEREST and percent <= 0:
@@ -435,6 +448,13 @@ class Recipe:
 		# target strength.
 
 		ferms = []
+
+		# convert massvol to mass now that we know final_volume
+		for f in self.fermentables_bymassvol:
+			f['mass'] = _Mass(f['massvol'] * self.__final_volume())
+			self.fermentables_bymass.append(f)
+		self.fermentables_bymassvol = []
+
 		if len(self.fermentables_bymass) > 0:
 			if self.volume_inherent is None:
 				raise PilotError("recipe with absolute "

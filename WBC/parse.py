@@ -203,6 +203,10 @@ def fermentableunit(input):
 	if input == 'rest':
 		return (Recipe.fermentable_bypercent, Recipe.THEREST)
 
+	if '/' in input:
+		rv = ratio(input, mass, volume)
+		return (Recipe.fermentable_bymassvolratio, rv)
+
 	rv = _unit(float, percentsfxs, input, fatal = False)
 	if rv is not None:
 		return (Recipe.fermentable_bypercent, rv)
