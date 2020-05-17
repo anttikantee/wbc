@@ -365,6 +365,14 @@ Add('Dingemans', 'Special B',
 	Color(310, EBC),
 	needmash = False)
 
+# malzandmore.de
+# They don't report diastatic power in their analysis.  Let's
+# assume something reasonable instead of minimal power.
+Add('Hausladen', 'Pilsner',
+	Extract(83.4, FGDB, 1.2, 4.3),
+	DiaP(200, DiaP.WK),
+	Color(3.5, EBC))
+
 # found a data sheet with 81% extract min for fine grind, so
 # guessing the coarse grind from that.
 # you're not going to use this for a significant amount of the grainbill,
