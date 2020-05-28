@@ -6,6 +6,7 @@
 ./bin/wbckegp.py 10degC 12psi
 ./bin/wbckegp.py 2.4 12psi
 ./bin/wbckegp.py -v 20l 3.4 4degC
+./bin/wbckegp.py -v 5gal 8g/l 60degF
 
 ./bin/wbccolor.py 10EBC
 

@@ -63,7 +63,8 @@ if __name__ == '__main__':
 	# if wegot CO2 w/v, convert to volumes
 	if tuple in wegot:
 		t = wegot[tuple]
-		wegot[float] = (t[0] / t[1]) / constants.co2_stp_gl
+		wegot[float] = ((t[0].valueas(Mass.G) / t[1])
+		    / constants.co2_stp_gl)
 
 	def p(): return wegot[Pressure]
 	def t(): return wegot[Temperature]
