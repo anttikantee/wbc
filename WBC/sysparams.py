@@ -156,10 +156,10 @@ _addparam('grain_absorption',	'ga',	_curryratio(parse.volume, parse.mass))
 _addparam('kettle_loss',	'kl',	parse.volume)
 _addparam('fermentor_loss',	'fl',	parse.volume)
 
-_addparam('ambient_temp',	'ta',	parse.temperature)
-_addparam('preboil_temp',	'tp',	parse.temperature)
-_addparam('postboil_temp',	'tb',	parse.temperature)
-_addparam('sparge_temp',	'st',	parse.temperature)
+_addparam('ambient_temp',	'Ta',	parse.temperature)
+_addparam('sparge_temp',	'Ts',	parse.temperature)
+_addparam('preboil_temp',	'Tp',	parse.temperature)
+_addparam('postboil_temp',	'Tb',	parse.temperature)
 
 _addparam('mashin_ratio',	'mr',	_parsemashinratio)
 
