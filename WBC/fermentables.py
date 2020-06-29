@@ -457,6 +457,16 @@ Add('Fawcett', 'Crystal II',
 	Color(65, LOVIBOND),
 	needmash = False)
 
+Add('Fawcett', 'Pale Crystal',
+	Extract(70, CGAI, FCD_UNKNOWN, 6.5),
+	diap_none,
+	Color(75, EBC),
+	needmash = False)
+Add('Fawcett', 'Crystal',
+	Extract(70, CGAI, FCD_UNKNOWN, 5.0),
+	diap_none,
+	Color(162, EBC),
+	needmash = False)
 Add('Fawcett', 'Dark Crystal',
 	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
 	diap_none,
