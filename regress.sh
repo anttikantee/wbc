@@ -60,7 +60,8 @@ if [ "$1" = 'prep' ]; then
 	mkdir -p testdata || die cannot create testdata
 	for x in recipes/*.yaml; do
 		echo "Processing $x ..."
-		python3 ./bin/wbcrecipe.py $x > testdata/$(basename $x).out
+		python3 ./bin/wbcrecipe.py -p WBCparams-regress $x \
+		    > testdata/$(basename $x).out
 		[ $? -eq 0 ] || die Failed: $(cat testdata/$(basename $x).out)
 	done
 
@@ -81,7 +82,8 @@ elif [ $1 = 'test' ]; then
 	for x in testdata/*.out; do
 		bn=$(basename ${x%.out})
 		echo "Testing ${bn} ..."
-		python3 ./bin/wbcrecipe.py recipes/${bn} > $x.cmp
+		python3 ./bin/wbcrecipe.py -p WBCparams-regress recipes/${bn} \
+		    > $x.cmp
 		[ $? -eq 0 ] || echo ${bn} >> testdata/failed-recipes
 		compordie $x $x.cmp
 	done

@@ -1,0 +1,10 @@
+mash_efficiency	=	88%
+boiloff_perhour	=	3.5l
+mlt_loss	=	1l
+mlt_heatcapacity=	1.5
+mlt_heat	=	transfer
+kettle_loss	=	2.0l
+fermentor_loss	=	1.0l
+
+strength_output =       plato
+units_output    =       metric
