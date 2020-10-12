@@ -47,6 +47,33 @@ def solve_strength(extract, volume):
 		assert(loop < 10)
 	return _Strength(plato)
 
+# iteratively find the starting strength to attain given ABV
+def solve_strength_fromabv(abv, atten):
+	checktypes([(abv, float), (atten, float)])
+
+	# generate a guess.  Base things on the linear formula of
+	# ABV = deltaPlato * 8/15.  Also, deltaPlato = AA*origPlato
+	# Therefore:
+	#   origPlato = 15*ABV / 8*AA
+	def diff2guess(old, diff):
+		return _Strength(old + 15*diff/(8*atten/100.0))
+
+	# Then, hone the guess against the non-linear ABV formula
+	# until we're within the limit of accuracy (limit picked to
+	# avoid off-by-0.1 roundoff errors later -- testing shows
+	# even with the low limit the iteration converges within
+	# 4 rounds)
+	abvlimit = 0.02
+	guess = diff2guess(0, abv)
+	for x in range(11):
+		guessabv = guess.attenuate_bypercent(atten)
+		diff = abv - guessabv['abv']
+		if abs(diff) < abvlimit:
+			return guess
+		guess = diff2guess(guess, diff)
+	raise PilotError('failed to solve strenth for {}% ABV and {}% AA'.
+	    format(abv, atten))
+
 def __density_at_temp(temp):
 	checktype(temp, Temperature)
 	if temp < 0 or temp > 100:
@@ -85,6 +112,7 @@ def __density_at_temp(temp):
 	tab = {abs(temp-t): __watertab[t] for t in __watertab}
 	x = min(tab)
 	return tab[x]
+
 
 def water_vol_at_temp(curvol, curtemp, totemp):
 	checktype(curvol, Volume)

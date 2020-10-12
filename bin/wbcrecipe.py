@@ -24,6 +24,7 @@ from WBC.units import _Mass, _Temperature, _Volume
 from WBC.utils import PilotError
 from WBC import sysparams
 from WBC import parse
+from WBC import brewutils
 
 import getopt
 import io
@@ -79,9 +80,17 @@ def dofermentables(r, ferms):
 			(fun, v) = parse.fermentableunit(fs[f])
 			fun(r, f, v, stage)
 
+	# strength is either SG / plato, OR ABV% @ attenuation%
 	s = ferms.pop('strength', None)
 	if s is not None:
-		r.anchor_bystrength(parse.strength(s))
+		if isinstance(s, str) and '@' in s:
+			v = s.split('@')
+			abv = parse.percent(v[0])
+			attenpers = parse.percent(v[1])
+			stren = brewutils.solve_strength_fromabv(abv, attenpers)
+		else:
+			stren = parse.strength(s)
+		r.anchor_bystrength(stren)
 
 	if len(ferms) > 0:
 		raise PilotError('invalid ferms(s): '+', '.join(ferms.keys()))
