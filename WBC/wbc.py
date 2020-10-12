@@ -81,7 +81,7 @@ class Recipe:
 		self.opaques_byvolumevolume = []
 		self.opaques_byopaque = []
 
-		# final strength or mass of one fermentable
+		# final strength
 		self.anchor = None
 
 		self.input['stolen_wort'] = {
@@ -312,6 +312,7 @@ class Recipe:
 		if self.anchor is not None:
 			raise PilotError('anchor already set')
 		self.anchor = strength
+		self.input['strength'] = strength
 
 	def __validate_ferm(self, name, fermentable, when):
 		if when not in WBC.stages:

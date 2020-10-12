@@ -235,7 +235,8 @@ def _keystats(input, results, miniprint):
 
 	totibus = results['hop_stats']['ibu']
 	print(onefmt.format('Name:', input['name']))
-	print(twofmt_tight.format('Aggregate strength:', 'TBD',
+	print(twofmt_tight.format('Aggregate strength:',
+	    str(input.get('strength', 'TBD')),
 	    'Package volume:', str(vols['package'])))
 	print(twofmt_tight.format('Total fermentables:',
 	    str(results['fermentable_stats_all']['amount']),
