@@ -343,8 +343,6 @@ Add('Crisp', 'Chocolate',
 	diap_none,
 	Color(650, LOVIBOND),
 	needmash = False)
-# help legacy recipes for now
-Alias(None, 'Roasted Barley', 'Crisp Roasted Barley')
 
 # XXX: probably better diastatic power, but can't figure it out
 # from the datasheet at:
@@ -436,12 +434,6 @@ Add('Simpsons', 'Double Roasted Crystal',
 # easily available.  I wish all maltsters were like them.  They even
 # have everything in IoB, ASBC and EBC numbers!
 # http://www.fawcett-maltsters.co.uk/spec.html
-# (well, ok, they don't apparently supply the diastatic power, but
-# until we hit base malts for them, doesn't really matter)
-Add('Fawcett', 'Brown',
-	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
-	diap_none,
-	Color(188, EBC))
 
 # well, ok, Fawcett apparently has different malts for different regions.
 # or at least there doesn't seem to be a naming consistency, plus the
@@ -477,6 +469,31 @@ Add('Fawcett', 'Red Crystal',
 	diap_none,
 	Color(400, EBC),
 	needmash = False)
+
+Add('Fawcett', 'Amber',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(125, EBC))
+Add('Fawcett', 'Brown',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(188, EBC))
+Add('Fawcett', 'Pale Chocolate',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(625, EBC),
+	needmash = False)
+Add('Fawcett', 'Chocolate',
+	Extract(70, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(1175, EBC),
+	needmash = False)
+Add('Fawcett', 'Roasted Barley',
+	Extract(68.5, CGAI, FCD_UNKNOWN, 4.5),
+	diap_none,
+	Color(1450, EBC),
+	needmash = False)
+
 
 # I guess "The Swaen", strictly speaking, is the maltster, but I'll
 # list these under the brandnames only, since I don't want to start
@@ -522,6 +539,7 @@ Add('Weyermann', 'Acidulated Malt',
 	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
 	diap_none,
 	Color(4.5, EBC))
+Alias('Weyermann', 'Sauermalz', 'Weyermann Acidulated Malt')
 
 Add('Weyermann', 'CaraFoam',
 	Extract(77.0, FGDB, FCD_UNKNOWN, 5.5),
@@ -565,8 +583,11 @@ Add('Weyermann', 'Melanoidin',
 	Color(70, EBC))
 
 # XXX: couldn't find diastatic power, so we'll just guess
-# (it's self-convering for sure, so err on the low side,
-# most likely is way too low)
+# (on the safe side)
+Add('Weyermann', 'Pale',
+	Extract(78.2, FGAI, FCD_UNKNOWN, 4.5),
+	diap_min,
+	Color(7.5, EBC))
 Add('Weyermann', 'Munich I',
 	Extract(77.4, FGAI, FCD_UNKNOWN, 4.1),
 	diap_min,
