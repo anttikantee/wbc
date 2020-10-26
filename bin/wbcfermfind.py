@@ -60,10 +60,3 @@ if __name__ == '__main__':
 			c = x.color
 			prtln('Color', '{:.1f} EBC'.format(c.valueas(c.EBC)),
 			    '{:.1f} L'.format(c.valueas(c.LOVIBOND)))
-			d = x.diap
-			if d == 0:
-				dstr = ('none', '')
-			else:
-				dstr = ('{:}'.format(d.stras(d.WK)),
-				    '{:}'.format(d.stras(d.L)))
-			prtln('Diastatic power', dstr[0], dstr[1])
