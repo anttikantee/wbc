@@ -322,10 +322,6 @@ class Recipe:
 			raise PilotError('fermentables may be specified max '
 			    + 'once per stage')
 
-		if fermentable.needmash and when != WBC.MASH:
-			raise PilotError('fermentable "' + name + '" needs '
-			    + 'a mash')
-
 		# we would throw an error here, but then again, if someone
 		# want to put sugars into their mash, it's not our business
 		# to tell them not to.

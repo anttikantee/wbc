@@ -67,5 +67,3 @@ if __name__ == '__main__':
 				dstr = ('{:}'.format(d.stras(d.WK)),
 				    '{:}'.format(d.stras(d.L)))
 			prtln('Diastatic power', dstr[0], dstr[1])
-			if not x.needmash:
-				print('\tNo mash required')
