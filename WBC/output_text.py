@@ -242,10 +242,8 @@ def _keystats(input, results, miniprint):
 	    str(results['fermentable_stats_all']['amount']),
 	    'Total hops:',
 	    str(results['hop_stats']['mass'])))
-	bugu = totibus / strens['final'].valueas(Strength.SG_PTS)
-	print(twofmt_tight.format('IBU (Tinseth):',
-	    '{:.2f}'.format(totibus), 'BUGU:', '{:.2f}'.format(bugu)))
 
+	bugu = totibus / strens['final'].valueas(Strength.SG_PTS)
 	color = results['color']
 	srm = color.valueas(color.SRM)
 	ebc = color.valueas(color.EBC)
@@ -255,13 +253,25 @@ def _keystats(input, results, miniprint):
 		prec = '1'
 	ebcprec = '{:.' + prec + 'f}'
 	srmprec = '{:.' + prec + 'f}'
+	print(twofmt_tight.format('Tinseth IBU / BUGU:',
+	    '{:<3d} / {:.2f}'.format(int(round(totibus)), bugu),
+	    'Color (Morey):', ebcprec.format(ebc) + ' EBC, '
+	    + srmprec.format(srm) + ' SRM'))
+
+	# various expected losses and brewhouse efficiency
+	d1 = _Volume(vols['postboil'] - vols['fermentor'])
+	d2 = _Volume(vols['fermentor'] - vols['package'])
+	print(twofmt_tight.format('Kettle loss:', str(d1),
+	    'Fermentor loss:', str(d2)))
+
 	print(twofmt_tight.format('Boil:', str(input['boiltime']) + 'min',
 	    'Yeast:', input['yeast']))
 	print(twofmt_tight.format(
 	    'Water (' + str(getparam('ambient_temp')) + '):',
 	    str(total_water),
-	    'Color (Morey):', ebcprec.format(ebc) + ' EBC, '
-	    + srmprec.format(srm) + ' SRM'))
+	    'Brewhouse eff:',
+	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
+
 	print()
 
 	if input['notes']['water'] is not None \
@@ -289,18 +299,6 @@ def _keystats(input, results, miniprint):
 	    'Measured:', ''))
 	print(twofmt.format('Postboil strength:', str(strens['postboil']),
 	    'Measured:', ''))
-
-	# various expected losses and brewhouse efficiency
-	print()
-	d1 = _Volume(vols['postboil'] - vols['fermentor'])
-	d2 = _Volume(vols['fermentor'] - vols['package'])
-	print(twofmt.format('Kettle loss (est):', str(d1),
-	    'Fermenter loss (est):', str(d2)))
-
-	print(twofmt.format('Mash eff (conf) :',
-	    str(getparam('mash_efficiency')) + '%',
-	    'Brewhouse eff (est):',
-	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
 
 	if not miniprint:
 		print()
