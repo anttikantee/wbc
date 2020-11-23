@@ -146,12 +146,12 @@ def _printmash(input, results):
 		if steal['missing'] > 0.05:
 			print('and blend with',steal['missing'],'water', end='')
 
-		print('==>', stolen['volume'], '@',
+		print('==>', stolen.volume(), '@',
 		    str(steal['strength']), end=' ')
-		if steal['strength'] < stolen['strength']:
+		if steal['strength'] < stolen.strength():
 			assert(steal['missing'] <= 0.05)
 			print('(NOTE: strength < ' \
-			    + str(stolen['strength'])+')', end=' ')
+			    + str(stolen.strength())+')', end=' ')
 		print()
 	prtsep()
 	print()

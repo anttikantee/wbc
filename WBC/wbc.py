@@ -26,6 +26,7 @@ from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume
 from WBC.hop import Hop
 from WBC.mash import Mash
+from WBC.worter import Worter
 
 from WBC import brewutils, timespec
 from WBC.timespec import Timespec
@@ -84,11 +85,7 @@ class Recipe:
 		# final strength
 		self.anchor = None
 
-		self.input['stolen_wort'] = {
-			'volume'	: _Volume(0),
-			'strength'	: _Strength(0),
-			'extract'	: _Mass(0),
-		}
+		self.input['stolen_wort'] = Worter()
 
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermentor':_Volume(0),
 		    'package':_Volume(0)}
@@ -384,12 +381,7 @@ class Recipe:
 	def steal_preboil_wort(self, vol, strength):
 		checktypes([(vol, Volume), (strength, Strength)])
 
-		extract = self.__extract(vol, strength)
-		self.input['stolen_wort'] = {
-			'volume'	: vol,
-			'strength'	: strength,
-			'extract'	: extract
-		}
+		self.input['stolen_wort'].set_volstrength(vol, strength)
 
 	def fermentable_percentage(self, what, theoretical=False):
 		f = what['fermentable']
@@ -424,7 +416,7 @@ class Recipe:
 			m += yield_at_stage(WBC.BOIL)
 		if stage == WBC.FERMENT:
 			m += yield_at_stage(WBC.FERMENT)
-		return _Mass(m - self.input['stolen_wort']['extract'])
+		return _Mass(m - self.input['stolen_wort'].extract())
 
 	def _sanity_check(self):
 		pbs = self.results['strengths']['preboil']
@@ -509,7 +501,7 @@ class Recipe:
 		# masses of fermentables from that
 
 		extract = self.__extract(self.__volume_at_stage(self.POSTBOIL),
-		    self.anchor) + self.input['stolen_wort']['extract']
+		    self.anchor) + self.input['stolen_wort'].extract()
 
 		# take into account any yield we already get from
 		# per-mass additions
@@ -669,14 +661,14 @@ class Recipe:
 	def _domash(self):
 		prestren = self.results['strengths']['preboil']
 		totvol = _Volume(self.__volume_at_stage(self.MASHWATER))
-		if self.input['stolen_wort']['volume'] > 0.001:
+		if self.input['stolen_wort'].volume() > 0.001:
 			steal = {}
-			ratio = self.input['stolen_wort']['strength'] / prestren
+			ratio = self.input['stolen_wort'].strength() / prestren
 			steal['strength'] = _Strength(prestren * min(1, ratio))
 
 			steal['volume'] = _Volume(min(1, ratio)
-			    * self.input['stolen_wort']['volume'])
-			steal['missing'] = _Volume(self.input['stolen_wort']['volume']
+			    * self.input['stolen_wort'].volume())
+			steal['missing'] = _Volume(self.input['stolen_wort'].volume()
 			    - steal['volume'])
 			totvol += steal['volume']
 			self.results['steal'] = steal
