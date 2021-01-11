@@ -971,7 +971,7 @@ class Recipe:
 
 		# calculate color, via MCU & Morey equation
 		t = sum(f['mass'].valueas(Mass.LB) \
-		    * f['fermentable'].color.valueas(Color.SRM) \
+		    * f['fermentable'].color.valueas(Color.LOVIBOND) \
 		        for f in self.results['fermentables'])
 		v = self.results['volumes']['postboil'].valueas(Volume.GALLON)
 		mcu = t / v
