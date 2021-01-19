@@ -169,9 +169,7 @@ _addoptparam('lautervol_max',	'lM',	parse.volume)
 
 _defaults = {
 	# water absortion for 1kg of grain, net (i.e. apparent absorption).
-	# really somewhere around 1.05, but this value seems to work better
-	# for grains not wrung dry
-	'grain_absorption'	: '1.1l/kg',
+	'grain_absorption'	: '1.05l/kg',
 
 	'ambient_temp'		: '20degC',
 	'preboil_temp'		: '70degC',
