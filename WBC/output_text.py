@@ -309,7 +309,7 @@ def _keystats(input, results, miniprint):
 		    str(int(results['pitch']['lager'])) + unit))
 
 	hd = results['hopsdrunk']
-	if hd['package'] > 0:
+	if not miniprint and hd['package'] > 0:
 		print()
 		print('NOTE: package hops absorb: '
 		    + str(hd['package'])
