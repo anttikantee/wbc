@@ -94,6 +94,9 @@ class Worter:
 	def extract(self):
 		return _Mass(self._extract)
 
+	def water(self):
+		return _Mass(self._water)
+
 	def __add__(self, a):
 		if not isinstance(a, Worter):
 			raise TypeError('Worter can be added only to Worter')
