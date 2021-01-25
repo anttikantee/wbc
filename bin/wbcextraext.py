@@ -19,6 +19,7 @@
 from WBC.wbc import Recipe
 from WBC.units import Mass, _Mass, Strength, _Strength, Volume, _Volume
 from WBC import parse
+from WBC.worter import Worter
 from WBC.utils import PilotError
 
 import getopt
@@ -50,36 +51,30 @@ if __name__ == '__main__':
 		elif o == '-h':
 			usage()
 
-	s_orig = parse.strength(args[0])
-	vol_orig = parse.volume(args[1])
+	w_orig = Worter()
+	w_orig.set_volstrength(parse.volume(args[1]), parse.strength(args[0]))
 
+	w_adj = Worter()
+	w_new = Worter()
 	if '@' in args[2]:
 		if '%' in args[2]:
-			mass_add, percent = parse.split(args[2], '@',
+			mass_adj, percent = parse.split(args[2], '@',
 			    parse.mass, parse.percent)
-			ext_add = _Mass(mass_add * percent/100.0)
+
+			ext_adj = _Mass(mass_adj * percent/100.0)
+			w_adj.adjust_extract(ext_adj)
+			w_adj.adjust_water(_Mass(mass_adj - ext_adj))
 		else:
-			vol_add, s_add = parse.split(args[2], '@',
+			vol_adj, s_adj = parse.split(args[2], '@',
 			    parse.volume, parse.strength)
-			mass_add = _Mass(s_add.valueas(s_add.SG) * vol_add)
-			ext_add = _Mass(mass_add * s_add/100.0)
+			w_adj.set_volstrength(vol_adj, s_adj)
 	else:
-		ext_add = mass_add = parse.mass(args[2])
+		w_adj.adjust_extract(parse.mass(args[2]))
 
-	mass_orig = _Mass(s_orig.valueas(s_orig.SG) * vol_orig)
-	ext_orig = _Mass(mass_orig * s_orig/100.0)
-
-	ext_new = _Mass(ext_orig + ext_add)
-	mass_new = _Mass(mass_orig + mass_add)
-
-	s_new = _Strength(100.0*ext_new / mass_new)
-	vol_new = _Volume(mass_new / s_new.valueas(s_new.SG))
-
-	water_orig = _Mass(mass_orig - ext_orig)
-	water_new = _Mass(mass_new - ext_new)
+	w_new = w_orig + w_adj
 
 	if s_fin is not None:
-		r = s_orig.attenuate_bystrength(s_fin)
+		r = w_orig.strength().attenuate_bystrength(s_fin)
 		ra = r['ra']
 		if ra_arg is None:
 			ra_add = 100.0
@@ -91,15 +86,16 @@ if __name__ == '__main__':
 		# calculate aggregate RA, which is supplied RA for
 		# the original plus the given RA (if RA was not given,
 		# we'll calculate both 100% RA and [implicitly] given AA)
-		wantedra = 100*(ext_orig*ra/100.0 + ext_add*ra_add/100.0) \
-		    / (ext_orig + ext_add)
-		s_guess = _Strength(s_new/2)
+		wantedra = (100*(w_orig.extract()*ra/100.0
+		    + w_adj.extract()*ra_add/100.0)
+		    / (w_orig.extract() + w_adj.extract()))
+		s_guess = _Strength(w_new.strength()/2)
 
 		# considering the formula for real extract (WBC/Units::Strength)
 		# I'm not too keen on solving real attenuation analytically.
 		# takes usually <=5 loops.
 		while True:
-			r = s_new.attenuate_bystrength(s_guess)
+			r = w_new.strength().attenuate_bystrength(s_guess)
 			ra_delta = r['ra'] - wantedra
 			if abs(ra_delta) < 0.01:
 				break
@@ -107,12 +103,12 @@ if __name__ == '__main__':
 			# adjust by the fraction of the range that
 			# we're off by.  we don't hit it on the first tries
 			# due to the non-linear nature, but we'll get close(r).
-			s_guess = _Strength(s_guess + s_new*ra_delta/100.0)
+			s_guess = _Strength(s_guess + w_new.strength()*ra_delta/100.0)
 
 		s_ra = s_guess
 		abv_ra = r['abv']
 		if aa is not None:
-			r = s_new.attenuate_bypercent(aa)
+			r = w_new.strength().attenuate_bypercent(aa)
 			s_aa = r['ae']
 			abv_aa = r['abv']
 
@@ -123,29 +119,38 @@ if __name__ == '__main__':
 		    value1, value2, value3))
 
 	printline2('Strength, Original',
-	    s_orig.stras(Strength.PLATO), s_orig.stras(Strength.SG))
+	    w_orig.strength().stras(Strength.PLATO),
+	    w_orig.strength().stras(Strength.SG))
 	printline2('Strength, Aggregate',
-	    s_new.stras(Strength.PLATO), s_new.stras(Strength.SG))
+	    w_new.strength().stras(Strength.PLATO),
+	    w_new.strength().stras(Strength.SG))
 
 	print()
 	printline2('Extract, Original',
-	    ext_orig.stras_system('metric'), ext_orig.stras_system('us'))
+	    w_orig.extract().stras_system('metric'),
+	    w_orig.extract().stras_system('us'))
 	printline2('Extract, Added',
-	    ext_add.stras_system('metric'), ext_add.stras_system('us'))
+	    w_adj.extract().stras_system('metric'),
+	    w_adj.extract().stras_system('us'))
 	printline2('Extract, Aggregate',
-	    ext_new.stras_system('metric'), ext_new.stras_system('us'))
+	    w_new.extract().stras_system('metric'),
+	    w_new.extract().stras_system('us'))
 
 	print()
 	printline2('Water, Original',
-	    water_orig.stras_system('metric'), water_orig.stras_system('us'))
+	    w_orig.water().stras_system('metric'),
+	    w_orig.water().stras_system('us'))
 	printline2('Water, New',
-	    water_new.stras_system('metric'), water_new.stras_system('us'))
+	    w_new.water().stras_system('metric'),
+	    w_new.water().stras_system('us'))
 
 	print()
 	printline2('Volume, Original',
-	    vol_orig.stras_system('metric'), vol_orig.stras_system('us'))
+	    w_orig.volume().stras_system('metric'),
+	    w_orig.volume().stras_system('us'))
 	printline2('Volume, Aggregate',
-	    vol_new.stras_system('metric'), vol_new.stras_system('us'))
+	    w_new.volume().stras_system('metric'),
+	    w_new.volume().stras_system('us'))
 
 	if s_fin is not None:
 		print()
