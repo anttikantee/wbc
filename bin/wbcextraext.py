@@ -28,7 +28,7 @@ import sys
 
 def usage():
 	sys.stderr.write('usage: ' + os.path.basename(sys.argv[0])
-	    + ' [-f final_strength[,addition_RA%]]\n'
+	    + ' [-f final_strength[,adjustment_RA%]]\n'
 	    + '\tstrength vol mass[@extract%]|vol@strength\n')
 	sys.exit(1)
 
@@ -77,17 +77,17 @@ if __name__ == '__main__':
 		r = w_orig.strength().attenuate_bystrength(s_fin)
 		ra = r['ra']
 		if ra_arg is None:
-			ra_add = 100.0
+			ra_adj = 100.0
 			aa = r['aa']
 		else:
-			ra_add = ra_arg
+			ra_adj = ra_arg
 			aa = None
 
 		# calculate aggregate RA, which is supplied RA for
 		# the original plus the given RA (if RA was not given,
 		# we'll calculate both 100% RA and [implicitly] given AA)
 		wantedra = (100*(w_orig.extract()*ra/100.0
-		    + w_adj.extract()*ra_add/100.0)
+		    + w_adj.extract()*ra_adj/100.0)
 		    / (w_orig.extract() + w_adj.extract()))
 		s_guess = _Strength(w_new.strength()/2)
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
 	if s_fin is not None:
 		print()
-		printline3('Final Strength (' + str(int(ra_add)) + '% add RA)',
+		printline3('Final Strength (' + str(int(ra_adj)) + '% adj RA)',
 		    s_ra.stras(Strength.PLATO), s_ra.stras(Strength.SG),
 		    '{:.1f}% ABV'.format(abv_ra))
 		if aa is not None:
