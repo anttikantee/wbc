@@ -98,20 +98,20 @@ class Volume(WBCUnit):
 	def stras_system(self, system):
 		_checksystem(system)
 		if system == 'metric':
-			if self.valueas(self.LITER) < 0.1:
+			if abs(self.valueas(self.LITER)) < 0.1:
 				return self.stras(self.MILLILITER)
-			elif self.valueas(self.LITER) < 1:
+			elif abs(self.valueas(self.LITER)) < 1:
 				return self.stras(self.DECILITER)
-			elif self.valueas(self.HECTOLITER) < 1:
+			elif abs(self.valueas(self.HECTOLITER)) < 1:
 				return self.stras(self.LITER)
 			return self.stras(self.HECTOLITER)
 		else:
 			# could add cups etc, but just go with <0.1qt => tsp
-			if self.valueas(self.QUART) < 0.1:
+			if abs(self.valueas(self.QUART)) < 0.1:
 				return self.stras(self.TEASPOON)
-			elif self.valueas(self.GALLON) < 1:
+			elif abs(self.valueas(self.GALLON)) < 1:
 				return self.stras(self.QUART)
-			elif self.valueas(self.BARREL) < 1:
+			elif abs(self.valueas(self.BARREL)) < 1:
 				return self.stras(self.GALLON)
 			return self.stras(self.BARREL)
 
@@ -273,16 +273,17 @@ class Mass(WBCUnit):
 	# depending on input unit
 	def stras_system(self, system):
 		_checksystem(system)
+		chkv = abs(self)
 		if system == 'metric':
-			if self < 1.0:
-				if self < 1.0 / 1000.0:
+			if chkv < 1.0:
+				if chkv < 1.0 / 1000.0:
 					return self.stras(Mass.MG)
 				else:
 					return self.stras(Mass.G)
 			else:
 				return self.stras(Mass.KG)
 		else:
-			if self.small or self*1000.0 < constants.gramsperpound:
+			if self.small or chkv*1000.0 < constants.gramsperpound:
 				small = True
 			else:
 				small = False
