@@ -117,7 +117,8 @@ class Worter:
 		    _Mass(self._water - s._water))
 
 	def __str__(self):
-		return 'Wort ({}): extract {} water {}'.format(
+		return 'Wort {} ({}): extract {} water {}'.format(
+		    str(self.volume()),
 		    str(self.strength()),
 		    str(_Mass(self._extract)),
 		    str(_Mass(self._water)))
