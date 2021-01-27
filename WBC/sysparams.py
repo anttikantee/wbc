@@ -177,6 +177,12 @@ _defaults = {
 	'sparge_temp'		: '82degC',
 
 	'mashin_ratio'		: '50%',
+
+	# so that debug prints (i.e. __str()__) work without
+	# having to depend on the program in question parsing
+	# sysparams
+	'units_output'		: 'metric',
+	'strength_output'	: 'plato',
 }
 
 for p in paramparsers:
