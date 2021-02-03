@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from WBC.WBC import Recipe
-from WBC.Units import Strength
+from WBC.wbc import Recipe
+from WBC.units import Strength
 
 def testme(vals, fun, ifun):
 	rv = []
