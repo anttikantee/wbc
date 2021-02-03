@@ -108,7 +108,7 @@ class Worter:
 	# of the mash, the drawn wort will be "subtracted" from what
 	# would be the final wort.
 	def __sub__(self, s):
-		if not isinstance(a, Worter):
+		if not isinstance(s, Worter):
 			raise TypeError('Worter can be added only to Worter')
 		if s._water > self._water or s._extract > self._extract:
 			raise PilotError("Cannot subtract more worter "
