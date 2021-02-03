@@ -513,6 +513,11 @@ Add(None, 'Table sugar',
 	Extract(100, CGDB, FCD_UNKNOWN, 0),
 	Color(0, EBC),
 	conversion = False)
+# educatedly guess the color and extract
+Add(None, 'raw sugar',
+	Extract(98, CGAI, FCD_UNKNOWN, 2),
+	Color(10, EBC),
+	conversion = False)
 
 # invert syrups.  really just guessing the extract content, though
 # read from somewhere that syrup at 115degC (cooking temperature)
