@@ -420,7 +420,7 @@ class Recipe:
 
 	def _sanity_check(self):
 		pbs = self.results['strengths']['preboil']
-		fw = self.results['mash_first_wort_max']
+		fw = self.results['mash_conversion'][100]
 
 		if pbs > fw:
 			warn("preboil strength is greater than 100% "
@@ -686,8 +686,12 @@ class Recipe:
 		theor_yield = self.total_yield(WBC.MASH, theoretical=True)
 		# FIXXXME: actually volume, so off-by-very-little
 		watermass = self.results['mash']['mashstep_water']
-		fw = 100 * (theor_yield / (theor_yield + watermass))
-		self.results['mash_first_wort_max'] = _Strength(fw)
+
+		self.results['mash_conversion'] = {}
+		for x in range(5, 100+1, 5):
+			extract = theor_yield * x/100.0
+			fw = 100 * (extract / (extract + watermass))
+			self.results['mash_conversion'][x] = _Strength(fw)
 
 		mf = self._fermentables_atstage(WBC.MASH)
 		rv = _Volume(self.results['mash']['mashstep_water']

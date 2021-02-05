@@ -133,11 +133,10 @@ def _printmash(input, results):
 		    + str(getparam('sparge_temp')),
 		    str(spargevol_ambient), str(getparam('ambient_temp'))))
 
-	fw = results['mash_first_wort_max']
+	fw = results['mash_conversion']
 	fwstrs = []
-	for x in [.85, .90, .95, 1.0]:
-		fwstrs.append(str(_Strength(fw * x)) \
-		    + ' (' + str(int(100 * x)) + '%)')
+	for x in [85, 90, 95, 100]:
+		fwstrs.append(str(fw[x]) + ' (' + str(x) + '%)')
 	print('{:20}{:}'. format('1st wort (conv. %):',
 	    ', '.join(fwstrs)))
 
