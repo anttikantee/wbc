@@ -275,8 +275,8 @@ Add('Dingemans', 'Special B',
 
 # malzandmore.de
 Add('Hausladen', 'Pilsner',
-	Extract(83.4, FGDB, 1.2, 4.3),
-	Color(3.5, EBC))
+	Extract(82.3, FGDB, 1.8, 4.5),
+	Color(2.9, EBC))
 
 # found a data sheet with 81% extract min for fine grind, so
 # guessing the coarse grind from that.
