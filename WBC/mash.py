@@ -310,6 +310,9 @@ class Mash:
 		res['sparge_water'] = \
 		    water_vol_at_temp(_Volume(water_mashused), \
 		    water_temp, getparam('sparge_temp'))
+		res['sparge_water_ambient'] = \
+		    water_vol_at_temp(_Volume(water_mashused), \
+		    water_temp, getparam('ambient_temp'))
 		res['method'] = self.method
 
 		return res

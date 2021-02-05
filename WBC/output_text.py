@@ -127,9 +127,11 @@ def _printmash(input, results):
 	    .format(results['mash_first_runnings_max']) + yesnosparge)
 
 	if spargevol > .001:
-		print('{:20}{:}'.format('Sparge water:',
+		spargevol_ambient = results['mash']['sparge_water_ambient']
+		print('{:20}{:} ({:} @ {:})'.format('Sparge water:',
 		    str(spargevol) + ' @ '
-		    + str(getparam('sparge_temp'))))
+		    + str(getparam('sparge_temp')),
+		    str(spargevol_ambient), str(getparam('ambient_temp'))))
 
 	fw = results['mash_first_wort_max']
 	fwstrs = []
