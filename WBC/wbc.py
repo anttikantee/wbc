@@ -165,10 +165,6 @@ class Recipe:
 
 		return _Volume(v)
 
-	def __extract(self, vol, strength):
-		m = _Mass(vol * strength.valueas(Strength.SG))
-		return _Mass(m * strength/100.0)
-
 	def __scale(self, what):
 		if self.volume_inherent is None or self.volume_scaled is None:
 			return what
@@ -500,8 +496,10 @@ class Recipe:
 		# calculate extract required for strength, and derive
 		# masses of fermentables from that
 
-		extract = self.__extract(self.__volume_at_stage(self.POSTBOIL),
-		    self.anchor) + self.input['stolen_wort'].extract()
+		w = Worter()
+		w.set_volstrength(self.__volume_at_stage(self.POSTBOIL),
+		    self.anchor)
+		extract = w.extract() + self.input['stolen_wort'].extract()
 
 		# take into account any yield we already get from
 		# per-mass additions
