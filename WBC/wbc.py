@@ -332,7 +332,7 @@ class Recipe:
 			'when' : when,
 		}
 
-	def fermentable_bymass(self, name, mass, when=WBC.MASH):
+	def fermentable_bymass(self, name, mass, when):
 		checktype(mass, Mass)
 
 		fermentable = fermentables.Get(name)
@@ -341,7 +341,7 @@ class Recipe:
 		f = self._fermmap(name, fermentable, 'mass', mass, when)
 		self.fermentables_bymass.append(f)
 
-	def fermentable_bymassvolratio(self, name, mv, when=WBC.MASH):
+	def fermentable_bymassvolratio(self, name, mv, when):
 		(mass, vol) = mv
 		checktype(mass, Mass)
 		checktype(vol, Volume)
@@ -354,7 +354,7 @@ class Recipe:
 		self.fermentables_bymassvol.append(f)
 
 	# percent of fermentable's mass, not extract's mass
-	def fermentable_bypercent(self, name, percent, when=WBC.MASH):
+	def fermentable_bypercent(self, name, percent, when):
 		if percent is not self.THEREST and percent <= 0:
 			raise PilotError('grain percentage must be positive '\
 			  '(it is a fun thing!)')
