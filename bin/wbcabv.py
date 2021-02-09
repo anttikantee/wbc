@@ -90,3 +90,24 @@ if __name__ == '__main__':
 	print()
 	printline('ABV', '{:.1f}%'.format(r['abv']))
 	printline('ABW', '{:.1f}%'.format(r['abw']))
+
+	# Delle unit:
+	#   grams of reducing sugar in 100ml + 4.5 x 1ml's alcohol in 100ml
+	# [indirectly] via:
+	#
+	# Kunkee & Amerine: "Sugar and Alcohol Stabilization of Yeast in
+	# Sweet Wine".  Applied Microbiology Jul 1968, 16 (7) 1067-1075
+	#
+	# (Delle's original observation from 1911 was, from what I can tell,
+	# published in Russian)
+	#
+	# Since we don't know how much of the residual extract is
+	# reducing sugars -- and I'd guess sucrose counts too -- print
+	# values with both 0% and 100% of residual extract assumed as
+	# reducing sugars.  Since the Delle limit isn't 100% set in stone
+	# anyway (SO2, pH, etc.), the two values should give the user
+	# enough info to make their own educated decision.
+	delle_noreduce = '{:.1f}'.format(4.5 * r['abv'])
+	delle_allreduce = '{:.1f}'.format(r['re_gl']/10.0 + 4.5 * r['abv'])
+	printline2('Delle value, RS = 0%/100% RE',
+	    delle_noreduce, delle_allreduce)
