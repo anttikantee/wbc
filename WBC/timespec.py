@@ -17,6 +17,7 @@
 from WBC.utils import PilotError, checktype
 from WBC.units import Temperature, _Temperature
 
+# XXX
 _boiltime = None
 def set_boiltime(boiltime):
 	global _boiltime
