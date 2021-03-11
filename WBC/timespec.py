@@ -24,6 +24,14 @@ def set_boiltime(boiltime):
 	_boiltime = boiltime
 
 class Timespec:
+	MASH=		'mash'
+	POSTMASH=	'steep'
+	KETTLE=		'boil'
+	FERMENTOR=	'ferment'
+	PACKAGE=	'package'
+
+	stages=		[ MASH, POSTMASH, KETTLE, FERMENTOR, PACKAGE ]
+
 	def __lt__(self, other):
 		scls = self.__class__
 		ocls = other.__class__
@@ -38,13 +46,9 @@ class Timespec:
 
 class Mash(Timespec):
 	MASHIN=		'mashin'
-	MASHOUT=	'mashout'
-	SPARGE=		'sparge'
-
-	_specials=	[ MASHIN, MASHOUT, SPARGE ]
 
 	def __init__(self, when = MASHIN):
-		if when not in self._specials:
+		if when != self.MASHIN:
 			checktype(when, Temperature)
 			if when < 1 or when > 99:
 				raise PilotError('unbelievable mash '
@@ -66,8 +70,6 @@ class Mash(Timespec):
 		to = other.when
 		tmap = {
 			self.MASHIN  : 0,
-			self.MASHOUT : 100,
-			self.SPARGE  : 101,
 		}
 		if ts in tmap:
 			ts = _Temperature(tmap[ts])
@@ -90,6 +92,29 @@ class Mash(Timespec):
 		except TypeError:
 			c1, c2 = self.__cmpvalue(other)
 			return c1 == c2
+
+class MashSpecial(Mash):
+	STEEP=		'steep'
+	MASHOUT=	'mashout'
+	SPARGE=		'sparge'
+
+	values=		[ STEEP, MASHOUT, SPARGE ]
+
+	def __init__(self, when):
+		if when not in self.values:
+			raise PilotError('invalid MashSpecial timing')
+		self.when = when
+		self.spec = None
+
+	def __cmpvalue(self, other):
+		rv = (values.index(self), values.index(other))
+		return rv
+
+	def __lt__(self, other):
+		return super().__lt__(other)
+
+	def __eq__(self, other):
+		return super().__eq__(other)
 
 class Boil(Timespec):
 	specials = [ 'FWH', 'boiltime' ]
@@ -145,7 +170,7 @@ class Boil(Timespec):
 		except TypeError:
 			return self._cmptime == other._cmptime
 
-class Steep(Timespec):
+class Whirlpool(Timespec):
 	def __init__(self, time, temp):
 		checktype(temp, Temperature)
 
@@ -178,8 +203,16 @@ class Steep(Timespec):
 			    self.time == other.time
 
 class Fermentor(Timespec):
+	# in case you don't want to care about the days,
+	# don't have to invent any that mean nothing
+	UNDEF=	'undef'
+
 	def __init__(self, indays, outdays):
-		if indays <= outdays:
+		if indays == self.UNDEF or outdays == self.UNDEF:
+			if indays != outdays:
+				raise PilotError('Timespec Fermentor: if one '
+				    + ' day is undef, both must be')
+		elif indays <= outdays:
 			raise PilotError('trying to take ' \
 			    'fermentor addition out before putting ' \
 			    'it in')
@@ -189,6 +222,8 @@ class Fermentor(Timespec):
 		self.spec = None
 
 	def __str__(self):
+		if self.indays == self.UNDEF:
+			return 'undef'
 		return str(self.indays) + 'd -> ' + str(self.outdays) + 'd'
 
 	def timespecstr(self):
@@ -202,6 +237,14 @@ class Fermentor(Timespec):
 			return super().__lt__(other)
 		except TypeError:
 			pass
+
+		# undef compares less than defined days (i.e.
+		# "earlier" addition)
+		if self.indays == self.UNDEF:
+			if other.indays != self.UNDEF:
+				return True
+			else:
+				return False
 
 		if self.indays < other.indays:
 			return True
@@ -244,4 +287,17 @@ class Package(Timespec):
 			return True
 
 # from "smallest" to "largest" (opposite of first-to-last)
-_order = [Package, Fermentor, Steep, Boil, Mash]
+_order = [Package, Fermentor, Whirlpool, Boil, MashSpecial, Mash]
+
+timespec2stage= {
+	Mash: 		Timespec.MASH,
+	MashSpecial:	Timespec.POSTMASH,
+	Boil:		Timespec.KETTLE,
+	Whirlpool:	Timespec.KETTLE,
+	Fermentor:	Timespec.FERMENTOR,
+	Package:	Timespec.PACKAGE,
+}
+stage2timespec = {
+	x: [y for y in timespec2stage if timespec2stage[y] == x]
+	    for x in timespec2stage.values()
+}

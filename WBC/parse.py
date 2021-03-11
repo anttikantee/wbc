@@ -99,37 +99,52 @@ def kettletime(input):
 
 def timespec(input):
 	# XXX: collision between timespec module and this function.
-	# however, since this function is always seen as parse.timespec()
-	# elsewhere, we can just do collision avoidance here.
+	# however, since this function is (= should be!) always seen
+	# as parse.timespec() elsewhere, we can just do collision
+	# avoidance here.
 	import WBC
 
 	if input == 'package':
 		return WBC.timespec.Package()
 	elif 'mash' in input:
-		t = WBC.timespec.Mash.MASHIN
 		if '@' in input:
 			r = input.split('@')
 			s = r[1].strip()
 
+			mash = WBC.timespec.Mash
+			mspec = WBC.timespec.MashSpecial
 			try:
 				t = {
-					'mashin'  : WBC.timespec.Mash.MASHIN,
-					'mashout' : WBC.timespec.Mash.MASHOUT,
-					'sparge'  : WBC.timespec.Mash.SPARGE
+					'mashin'  : [ mash,	mash.MASHIN ],
+					'mashout' : [ mspec,	mspec.MASHOUT ],
+					'steep'   : [ mspec,	mspec.STEEP ],
+					'sparge'  : [ mspec,	mspec.SPARGE ],
 				}[s]
+				ts = t[0]
+				tv = t[1]
 			except KeyError:
-				t = temperature(r[1])
-		return WBC.timespec.Mash(t)
-	elif '->' in input:
-		d1, d2 = split(input, '->', days, days)
-		return WBC.timespec.Fermentor(d1, d2)
+				ts = WBC.timespec.Mash
+				tv = temperature(r[1])
+		else:
+			ts = WBC.timespec.Mash
+			tv = WBC.timespec.Mash.MASHIN
+		return ts(tv)
+	elif input == 'fermentor' or '->' in input:
+		fspec = WBC.timespec.Fermentor
+		if '->' in input:
+			d1, d2 = split(input, '->', days, days)
+			return fspec(d1, d2)
+		else:
+			return fspec(fspec.UNDEF, fspec.UNDEF)
 	elif '@' in input:
 		time, temp = timedtemperature(input)
-		return WBC.timespec.Steep(time, temp)
+		return WBC.timespec.Whirlpool(time, temp)
 	elif input == 'FWH' or input == 'boiltime':
 		return WBC.timespec.Boil(input)
-	else:
+	elif 'min' in input:
 		return WBC.timespec.Boil(kettletime(input))
+	else:
+		raise PilotError('could not parse timespec: ' + input)
 
 def days(input):
 	suffixes = {

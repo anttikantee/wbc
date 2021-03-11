@@ -35,12 +35,7 @@ def checkconfig():
 	return True
 
 class WBC:
-	MASH=		'mash'
-	STEEP=		'steep'
-	BOIL=		'boil'
-	FERMENT=	'ferment'
-	PACKAGE=	'package'
-	stages=		[ MASH, STEEP, BOIL, FERMENT, PACKAGE ]
+	pass
 
 class Recipe:
 	def __init__(self, name, yeast, volume, boiltime = 60):
@@ -109,13 +104,6 @@ class Recipe:
 			return True
 		return False
 
-	# constants must be in ascending order
-	MASHWATER=	1
-	PREBOIL=	2
-	POSTBOIL=	3
-	FERMENTER=	4
-	FINAL=		5
-
 	THEREST=	object()
 
 	def __final_volume(self):
@@ -133,31 +121,34 @@ class Recipe:
 		return getparam('ambient_temp')
 
 	def __volume_at_stage(self, stage):
-		assert(stage >= self.MASHWATER and stage <= self.FINAL)
+		stgs = Worter.stages
+		assert(stage in stgs)
+		sidx = stgs.index(stage)
+		assert(sidx >= stgs.index(Worter.MASH)
+		    and sidx <= stgs.index(Worter.PACKAGE))
 
 		v = self.__final_volume()
 
 		# configured kettle loss + dryhop loss
-		if stage <= self.FERMENTER:
+		if sidx <= stgs.index(Worter.FERMENTOR):
 			v += self.hopsdrunk['fermentor']
 			v += getparam('fermentor_loss')
 
 		# configured kettle loss + hop loss
-		if stage <= self.POSTBOIL:
+		if sidx <= stgs.index(Worter.POSTBOIL):
 			v += self.hopsdrunk['kettle']
 			v += getparam('kettle_loss')
 
 		# preboil volume is postboil + boil loss
-		if stage <= self.PREBOIL:
+		if sidx <= stgs.index(Worter.PREBOIL):
 			v += getparam('boiloff_perhour') * (self.boiltime/60.0)
 
-		if stage <= self.MASHWATER:
+		if sidx <= stgs.index(Worter.MASH):
 			# XXX: should not calculate non-grains into this figure
 			# (rarely relevant problem, only e.g. when doing a
 			# "topped-up" partigyle-mash)
-			f = []
-			for stage in [WBC.MASH, WBC.STEEP]:
-				f += self._fermentables_atstage(stage)
+			f = self._fermentables_atstage(Timespec.MASH) + \
+			    self._fermentables_atstage(Timespec.POSTMASH)
 			m = self._fermentables_mass(f)
 			v += m*self.__grain_absorption() + getparam('mlt_loss')
 
@@ -308,9 +299,6 @@ class Recipe:
 		self.input['strength'] = strength
 
 	def __validate_ferm(self, name, fermentable, when):
-		if when not in WBC.stages:
-			raise PilotError('invalid fermentation stage')
-
 		if self.__havefermentable(fermentable.name, when):
 			raise PilotError('fermentables may be specified max '
 			    + 'once per stage')
@@ -333,7 +321,7 @@ class Recipe:
 		}
 
 	def fermentable_bymass(self, name, mass, when):
-		checktype(mass, Mass)
+		checktypes([(mass, Mass), (when, Timespec)])
 
 		fermentable = fermentables.Get(name)
 		self.__validate_ferm(name, fermentable, when)
@@ -342,6 +330,7 @@ class Recipe:
 		self.fermentables_bymass.append(f)
 
 	def fermentable_bymassvolratio(self, name, mv, when):
+		checktype(when, Timespec)
 		(mass, vol) = mv
 		checktype(mass, Mass)
 		checktype(vol, Volume)
@@ -391,27 +380,34 @@ class Recipe:
 		    * self.fermentable_percentage(what, theoretical)/100.0)
 
 	def _fermentables_atstage(self, when):
+		spec = timespec.stage2timespec[when]
+
 		assert('fermentables' in self.results)
 		return [x for x in self.results['fermentables'] \
-		    if x['when'] == when]
+		    if x['when'].__class__ in spec]
 
 	def _fermentables_mass(self, fermlist):
 		return _Mass(sum(x['mass'] for x in fermlist))
 
 	def total_yield(self, stage, theoretical=False):
 		assert('fermentables' in self.results)
+		assert(stage in Worter.stages)
 
 		def yield_at_stage(stage):
 			return sum([self.fermentable_yield(x, theoretical) \
 			    for x in self._fermentables_atstage(stage)])
-		m = yield_at_stage(WBC.MASH)
-		if stage == WBC.STEEP or stage == WBC.BOIL \
-		    or stage == WBC.FERMENT:
-			m += yield_at_stage(WBC.STEEP)
-		if stage == WBC.BOIL or stage == WBC.FERMENT:
-			m += yield_at_stage(WBC.BOIL)
-		if stage == WBC.FERMENT:
-			m += yield_at_stage(WBC.FERMENT)
+
+		wstg = Worter.stages
+		m = yield_at_stage(Timespec.MASH)
+		if wstg.index(stage) > wstg.index(Worter.MASH):
+			m += yield_at_stage(Timespec.POSTMASH)
+		if wstg.index(stage) > wstg.index(Worter.PREBOIL):
+			m += yield_at_stage(Timespec.KETTLE)
+		if wstg.index(stage) > wstg.index(Worter.POSTBOIL):
+			m += yield_at_stage(Timespec.FERMENTOR)
+		if wstg.index(stage) > wstg.index(Worter.FERMENTOR):
+			m += yield_at_stage(Timespec.PACKAGE)
+
 		return _Mass(m - self.input['stolen_wort'].extract())
 
 	def _sanity_check(self):
@@ -497,7 +493,7 @@ class Recipe:
 		# masses of fermentables from that
 
 		w = Worter()
-		w.set_volstrength(self.__volume_at_stage(self.POSTBOIL),
+		w.set_volstrength(self.__volume_at_stage(Worter.POSTBOIL),
 		    self.anchor)
 		extract = w.extract() + self.input['stolen_wort'].extract()
 
@@ -609,7 +605,7 @@ class Recipe:
 		stats = {}
 
 		for f in self.results['fermentables']:
-			when = f['when']
+			when = timespec.timespec2stage[f['when'].__class__]
 			f['percent'] = 100.0 * (f['mass'] / allmass)
 			f['extract_predicted'] = self.fermentable_yield(f)
 			f['extract_theoretical'] = self.fermentable_yield(f,
@@ -658,7 +654,7 @@ class Recipe:
 
 	def _domash(self):
 		prestren = self.results['strengths']['preboil']
-		totvol = _Volume(self.__volume_at_stage(self.MASHWATER))
+		totvol = _Volume(self.__volume_at_stage(Worter.MASH))
 		if self.input['stolen_wort'].volume() > 0.001:
 			steal = {}
 			ratio = self.input['stolen_wort'].strength() / prestren
@@ -671,17 +667,17 @@ class Recipe:
 			totvol += steal['volume']
 			self.results['steal'] = steal
 
-		mf = self._fermentables_atstage(WBC.MASH)
+		mf = self._fermentables_atstage(Timespec.MASH)
 		self.mash.set_fermentables(mf)
 
-		v = self.__volume_at_stage(self.POSTBOIL)
+		v = self.__volume_at_stage(Worter.POSTBOIL)
 
 		self.results['mash'] \
 		    = self.mash.do_mash(getparam('ambient_temp'),
 			self.__reference_temp(), totvol,
 			self.__grain_absorption())
 
-		theor_yield = self.total_yield(WBC.MASH, theoretical=True)
+		theor_yield = self.total_yield(Worter.MASH, theoretical=True)
 		# FIXXXME: actually volume, so off-by-very-little
 		watermass = self.results['mash']['mashstep_water']
 
@@ -691,7 +687,7 @@ class Recipe:
 			fw = 100 * (extract / (extract + watermass))
 			self.results['mash_conversion'][x] = _Strength(fw)
 
-		mf = self._fermentables_atstage(WBC.MASH)
+		mf = self._fermentables_atstage(Timespec.MASH)
 		rv = _Volume(self.results['mash']['mashstep_water']
 		      - (self._fermentables_mass(mf) * self.__grain_absorption()
 		        + getparam('mlt_loss')))
@@ -701,18 +697,18 @@ class Recipe:
 
 	def _dovolumes(self):
 		res = {}
-		res['mash'] = self.__volume_at_stage(self.MASHWATER)
-		res['fermentor'] = self.__volume_at_stage(self.FERMENTER)
-		res['package'] = self.__volume_at_stage(self.FINAL)
+		res[Worter.MASH] = self.__volume_at_stage(Worter.MASH)
+		res[Worter.FERMENTOR] = self.__volume_at_stage(Worter.FERMENTOR)
+		res[Worter.PACKAGE] = self.__volume_at_stage(Worter.PACKAGE)
 
-		def v_at_temp(name, stage):
-			v = self.__volume_at_stage(stage)
+		def v_at_temp(name):
+			v = self.__volume_at_stage(name)
 			res[name] = v
 			vt = brewutils.water_vol_at_temp(v,
 			    self.__reference_temp(), getparam(name + '_temp'))
 			res[name + '_attemp'] = vt
-		v_at_temp('preboil', self.PREBOIL)
-		v_at_temp('postboil', self.POSTBOIL)
+		v_at_temp(Worter.PREBOIL)
+		v_at_temp(Worter.POSTBOIL)
 
 		self.results['volumes'] = res
 
@@ -727,12 +723,13 @@ class Recipe:
 		vols = self.results['volumes']
 
 		strens = {}
-		strens['preboil'] = brewutils.solve_strength(
-		    self.total_yield(WBC.STEEP), vols['preboil'])
+		strens[Worter.PREBOIL] = brewutils.solve_strength(
+		    self.total_yield(Worter.PREBOIL), vols[Worter.PREBOIL])
+		# XXX?
 		strens['final'] = brewutils.solve_strength(
-		    self.total_yield(WBC.FERMENT), vols['fermentor'])
-		strens['postboil'] = brewutils.solve_strength(
-		    self.total_yield(WBC.BOIL), vols['postboil'])
+		    self.total_yield(Worter.FERMENTOR), vols[Worter.FERMENTOR])
+		strens[Worter.POSTBOIL] = brewutils.solve_strength(
+		    self.total_yield(Worter.POSTBOIL), vols[Worter.POSTBOIL])
 		self.results['strengths'] = strens
 
 	@staticmethod
@@ -751,11 +748,11 @@ class Recipe:
 		allhop = []
 
 		# ok, um, so the Tinseth formula uses postboil volume ...
-		v_post = self.__volume_at_stage(self.POSTBOIL)
+		v_post = self.__volume_at_stage(Worter.POSTBOIL)
 
 		# ... and average gravity during the boil.  *whee*
-		v_pre = self.__volume_at_stage(self.PREBOIL)
-		y = self.total_yield(WBC.BOIL)
+		v_pre = self.__volume_at_stage(Worter.PREBOIL)
+		y = self.total_yield(Worter.POSTBOIL)
 		t = brewutils.solve_strength(y, v_pre).valueas(Strength.SG) \
 		    + brewutils.solve_strength(y, v_post).valueas(Strength.SG)
 		sg = Strength(t/2, Strength.SG)
@@ -858,7 +855,7 @@ class Recipe:
 			if isinstance(time, timespec.Package):
 				t['timer'] = str(time)
 
-			if isinstance(time, timespec.Steep):
+			if isinstance(time, timespec.Whirlpool):
 				if prevval is not None \
 				    and prevval[0] == time.temp:
 					if prevval[1] == time.time:
@@ -944,11 +941,11 @@ class Recipe:
 
 			self._dofermentables()
 			self._dovolumes()
-			prevol = self.__volume_at_stage(self.MASHWATER)
+			prevol = self.__volume_at_stage(Worter.MASH)
 			self._dostrengths()
 			self._domash()
 			self._dohops()
-			if prevol+.01 >= self.__volume_at_stage(self.MASHWATER):
+			if prevol+.01 >= self.__volume_at_stage(Worter.MASH):
 				break
 		else:
 			raise Exception('recipe failed to converge ... panic?')
@@ -964,7 +961,7 @@ class Recipe:
 
 		# calculate suggested pitch rates, using 0.75mil/ml/degP for
 		# ales and 1.5mil for lagers
-		tmp = self.__volume_at_stage(self.FERMENTER) * 1000 \
+		tmp = self.__volume_at_stage(Worter.FERMENTOR) * 1000 \
 		    * self.results['strengths']['final']
 		bil = 1000*1000*1000
 		self.results['pitch'] = {}
@@ -981,7 +978,7 @@ class Recipe:
 		    Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
 
 		# calculate brewhouse estimated afficiency ... NO, efficiency
-		maxyield = self.total_yield(WBC.FERMENT, theoretical=True)
+		maxyield = self.total_yield(Worter.FERMENTOR, theoretical=True)
 		maxstren = brewutils.solve_strength(maxyield,
 		    self.__final_volume())
 		self.results['brewhouse_efficiency'] = \

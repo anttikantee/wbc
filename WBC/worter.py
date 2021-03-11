@@ -16,7 +16,9 @@
 
 #
 # Worter: by-mass internal representation of wort.  (supports both
-# wort and water ... duh)
+# wort and water ... duh).  Works also for must, so maybe it should
+# be called Worster, but then again it also works for a wash, so
+# we'd be at Worshter, and that's getting too Sean Connery.
 #
 
 from WBC.units import *
@@ -25,6 +27,14 @@ from WBC.units import _Mass, _Strength, _Temperature, _Volume
 from WBC import brewutils
 
 class Worter:
+	# brewing/fermenting stages we are interested in volume
+	MASH=		'mash'
+	PREBOIL=	'preboil'
+	POSTBOIL=	'postboil'
+	FERMENTOR=	'fermentor'
+	PACKAGE=	'package'
+	stages=		[ MASH, PREBOIL, POSTBOIL, FERMENTOR, PACKAGE ]
+
 	_maxdensity = _Temperature(4)
 
 	def __init__(self, extract = _Mass(0), water = _Mass(0)):

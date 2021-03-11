@@ -18,8 +18,7 @@ from WBC.utils import prtsep, prettyprint_withsugarontop
 from WBC.getparam import getparam
 
 from WBC import constants, sysparams
-
-from WBC.wbc import WBC
+from WBC import timespec, worter
 
 # XXX: should not be needed in an ideal world
 from WBC.units import Strength, _Volume, _Mass, _Strength
@@ -35,7 +34,8 @@ def _printmash(input, results):
 	prtsep()
 
 	def handleonestage(stage, needsep):
-		lst = [x for x in results['fermentables'] if x['when'] == stage]
+		lst = [x for x in results['fermentables']
+		    if timespec.timespec2stage[x['when'].__class__] == stage]
 		if len(lst) == 0:
 			return needsep
 
@@ -61,7 +61,7 @@ def _printmash(input, results):
 		return True
 
 	needsep = False
-	for stage in WBC.stages:
+	for stage in timespec.Timespec.stages:
 		needsep = handleonestage(stage, needsep)
 	prtsep()
 
@@ -202,10 +202,12 @@ def _printtimers(input, results):
 		else:
 			timestr = time.timespecstr()
 
+		#stage = timespec.timespec2stage[time.__class__]
+		stage = time.__class__
 		if prevstage is not None and \
-		    prevstage is not time.__class__:
+		    prevstage is not stage:
 			prtsep('-')
-		prevstage = time.__class__
+		prevstage = stage
 
 		print(onefmt.format(*v, timestr, t['timer']))
 	prtsep()
@@ -260,8 +262,8 @@ def _keystats(input, results, miniprint):
 	    + srmprec.format(srm) + ' SRM'))
 
 	# various expected losses and brewhouse efficiency
-	d1 = _Volume(vols['postboil'] - vols['fermentor'])
-	d2 = _Volume(vols['fermentor'] - vols['package'])
+	d1 = _Volume(vols[worter.Worter.POSTBOIL] - vols[worter.Worter.FERMENTOR])
+	d2 = _Volume(vols[worter.Worter.FERMENTOR] - vols[worter.Worter.PACKAGE])
 	print(twofmt_tight.format('Kettle loss:', str(d1),
 	    'Fermentor loss:', str(d2)))
 
