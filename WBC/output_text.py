@@ -108,7 +108,7 @@ def _printmash(input, results):
 		# print the water/grist ratio at the step.
 		if getparam('units_output') == 'metric':
 			ratio = x[4]
-			ratiounit = 'l/kg'
+			ratiounit = 'L/kg'
 		else:
 			ratio = (x[4]*constants.litersperquart) \
 			    / (constants.gramsperpound / 1000.0)

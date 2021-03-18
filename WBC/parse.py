@@ -66,9 +66,13 @@ def volume(input):
 		'qt'	: units.Volume.QUART,
 		'tsp'	: units.Volume.TEASPOON,
 		'ml'	: units.Volume.MILLILITER,
+		'mL'	: units.Volume.MILLILITER,
 		'dl'	: units.Volume.DECILITER,
+		'dL'	: units.Volume.DECILITER,
 		'l'	: units.Volume.LITER,
+		'L'	: units.Volume.LITER,
 		'hl'	: units.Volume.HECTOLITER,
+		'hL'	: units.Volume.HECTOLITER,
 	}
 	return _unit(units.Volume, suffixes, input)
 

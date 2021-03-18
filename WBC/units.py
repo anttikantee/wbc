@@ -75,13 +75,13 @@ class Volume(WBCUnit):
 
 	def stras(self, which):
 		if which == self.LITER:
-			sym = 'l'
+			sym = 'L'
 		elif which == self.MILLILITER:
-			sym = 'ml'
+			sym = 'mL'
 		elif which == self.DECILITER:
-			sym = 'dl'
+			sym = 'dL'
 		elif which == self.HECTOLITER:
-			sym = 'hl'
+			sym = 'hL'
 		elif which == self.QUART:
 			sym = 'qt'
 		elif which == self.GALLON:
