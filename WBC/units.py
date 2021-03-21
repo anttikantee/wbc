@@ -37,6 +37,14 @@ class WBCUnit(float):
 	def __init__(self, value, unit):
 		super(WBCUnit, self).__init__()
 
+	def __copy__(self):
+		return type(self)(self.valueas(self.inputunit), self.inputunit)
+
+	def __deepcopy__(self, memo):
+		# units are immutable (at least assuming I didn't miss
+		# anything), so a deepcopy is the same as a copy
+		return self.__copy__()
+
 class Volume(WBCUnit):
 	LITER		= object()
 	DECILITER	= object()
