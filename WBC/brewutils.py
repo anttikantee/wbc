@@ -16,7 +16,7 @@
 
 from WBC.utils import PilotError
 from WBC.units import *
-from WBC.units import _Strength, _Volume, _Mass
+from WBC.units import _Strength, _Volume, _Mass, _Temperature
 
 from WBC import constants
 
@@ -109,7 +109,7 @@ def __density_at_temp(temp):
 
 	# assumes duplicate dict keys will be overriden
 	# (we don't care which equally close one we get)
-	tab = {abs(temp-t): __watertab[t] for t in __watertab}
+	tab = {abs(temp-_Temperature(t)): __watertab[t] for t in __watertab}
 	x = min(tab)
 	return tab[x]
 

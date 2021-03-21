@@ -457,7 +457,7 @@ class Recipe:
 			self.results['fermentables'] = ferms
 			return # all done already
 
-		bmyield = sum([self.fermentable_yield(x) for x in ferms])
+		bmyield = _Mass(sum([self.fermentable_yield(x) for x in ferms]))
 
 		# XXX: we probably shouldn't allow:
 		# bmyield > 0 and len(therest) == 0

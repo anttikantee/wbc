@@ -376,7 +376,7 @@ class Mash:
 		(vol, temp) = first_step.waterstep()
 
 		def calcvols(vol, fmass, temp, evaporation):
-			vol = _Volume(vol - evaporation)
+			vol = _Volume(vol - _Volume(evaporation))
 			actvol = water_vol_at_temp(vol, water_temp, temp)
 			ratio = vol / fmass
 			mvol = _Volume(actvol

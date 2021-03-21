@@ -37,6 +37,19 @@ class WBCUnit(float):
 	def __init__(self, value, unit):
 		super(WBCUnit, self).__init__()
 
+	def __add__(self, other):
+		if self.__class__ != other.__class__:
+			return NotImplemented
+		return type(self)(float(self)+float(other), self.defaultunit)
+
+	def __sub__(self, other):
+		if self.__class__ != other.__class__:
+			return NotImplemented
+		return type(self)(float(self)-float(other), self.defaultunit)
+
+	def __neg__(self):
+		return type(self)(-float(self), self.defaultunit)
+
 	def __copy__(self):
 		return type(self)(self.valueas(self.inputunit), self.inputunit)
 
