@@ -16,8 +16,18 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
+# use GNU awk if available, for proper unicode handling
+if type gawk > /dev/null; then
+	AWK=gawk
+else
+	echo '>> gawk not found; unicode character handling may be poor' 2>&1
+	echo '>> falling back to "awk"' 2>&1
+	echo 2>&1
+	AWK=awk
+fi
+
 # collate first, then print sorted info
-awk -F'|' '
+${AWK} -F'|' '
 $1 == "wbcdata" {
 	if ($2 == 1)
 		mscale = 1.0
@@ -58,7 +68,7 @@ END {
 		printf("y|%s|%f|%f\n", y, yeast_vol[y], yeast_batch[y])
 	}
 }' "$@" | sort -t'|' -k 3rn \
-  | awk -F'|' '
+  | ${AWK} -F'|' '
 $1 == "f" {
 	fermname[++i] = $2
 	fermmass[i] = $3
