@@ -184,6 +184,16 @@ Add('Avangard', 'Wheat',
 	Extract(83, FGDB, 2.0, 5.0),
 	Color(4.5, EBC))
 
+#
+# Brewferm
+#
+
+# XXX: specs do not say if extract is for coarse or fine ground,
+# only that it's for dry basis
+Add('Brewferm', 'Biscuit',
+	Extract(77, FGDB, FCD_UNKNOWN, 4.7),
+	Color(50, EBC))
+
 Add('Briess', 'Pale',
 	Extract(78.5, CGDB, 1.5, 4.0),
 	Color(3.5, LOVIBOND))
