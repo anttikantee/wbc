@@ -238,6 +238,9 @@ class Recipe:
 	def hop_byrecipeIBU(self, hop, IBU, time):
 		checktype(hop, Hop)
 		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
+			if IBU > 120.0:
+				warn("Hop \"" + hop.name + "\" has high IBU ("
+				    + str(IBU) + ")\n")
 			self.hops_recipeIBU = self._hopstore(hop, IBU, time)
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
@@ -245,6 +248,9 @@ class Recipe:
 	def hop_byrecipeBUGU(self, hop, bugu, time):
 		checktype(hop, Hop)
 		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
+			if bugu > 2.0:
+				warn("Hop \"" + hop.name + "\" has high BUGU ("
+				    + str(bugu) + ")\n")
 			self.hops_recipeBUGU = self._hopstore(hop, bugu, time)
 		else:
 			raise PilotError('total IBU/BUGU specified >once')
