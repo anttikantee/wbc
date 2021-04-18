@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Copyright (c) 2019 Antti Kantee <pooka@iki.fi>
+# Copyright (c) 2019, 2021 Antti Kantee <pooka@iki.fi>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -60,7 +60,12 @@ def oneround(w_orig, args, n):
 			    parse.volume, parse.strength)
 			w_adj.set_volstrength(vol_adj, s_adj)
 	else:
-		w_adj.adjust_extract(parse.mass(arg))
+		try:
+			m = parse.mass(arg)
+			w_adj.adjust_extract(m)
+		except PilotError:
+			v = parse.volume(arg)
+			w_adj.adjust_water(_Mass(v))
 
 	printsep("Adjustment {}: \"{}\"".format(n+1, arg))
 
@@ -88,6 +93,9 @@ def oneround(w_orig, args, n):
 	printline2('Water, Original',
 	    w_orig.water().stras_system('metric'),
 	    w_orig.water().stras_system('us'))
+	printline2('Water, Added',
+	    w_adj.water().stras_system('metric'),
+	    w_adj.water().stras_system('us'))
 	printline2('Water, New',
 	    w_new.water().stras_system('metric'),
 	    w_new.water().stras_system('us'))
