@@ -1,0 +1,9 @@
+fermentables:
+    strength: 5% @ 75%
+
+    mash:
+        Weyermann Munich I:         30%
+        Hausladen Pilsner:          rest
+
+    #package:
+        #table sugar:                160g

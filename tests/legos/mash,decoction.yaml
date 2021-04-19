@@ -1,0 +1,3 @@
+mashparams:
+    temperature: [ 20min @ 40degC, 30min @ 65degC, 75degC ]
+    method: decoction

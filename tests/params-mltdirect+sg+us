@@ -1,0 +1,10 @@
+mash_efficiency	=	66%
+boiloff_perhour	=	0.5gal
+mlt_loss	=	0.2gal
+mlt_heatcapacity=	2.5
+mlt_heat	=	direct
+kettle_loss	=	3qt
+fermentor_loss	=	5qt
+
+strength_output =       sg
+units_output    =       us
