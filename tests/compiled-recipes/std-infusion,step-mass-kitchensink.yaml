@@ -1,0 +1,25 @@
+name:   std
+yeast:  yeastieboys
+volume: 20l
+boil:   60min
+mashparams:
+    temperature: [ 20min @ 65degC, 70degC, 15min @ 75degC ]
+fermentables:
+    mash:
+        Avangard Pilsner:           3kg
+        Weyermann Munich I:         2kg
+
+    package:
+        table sugar:                100g
+defs:
+    - [ &th1 [ Testhop1, 18.8%, pellet ]]
+
+hops:
+    - [ [ Testhop2,     10.0% ],        20g,        FWH            ]
+    - [ [ Testhop_leaf,  4.5%, leaf ],  2g/l,       boiltime       ]
+
+    - [ *th1,                           10 IBU,     12min          ]
+
+    - [ *th1,                           3g/l,       20min @ 75degC ]
+    - [ *th1,                           2g/l,       fermentor      ]
+    - [ *th1,                           1g/l,       package        ]

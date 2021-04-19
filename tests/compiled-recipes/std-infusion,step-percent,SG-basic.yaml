@@ -1,0 +1,23 @@
+name:   std
+yeast:  yeastieboys
+volume: 20l
+boil:   60min
+mashparams:
+    temperature: [ 20min @ 65degC, 70degC, 15min @ 75degC ]
+fermentables:
+    strength: 1.088
+
+    mash:
+        Weyermann Munich I:         30%
+        Hausladen Pilsner:          rest
+
+    15min:
+        Invert No3:                 10%
+
+    fermentor:
+        table sugar:                15%
+
+    package:
+        table sugar:                5g/l
+hops:
+    - [ [ Testhopper,         11.0% ],  0.25 Recipe BUGU, 20min  ]
