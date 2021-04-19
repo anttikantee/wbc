@@ -17,7 +17,9 @@
 from WBC.units import *
 from WBC.units import _Mass, _Temperature, _Volume
 
-from WBC.brewutils import water_vol_at_temp
+from WBC.worter import Worter
+
+import copy
 
 class MashStep:
 	TIME_UNSPEC=	object()
@@ -195,7 +197,7 @@ class Mash:
 			return (_Mass(ds*dm), _Mass((1-ds)*dm))
 
 		def waterstep(self):
-			return (_Volume(self.step_watermass),
+			return (_Mass(self.step_watermass),
 			    _Temperature(self.step_watertemp))
 
 		def watermass(self):
@@ -209,12 +211,8 @@ class Mash:
 	# mashing returns a dict which contains:
 	#  * mashstep_water
 	#  * sparge_water
-	#  * total_water
 	#  * [steps]:
-	#	( MashStep, addition vol @ ambient, addition vol @ target temp,
-	#		temp, mash thickness, mash total volume)
-	def do_mash(self, ambient_temp, water_temp, watervol,
-	    grains_absorb):
+	def do_mash(self, ambient_temp, water_temp, water, grains_absorb):
 		assert(self.method is Mash.INFUSION
 		    or self.method is Mash.DECOCTION)
 
@@ -242,7 +240,7 @@ class Mash:
 		if mashin_ratio[0] == '%':
 			absorb = fmass * grains_absorb
 			wmass_end = (mashin_ratio[1] / 100.0) \
-			    * (watervol + absorb)
+			    * (water.water() + absorb)
 			wmass = origwater(steps[-1].temperature,
 			    steps[0].temperature, wmass_end)
 		else:
@@ -253,8 +251,8 @@ class Mash:
 		# adjust minimum mash water, advisory parameter
 		mwatermin = getparam('mashwater_min')
 		if mwatermin is not None:
-			if mwatermin > watervol:
-				mwatermin = watervol
+			if mwatermin > water.water():
+				mwatermin = water.water()
 			if wmass < mwatermin:
 				wmass = origwater(steps[-1].temperature,
 				    steps[0].temperature, mwatermin)
@@ -280,84 +278,91 @@ class Mash:
 		# finally, if necessary adjust the lauter volume
 		# or error if either mash or lauter volume is beyond limit
 		lvolmax = getparam('lautervol_max')
-		lvol = (watervol - wmass) + grainvol
+		lvol = (water.water() - wmass) + grainvol
 		if lvolmax is not None and lvol > lvolmax:
 			dl = lvol - lvolmax
 			assert(dl > 0)
 			if (mvolmax is not None \
 			      and wmass_end + dl + grainvol > mvolmax) \
-			    or wmass_end + dl > watervol:
+			    or wmass_end + dl > water.water():
 				raise PilotError('cannot satisfy mash/lauter '
 				    'max volumes, check params/recipe')
 			wmass += dl
 
 		res = {}
-		res['total_water'] = watervol
-
 		first_step = self.__Step(fmass, ambient_temp,
 		    steps[0].temperature, wmass)
-		totvol = watervol
 
 		cmap = {
 			self.INFUSION: self.infusion_mash,
 			self.DECOCTION: self.decoction_mash,
 		}
-		rv = cmap[self.method](first_step, water_temp, watervol, fmass)
+		rv = cmap[self.method](first_step, water_temp, water, fmass)
 		res['steps'] = rv
 
-		water_mashused = watervol - sum(map(lambda x: x[1], rv))
-		res['mashstep_water'] = _Volume(watervol - water_mashused)
-		res['sparge_water'] = \
-		    water_vol_at_temp(_Volume(water_mashused), \
-		    water_temp, getparam('sparge_temp'))
-		res['sparge_water_ambient'] = \
-		    water_vol_at_temp(_Volume(water_mashused), \
-		    water_temp, getparam('ambient_temp'))
+		w = water.water()
+		mashwater = sum(map(lambda x: x['water'].water(), rv), _Mass(0))
+		res['mashstep_water'] = Worter(water = mashwater)
+		res['sparge_water'] = Worter(water = w - mashwater)
 		res['method'] = self.method
 
 		return res
 
-	def infusion_mash(self, first_step, water_temp, totvol, fmass):
+	def __grainvol(self, fmass):
+		return _Volume(fmass * constants.grain_specificvolume)
+
+	def infusion_mash(self, first_step, water_temp, water, fmass):
 		steps = self.giant_steps
 
+		watermass = water.water()
 		stepres = []
+
 		if getparam('mlt_heat') == 'transfer':
 			step = first_step
-			inmash = 0
+			inmash = Worter()
 
 			for i, s in enumerate(steps):
-				(vol, temp) = step.waterstep()
-				totvol -= vol
-				inmash += vol
-				mashvol = _Volume(inmash
-				    + fmass * constants.grain_specificvolume)
+				(m, temp) = step.waterstep()
+				watermass -= m
 
-				ratio = inmash / fmass
-				if totvol < -0.0001:
+				if watermass < -0.0001:
 					raise PilotError('cannot satisfy '
 					    + 'transfer infusion steps '
 					    + 'with given parameters '
 					    + '(ran out of water)')
 
-				# XXX: could calculate this in generic code
-				actualvol = water_vol_at_temp(vol,
-				    water_temp, temp)
-				stepres.append((s, vol, actualvol,
-				    temp, ratio, _Volume(mashvol)))
+				inmash.adjust_water(m)
+				mashvol = inmash.volume(temp) \
+				    + self.__grainvol(fmass)
+				ratio = inmash.water() / fmass
+
+				stepres.append({
+					'step': s,
+					'water': Worter(water = m),
+					'temp': temp,
+					'ratio': ratio,
+					'mashvol': mashvol,
+				})
 				if i+1 < len(steps):
 					step.next_infusion(steps[i+1].temperature)
 		else:
 			assert(getparam('mlt_heat') == 'direct')
-			(vol, temp) = first_step.waterstep()
-			totvol -= vol
-			ratio = vol / fmass
-			actualvol = water_vol_at_temp(vol, water_temp, temp)
-			mashvol = _Volume(vol
-			    + fmass * constants.grain_specificvolume)
+			(m, temp) = first_step.waterstep()
+			watermass -= m
+			strikewater = Worter(water = m)
+			ratio = strikewater.water() / fmass
+			inmash = strikewater
 			for i, s in enumerate(steps):
-				stepres.append((s, vol, actualvol,
-				    temp, ratio, mashvol))
-				vol = _Volume(0)
+				mashvol = inmash.volume(temp) \
+				    + self.__grainvol(fmass)
+				stepres.append({
+					'step': s,
+					'water': strikewater,
+					'temp': temp,
+					'ratio': ratio,
+					'mashvol': mashvol,
+				})
+				strikewater = Worter()
 
 		return stepres
 
@@ -366,26 +371,31 @@ class Mash:
 		# boiloff rate as in the main boil.
 		#
 		# XXX: make configurable
-		return _Volume(getparam('boiloff_perhour') * .25)
+		return _Mass(getparam('boiloff_perhour') * .25)
 
-	def decoction_mash(self, first_step, water_temp, totvol, fmass):
+	def decoction_mash(self, first_step, water_temp, water, fmass):
 		steps = self.giant_steps
 		stepres = []
 
 		step = first_step
-		(vol, temp) = first_step.waterstep()
+		(m, temp) = first_step.waterstep()
+		inmash = Worter(water = m)
 
-		def calcvols(vol, fmass, temp, evaporation):
-			vol = _Volume(vol - _Volume(evaporation))
-			actvol = water_vol_at_temp(vol, water_temp, temp)
-			ratio = vol / fmass
-			mvol = _Volume(actvol
-			    + fmass*constants.grain_specificvolume)
-			return vol, actvol, ratio, mvol
+		def calcvols(inmash, fmass, temp, evaporation):
+			inmash.adjust_water(-evaporation)
+			ratio = inmash.water() / fmass
+			mvol = inmash.volume(temp) + self.__grainvol(fmass)
+			return ratio, mvol
 
-		vol, actvol, ratio, mvol = calcvols(vol,
-		    fmass, steps[0].temperature, 0)
-		stepres.append((steps[0], vol, actvol, temp, ratio, mvol))
+		ratio, mashvol = calcvols(inmash,
+		    fmass, steps[0].temperature, _Mass(0))
+		stepres.append({
+			'step': steps[0],
+			'water': copy.deepcopy(inmash),
+			'temp': temp,
+			'ratio': ratio,
+			'mashvol': mashvol
+		})
 		evap = self.__decoction_evaporation()
 
 		for i, s in enumerate(steps):
@@ -396,24 +406,27 @@ class Mash:
 			nxttemp = steps[i+1].temperature
 			(gm, wm) = step.next_decoction(nxttemp, evap)
 
-			wvol = water_vol_at_temp(_Volume(wm),
-			    water_temp, curtemp)
-			gvol = gm * constants.grain_specificvolume
-			decoctionvol = _Volume(wvol + gvol)
+			w = Worter(water = wm)
+			decoctionvol = _Volume(w.volume(water_temp)
+			    + self.__grainvol(gm))
 
-			vol, actvol, ratio, mvol = calcvols(vol,
-			    fmass, nxttemp, evap)
-
-			stepres.append((steps[i+1], _Volume(0),
-			    decoctionvol, nxttemp, ratio, mvol))
+			ratio, mashvol = calcvols(inmash, fmass, nxttemp, evap)
+			stepres.append({
+				'step': steps[i+1],
+				'decoction': decoctionvol,
+				'water': Worter(),
+				'temp': nxttemp,
+				'ratio': ratio,
+				'mashvol': mashvol
+			})
 		return stepres
 
 	def evaporation(self):
-		v = 0
+		m = 0
 		if self.method is Mash.DECOCTION:
 			evap = self.__decoction_evaporation()
-			v = evap * (len(self.giant_steps)-1)
-		return _Volume(v)
+			m = evap * (len(self.giant_steps)-1)
+		return Worter(water = _Mass(m))
 
 	def printcsv(self):
 		print('# mash|method|mashtemp1|mashtemp2...')

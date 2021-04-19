@@ -168,8 +168,8 @@ _addoptparam('mashvol_max',	'mM',	parse.volume)
 _addoptparam('lautervol_max',	'lM',	parse.volume)
 
 _defaults = {
-	# water absortion for 1kg of grain, net (i.e. apparent absorption).
-	'grain_absorption'	: '1.05l/kg',
+	# water absortion for 1kg of grain, gross (*true* absorption)
+	'grain_absorption'	: '1.50L/kg',
 
 	'ambient_temp'		: '20degC',
 	'preboil_temp'		: '70degC',

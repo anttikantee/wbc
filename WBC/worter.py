@@ -49,7 +49,7 @@ class Worter:
 			raise PilotError("volstrength can be set only on "
 			    + "a virgin worter")
 		m = _Mass(v * s.valueas(s.SG))
-		extract = m * s/100.0
+		extract = _Mass(m * s/100.0)
 		self._extract = extract
 		self._water = m - extract
 
@@ -61,21 +61,29 @@ class Worter:
 		checktype(m, Mass)
 		self._water += m
 
-	# lose volume, water and extract uniformly.  IOW, the
+	# adjust volume, lose/gain water and extract uniformly.  IOW, the
 	# strength of the worter doesn't change
-	def volume_loss(self, v_loss, temperature = _maxdensity):
-		checktypes([(v_loss, Volume), (temperature, Temperature)])
+	#
+	# the actual physical act is "loss", but can be used to add volume
+	# in case calculating backwards from final wort to initial wort
+	#
+	# returns adjustment as worter
+	def adjust_volume(self, v_adj, temperature = _maxdensity):
+		checktypes([(v_adj, Volume), (temperature, Temperature)])
 
-		v_loss = self._volume(v_loss, temperature, self._maxdensity)
-		if v_loss > self.volume():
+		v_adj = self._volume(v_adj, temperature, self._maxdensity)
+		if -v_adj > self.volume():
 			raise PilotError("Worter cannot lose more than its "
 			    + "total volume")
 
 		strn = self.strength()
-		m_loss = v_loss * strn.valueas(strn.SG)
-		m_eloss = m_loss * (strn/100.0)
-		self._extract -= m_eloss
-		self._water -= m_loss - m_eloss
+
+		m_totadj = v_adj * strn.valueas(strn.SG)
+		m_extadj = m_totadj * (strn/100.0)
+
+		adj = Worter(_Mass(m_extadj), _Mass(m_totadj - m_extadj))
+		self += adj
+		return adj
 
 	def mass(self):
 		return _Mass(self._extract + self._water)
@@ -107,11 +115,25 @@ class Worter:
 	def water(self):
 		return _Mass(self._water)
 
+	def __iadd__(self, a):
+		if not isinstance(a, Worter):
+			raise TypeError('Worter can be added only to Worter')
+		self._extract += a._extract
+		self._water += a._water
+		return self
+
 	def __add__(self, a):
 		if not isinstance(a, Worter):
 			raise TypeError('Worter can be added only to Worter')
-		return Worter(_Mass(self._extract + a._extract),
-		    _Mass(self._water + a._water))
+		return Worter(self._extract + a._extract,
+		    self._water + a._water)
+
+	def __isub__(self, s):
+		if not isinstance(s, Worter):
+			raise TypeError('Worter can be added only to Worter')
+		self._extract -= s._extract
+		self._water -= s._water
+		return self
 
 	# How does subtracting arbitrary worts make sense you ask.
 	# good question.  If you draw some wort from the runnings
@@ -123,8 +145,11 @@ class Worter:
 		if s._water > self._water or s._extract > self._extract:
 			raise PilotError("Cannot subtract more worter "
 			    + "than what you have")
-		return Worter(_Mass(self._extract - s._extract),
-		    _Mass(self._water - s._water))
+		return Worter(self._extract - s._extract,
+		    self._water - s._water)
+
+	def __neg__(self):
+		return Worter(-self._extract, -self._water)
 
 	def __str__(self):
 		return 'Wort {} ({}): extract {} water {}'.format(
