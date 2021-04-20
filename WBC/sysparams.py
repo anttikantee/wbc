@@ -199,13 +199,13 @@ def getparamshorts():
 		if n not in paraminputs:
 			assert(paramparsers[n]['optional'])
 			continue
-		out.append(sn + ':' + paraminputs[paramshorts[sn]])
+		out.append(sn + '=' + paraminputs[paramshorts[sn]])
 	return '|'.join(out)
 
 def decodeparamshorts(pstr):
 	res = []
 	for x in pstr.split('|'):
-		v = x.split(':')
+		v = x.split('=')
 		if len(v) != 2 or v[0] not in paramshorts:
 			raise PilotError('invalid sysparam spec: ' + x)
 		res.append((paramshorts[v[0]], v[1]))

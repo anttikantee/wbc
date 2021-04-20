@@ -24,4 +24,4 @@ wbcfermfind.py -v rye
 wbcfermfind.py -v -m Avangard Munich
 wbcfermfind.py notfound
 
-wbcparamdecode.py me:88%|uo:metric
+wbcparamdecode.py me=88%|uo=metric

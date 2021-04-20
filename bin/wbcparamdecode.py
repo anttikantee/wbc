@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	try:
 		res = decodeparamshorts(args[0])
 		longest = max([len(x[0]) for x in res])
-		fmtstr = '{:' + str(longest) + '} : {:}'
+		fmtstr = '{:' + str(longest) + '} = {:}'
 		for x in res:
 			print(fmtstr.format(x[0], x[1]))
 	except PilotError as e:
