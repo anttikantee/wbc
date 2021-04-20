@@ -204,14 +204,6 @@ def processcsv(clist, odict, data):
 
 		if row[0] == "wbcdata":
 			dataver = int(row[1])
-		if dataver == 1:
-			massunit = Mass.G
-			masssfx = 'g'
-		elif dataver == 2:
-			massunit = Mass.KG
-			masssfx = 'kg'
-		else:
-			raise PilotError("unsupported wbcdata version")
 
 		if row[0] == "recipe":
 			r = Recipe(row[1], row[2], _Volume(row[4]), int(row[3]))
@@ -222,12 +214,13 @@ def processcsv(clist, odict, data):
 			r.mash.set_steps(mashsteps)
 
 		elif row[0] == "fermentable":
+			when = parse.timespec(row[3])
 			r.fermentable_bymass(row[1],
-			    Mass(float(row[2]), massunit), row[3])
+			    Mass(float(row[2]), Mass.KG), when)
 
 		elif row[0] == "hop":
 			dohop(r, [row[1], row[3] + '%', row[2]],
-			    row[4] + masssfx, row[6])
+			    row[4] + 'kg', row[6])
 	return r
 
 
