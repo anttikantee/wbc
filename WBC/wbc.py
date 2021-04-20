@@ -1099,6 +1099,9 @@ class Recipe:
 		    + str(self.boiltime)
 		    + '|' + str(float(self.worter[Worter.PACKAGE].volume())))
 
+		print('# sysparams')
+		print('sysparams|' + sysparams.getparamshorts())
+
 		self.mash.printcsv()
 
 		print('# fermentable|name|mass|when')

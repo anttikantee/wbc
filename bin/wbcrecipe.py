@@ -209,6 +209,9 @@ def processcsv(clist, odict, data):
 			r = Recipe(row[1], row[2], _Volume(row[4]), int(row[3]))
 			applyparams(r, clist, odict)
 
+		elif row[0] == "sysparams":
+			for x in row[1:]: sysparams.processparam(x)
+
 		elif row[0] == "mash":
 			mashsteps = [parse.mashstep(x) for x in row[2:]]
 			r.mash.set_steps(mashsteps)
