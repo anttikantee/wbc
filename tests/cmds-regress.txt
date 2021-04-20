@@ -23,3 +23,5 @@ wbccool.py -s 20degP -i 8kg -t 100degF 6degC 21l 7degC
 wbcfermfind.py -v rye
 wbcfermfind.py -v -m Avangard Munich
 wbcfermfind.py notfound
+
+wbcparamdecode.py me:88%|uo:metric

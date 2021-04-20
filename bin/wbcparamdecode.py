@@ -16,7 +16,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.sysparams import DecodeParamShorts
+from WBC.sysparams import decodeparamshorts
 from WBC.utils import PilotError
 
 import getopt
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 		usage()
 
 	try:
-		res = DecodeParamShorts(args[0])
+		res = decodeparamshorts(args[0])
 		longest = max([len(x[0]) for x in res])
 		fmtstr = '{:' + str(longest) + '} : {:}'
 		for x in res:
