@@ -64,6 +64,7 @@ def volume(input):
 		'bbl'	: units.Volume.BARREL,
 		'gal'	: units.Volume.GALLON,
 		'qt'	: units.Volume.QUART,
+		'cup'	: units.Volume.CUP,
 		'tsp'	: units.Volume.TEASPOON,
 		'ml'	: units.Volume.MILLILITER,
 		'mL'	: units.Volume.MILLILITER,

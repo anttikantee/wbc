@@ -21,6 +21,8 @@ literspergallon	= 4 * litersperquart
 gallonsperbarrel= 31
 		  # tbsp * cup * quart * gallon
 tsppergallon	= 3 * 16 * 4 * 4
+		  # quart * gallon
+cupspergallon	= 4 * 4
 
 pascalsperbar	= 100000
 pascalsperatm	= 101325

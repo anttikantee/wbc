@@ -90,6 +90,7 @@ class Volume(WBCUnit):
 	DECILITER	= 'dL'
 	HECTOLITER	= 'hL'
 	TEASPOON	= 'tsp'
+	CUP		= 'cup'
 	QUART		= 'qt'
 	GALLON		= 'gal'
 	BARREL		= 'bbl'
@@ -98,6 +99,7 @@ class Volume(WBCUnit):
 	dL		= DECILITER
 	hL		= HECTOLITER
 	tsp		= TEASPOON
+	cup		= CUP
 	qt		= QUART
 	gal		= GALLON
 	bbl		= BARREL
@@ -116,6 +118,7 @@ class Volume(WBCUnit):
 		hL  : 1/100.0,
 
 		tsp : 1/(constants.literspergallon / constants.tsppergallon),
+		cup : 1/(constants.literspergallon / constants.cupspergallon),
 		qt  : 1/(constants.litersperquart),
 		gal : 1/(constants.literspergallon),
 		bbl : 1/(constants.literspergallon*constants.gallonsperbarrel),
