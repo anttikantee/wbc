@@ -58,105 +58,85 @@ class WBCUnit(float):
 		# anything), so a deepcopy is the same as a copy
 		return self.__copy__()
 
+	def tofundamental(self, value, unit):
+		return value / self.scale[unit]
+
+	def fromfundamental(self, value, unit):
+		return value * self.scale[unit]
+
+	def stras_system(self, system):
+		_checksystem(system)
+		ord = sorted(self.scale, key = self.scale.get, reverse = True)
+		if system == 'metric':
+			ord = [ x for x in ord if x in self.metric() ]
+		else:
+			ord = [ x for x in ord if x in self.us() ]
+
+		cand = ord[0]
+		for x in ord:
+			if self.valueas(x) < 1.0:
+				break
+			cand = x
+		return self.stras(cand)
+
+	def us(self):
+		return [ x for x in self.scale if x not in self.metric() ]
+
 class Volume(WBCUnit):
-	LITER		= object()
-	DECILITER	= object()
-	MILLILITER	= object()
-	HECTOLITER	= object()
-	QUART		= object()
-	GALLON		= object()
-	TEASPOON	= object()
-	BARREL		= object()
+	LITER		= 'L'
+	L		= LITER
+
+	MILLILITER	= 'mL'
+	DECILITER	= 'dL'
+	HECTOLITER	= 'hL'
+	TEASPOON	= 'tsp'
+	QUART		= 'qt'
+	GALLON		= 'gal'
+	BARREL		= 'bbl'
+
+	mL		= MILLILITER
+	dL		= DECILITER
+	hL		= HECTOLITER
+	tsp		= TEASPOON
+	qt		= QUART
+	gal		= GALLON
+	bbl		= BARREL
+
+	# liters are "case-insensitive"
+	l		= L
+	ml		= mL
+	dl		= dL
+	hl		= hL
+
+	# multiply/divide by X to get from/to fundamental, respectively
+	scale = {
+		L   : 1.0,
+		mL  : 1000.0,
+		dL  : 10.0,
+		hL  : 1/100.0,
+
+		tsp : 1/(constants.literspergallon / constants.tsppergallon),
+		qt  : 1/(constants.litersperquart),
+		gal : 1/(constants.literspergallon),
+		bbl : 1/(constants.literspergallon*constants.gallonsperbarrel),
+	}
+
+	def metric(self):
+		return [ self.mL, self.dL, self.L, self.hL ]
 
 	def __new__(cls, value, unit):
-		if unit is Volume.BARREL:
-			value = constants.gallonsperbarrel * value
-			unit = Volume.GALLON
-		if unit is Volume.TEASPOON:
-			value = value / constants.tsppergallon
-			unit = Volume.GALLON
-		if unit is Volume.GALLON:
-			value = constants.literspergallon * value
-		elif unit is Volume.QUART:
-			value = constants.litersperquart * value
-		elif unit is Volume.MILLILITER:
-			value = value / 1000.0
-		elif unit is Volume.DECILITER:
-			value = value / 10.0
-		elif unit is Volume.HECTOLITER:
-			value = value * 100.0
-		elif unit is not Volume.LITER:
-			raise PilotError('invalid Volume unit')
-
-		return super(Volume, cls).__new__(cls, value, unit,
-		    Volume.LITER)
+		value = cls.tofundamental(cls, value, unit)
+		return super(Volume, cls).__new__(cls, value, unit, Volume.L)
 
 	def __str__(self):
 		return self.stras_system(getparam('units_output'))
 
 	def stras(self, which):
-		if which == self.LITER:
-			sym = 'L'
-		elif which == self.MILLILITER:
-			sym = 'mL'
-		elif which == self.DECILITER:
-			sym = 'dL'
-		elif which == self.HECTOLITER:
-			sym = 'hL'
-		elif which == self.QUART:
-			sym = 'qt'
-		elif which == self.GALLON:
-			sym = 'gal'
-		elif which == self.TEASPOON:
-			sym = 'tsp'
-		elif which == self.BARREL:
-			sym = 'bbl'
-		else:
-			raise PilotError('unsupported Volume stras unit')
 		v = self.valueas(which)
-		return '{:.1f}{:s}'.format(v, sym)
-
-	def stras_system(self, system):
-		_checksystem(system)
-		if system == 'metric':
-			if abs(self.valueas(self.LITER)) < 0.1:
-				return self.stras(self.MILLILITER)
-			elif abs(self.valueas(self.LITER)) < 1:
-				return self.stras(self.DECILITER)
-			elif abs(self.valueas(self.HECTOLITER)) < 1:
-				return self.stras(self.LITER)
-			return self.stras(self.HECTOLITER)
-		else:
-			# could add cups etc, but just go with <0.1qt => tsp
-			if abs(self.valueas(self.QUART)) < 0.1:
-				return self.stras(self.TEASPOON)
-			elif abs(self.valueas(self.GALLON)) < 1:
-				return self.stras(self.QUART)
-			elif abs(self.valueas(self.BARREL)) < 1:
-				return self.stras(self.GALLON)
-			return self.stras(self.BARREL)
+		return '{:.1f}{:s}'.format(v, which)
 
 	def valueas(self, unit):
-		if unit is Volume.LITER:
-			return self
-		elif unit is Volume.MILLILITER:
-			return self * 1000.0
-		elif unit is Volume.DECILITER:
-			return self * 10.0
-		elif unit is Volume.HECTOLITER:
-			return self / 100.0
-		elif unit is Volume.TEASPOON:
-			return self.valueas(self.GALLON) \
-			    * constants.tsppergallon
-		elif unit is Volume.QUART:
-			return self / constants.litersperquart
-		elif unit is Volume.GALLON:
-			return self / constants.literspergallon
-		elif unit is Volume.BARREL:
-			return self.valueas(self.GALLON) \
-			    / constants.gallonsperbarrel
-		else:
-			assert(False)
+		return super().fromfundamental(self, unit)
 
 class Temperature(WBCUnit):
 	degC	= object()
@@ -217,43 +197,38 @@ class Temperature(WBCUnit):
 		return 1.8*temp + 32
 
 class Mass(WBCUnit):
-	MG	= object()
-	G	= object()
-	KG	= object()
-	OZ	= object()
-	LB	= object()
-	def __new__(cls, value, unit):
-		if unit is Mass.G:
-			value = value / 1000.0
-		elif unit is Mass.MG:
-			value = value / (1000.0 * 1000.0)
-		elif unit is Mass.LB:
-			value = constants.gramsperpound * value / 1000.0
-		elif unit is Mass.OZ:
-			value = constants.gramsperounce * value / 1000.0
-		else:
-			assert(unit is Mass.KG)
+	kg	= 'kg'
 
-		self = super(Mass, cls).__new__(cls, value, unit, Mass.KG)
-		if unit is Mass.OZ:
-			self.small = True
-		else:
-			self.small = False
-		return self
+	mg	= 'mg'
+	g	= 'g'
+	oz	= 'oz'
+	lb	= 'lb'
+
+	MG	= mg
+	G	= g
+	KG	= kg
+	OZ	= oz
+	LB	= lb
+
+	# multiply/divide by X to get from/to fundamental, respectively
+	scale = {
+		kg  : 1.0,
+		mg  : 1000.0*1000.0,
+		g   : 1000.0,
+
+		oz  : 1/(constants.gramsperounce / 1000.0),
+		lb  : 1/(constants.gramsperpound / 1000.0),
+	}
+
+	def metric(self):
+		return [ self.kg, self.g, self.mg ]
+
+	def __new__(cls, value, unit):
+		value = cls.tofundamental(cls, value, unit)
+		return super(Mass, cls).__new__(cls, value, unit, Mass.KG)
 
 	def valueas(self, unit):
-		if unit is Mass.G:
-			return self * 1000.0
-		elif unit is Mass.KG:
-			return self
-		elif unit is Mass.MG:
-			return self * 1000.0 * 1000.0
-		elif unit is Mass.LB:
-			return (self*1000.0) / constants.gramsperpound
-		elif unit is Mass.OZ:
-			return (self*1000.0) / constants.gramsperounce
-		else:
-			assert(False)
+		return super().fromfundamental(self, unit)
 
 	def stras(self, unit):
 		if unit is self.G:
@@ -289,29 +264,6 @@ class Mass(WBCUnit):
 				thestr = str(whole) + ' '
 			return thestr \
 			    + str(fractions.Fraction(frac/16.0)) + ' lb'
-
-	# output either in "small" units (g/oz) or "large" ones,
-	# depending on input unit
-	def stras_system(self, system):
-		_checksystem(system)
-		chkv = abs(self)
-		if system == 'metric':
-			if chkv < 1.0:
-				if chkv < 1.0 / 1000.0:
-					return self.stras(Mass.MG)
-				else:
-					return self.stras(Mass.G)
-			else:
-				return self.stras(Mass.KG)
-		else:
-			if self.small or chkv*1000.0 < constants.gramsperpound:
-				small = True
-			else:
-				small = False
-			if small:
-				return self.stras(Mass.OZ)
-			else:
-				return self.stras(Mass.LB)
 
 	def __str__(self):
 		return self.stras_system(getparam('units_output'))
