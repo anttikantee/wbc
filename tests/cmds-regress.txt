@@ -25,3 +25,7 @@ wbcfermfind.py -v -m Avangard Munich
 wbcfermfind.py notfound
 
 wbcparamdecode.py me=88%|uo=metric
+
+
+wbcadjust.py 1.000 10l 10000mg 100g 1kg 100ml 10dl 0.1hl
+wbcadjust.py 1.000 10qt 100oz 1lb 1gal 0.1bbl
