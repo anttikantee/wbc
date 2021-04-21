@@ -54,6 +54,7 @@ checkinputs mash ${MASH}
 checkinputs ferm ${FERM}
 checkinputs hop ${HOPS}
 
+static=opaques,std.yaml
 for head in ${HEAD}; do
 	for mash in ${MASH}; do
 		for ferm in ${FERM}; do
@@ -64,6 +65,7 @@ for head in ${HEAD}; do
 				cat "${TL}/mash,${mash}.yaml" >> "${name}"
 				cat "${TL}/ferm,${ferm}.yaml" >> "${name}"
 				cat "${TL}/hop,${hop}.yaml" >> "${name}"
+				cat "${TL}/${static}" >> "${name}"
 			done
 		done
 	done
