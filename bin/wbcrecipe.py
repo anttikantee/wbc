@@ -299,9 +299,6 @@ if __name__ == '__main__':
 			from WBC import output_text
 			output_text.printit(r.input, r.results,
 			    odict.get('miniprint', False))
-	except PilotError as pe:
-		print('Pilot Error: ' + str(pe))
-		sys.exit(1)
 	except IOError as e:
 		print(e)
 		sys.exit(1)
