@@ -31,3 +31,13 @@ hops:
     - [ *th1,                           3g/l,       20min @ 75degC ]
     - [ *th1,                           2g/l,       fermentor      ]
     - [ *th1,                           1g/l,       package        ]
+# also exercises small units
+opaques:
+  bymass:
+    # XXX: 5mg too small for US units
+    #- [ foobar, 5mg, mash @ mashin ]
+    - [ foobar, 5g, mash @ mashin ]
+    - [ foobar2, 2oz, mash @ sparge ]
+  byvolume:
+    - [ acid, 1.5ml, mash @ mashin ]
+    - [ acid2, 1.2tsp, mash @ sparge ]
