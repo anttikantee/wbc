@@ -206,7 +206,8 @@ def processcsv(clist, odict, data):
 			dataver = int(row[1])
 
 		if row[0] == "recipe":
-			r = Recipe(row[1], row[2], _Volume(row[4]), int(row[3]))
+			r = Recipe(row[1], row[2], _Volume(float(row[4])),
+			    int(row[3]))
 			applyparams(r, clist, odict)
 
 		elif row[0] == "sysparams":
