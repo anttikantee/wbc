@@ -259,12 +259,14 @@ class Mass(WBCUnit):
 			# fraction is max 1/16th and always a power of
 			# two.... because it's logical, I guess
 			#
-			v = (self*1000.0) / constants.gramsperpound
+			v = abs((self*1000.0) / constants.gramsperpound)
 			whole = int(int(16*v) / 16)
 			frac =  int(16*v) % 16
 			thestr = ""
+			if self < 0:
+				thestr = '-'
 			if whole > 0:
-				thestr = str(whole) + ' '
+				thestr = thestr + str(whole) + ' '
 			return thestr \
 			    + str(fractions.Fraction(frac/16.0)) + ' lb'
 

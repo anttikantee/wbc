@@ -11,6 +11,7 @@ wbckegp.py -v 5gal 8g/l 60degF
 wbccolor.py 10EBC
 
 wbcadjust.py -f 4degP,50% 15degP 20l 100g
+wbcadjust.py 1.050 20l -500g
 wbcadjust.py -f 4degP 15degP 5gal 1qt@10degP
 wbcadjust.py 15degP 20l 3.3lb@75%
 wbcadjust.py 8degP 9l 2l 4.0kg 6.5l 500g
@@ -25,7 +26,6 @@ wbcfermfind.py -v -m Avangard Munich
 wbcfermfind.py notfound
 
 wbcparamdecode.py me=88%|uo=metric
-
 
 wbcadjust.py 1.000 10l 10000mg 100g 1kg 100ml 10dl 0.1hl
 wbcadjust.py 1.000 10qt 100oz 1lb 1gal 0.1bbl -1.1cup
