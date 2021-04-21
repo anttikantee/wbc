@@ -74,7 +74,7 @@ class WBCUnit(float):
 
 		cand = ord[0]
 		for x in ord:
-			if self.valueas(x) < 1.0:
+			if abs(self.valueas(x))+0.0001 < 1.0:
 				break
 			cand = x
 		return self.stras(cand)
