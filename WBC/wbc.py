@@ -593,7 +593,7 @@ class Recipe:
 		else:
 			raise Exception('unable to calculate fermentables')
 
-		self.waterguess = res[Worter.MASH].water()
+		self.waterguess = res[Worter.MASH].water() + self._boiladj
 		self.worter = res
 
 	def _dofermentablestats(self):
@@ -707,7 +707,7 @@ class Recipe:
 		res = {}
 		l = self.vol_losses
 
-		w = Worter(water = self.waterguess)
+		w = Worter(water = self.waterguess - self._boiladj)
 		res[Worter.MASH] = copy.deepcopy(w)
 
 		# worter at PREBOIL is mash plus extract minus
@@ -740,6 +740,7 @@ class Recipe:
 
 		w.adjust_volume(-l[Worter.POSTBOIL])
 		w.adjust_extract(self._extract_bytimespec(Timespec.FERMENTOR))
+		w.adjust_water(self._boiladj)
 		res[Worter.FERMENTOR] = copy.deepcopy(w)
 
 		w.adjust_volume(-l[Worter.FERMENTOR])
@@ -764,6 +765,7 @@ class Recipe:
 
 		w.adjust_extract(-self._extract_bytimespec(Timespec.FERMENTOR))
 		w.adjust_volume(l[Worter.POSTBOIL])
+		w.adjust_water(-self._boiladj)
 		res[Worter.POSTBOIL] = copy.deepcopy(w)
 
 		w.adjust_extract(-self._extract_bytimespec(Timespec.KETTLE))
@@ -964,6 +966,19 @@ class Recipe:
 			res.append((x, t['ae'], t['abv']))
 		self.results['attenuation'] = res
 
+	def _doboiladj(self):
+		bvmax = getparam('boilvol_max')
+		if bvmax is None:
+			return
+
+		boiltemp = _Temperature(100)
+		pbwort = self.worter[Worter.PREBOIL]
+		pbvol = pbwort.volume(boiltemp)
+		diff = pbvol - bvmax
+		if diff > 0:
+			adj = brewutils.water_voltemp_to_mass(diff, boiltemp)
+			self._boiladj += adj
+
 	def calculate(self):
 		sysparams.checkset()
 
@@ -1002,6 +1017,7 @@ class Recipe:
 			self.results = {}
 
 			self._dofermentables_and_worters()
+			self._doboiladj()
 
 			self._domash()
 			self._dohops()
@@ -1026,6 +1042,11 @@ class Recipe:
 
 		self.results['worter'] = self.worter
 
+		if self._boiladj > 0.001:
+			tf = timespec.Fermentor
+			self.opaque_byvol('WBC boil volume adj.',
+			    _Volume(self._boiladj), tf(tf.UNDEF, tf.UNDEF))
+
 		self._dotimers()
 
 		self._dofermentablestats()
@@ -1046,7 +1067,8 @@ class Recipe:
 		t = sum(f['mass'].valueas(Mass.LB) \
 		    * f['fermentable'].color.valueas(Color.LOVIBOND) \
 		        for f in self.fermentables)
-		v = self.worter[Worter.POSTBOIL].volume().valueas(Volume.GALLON)
+		v = (self.worter[Worter.POSTBOIL].volume()
+		    + _Volume(self._boiladj)).valueas(Volume.GALLON)
 		mcu = t / v
 		self.results['color'] = \
 		    Color(1.4922 * pow(mcu, 0.6859), Color.SRM)

@@ -166,6 +166,7 @@ _addparam('mashin_ratio',	'mr',	_parsemashinratio)
 _addoptparam('mashwater_min',	'mm',	parse.volume)
 _addoptparam('mashvol_max',	'mM',	parse.volume)
 _addoptparam('lautervol_max',	'lM',	parse.volume)
+_addoptparam('boilvol_max',	'bM',	parse.volume)
 
 _defaults = {
 	# water absortion for 1kg of grain, gross (*true* absorption)
