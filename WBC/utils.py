@@ -52,3 +52,8 @@ def prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
 
 def prtsep(char='='):
 	print(char * 79)
+
+# used to avoid "-0" prints
+def pluszero(v):
+	if abs(v) < 0.000001: v = 0.000001
+	return v

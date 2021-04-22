@@ -17,7 +17,7 @@
 import fractions
 import math
 
-from WBC.utils import checktype, checktypes, PilotError
+from WBC.utils import checktype, checktypes, PilotError, pluszero
 
 from WBC import constants
 
@@ -62,7 +62,7 @@ class WBCUnit(float):
 		return value / self.scale[unit]
 
 	def fromfundamental(self, value, unit):
-		return value * self.scale[unit]
+		return pluszero(value * self.scale[unit])
 
 	def stras_system(self, system):
 		_checksystem(system)
@@ -245,10 +245,9 @@ class Mass(WBCUnit):
 		elif unit is self.MG:
 			return '{:.0f}'.format(self.valueas(self.MG)) + ' mg'
 		elif unit is self.KG:
-			return '{:.2f}'.format(self) + ' kg'
+			return '{:.2f}'.format(self.valueas(self.KG)) + ' kg'
 		elif unit is self.OZ:
-			return '{:.2f}'.\
-			    format((self*1000.0)/constants.gramsperounce)+' oz'
+			return '{:.2f}'.format(self.valueas(self.OZ)) + ' oz'
 		elif unit is self.LB:
 			# format pounds in the "normal" way.  I'd use
 			# some expletives here, but it's easier to
@@ -259,7 +258,7 @@ class Mass(WBCUnit):
 			# fraction is max 1/16th and always a power of
 			# two.... because it's logical, I guess
 			#
-			v = abs((self*1000.0) / constants.gramsperpound)
+			v = abs(self.valueas(self.LB))
 			whole = int(int(16*v) / 16)
 			frac =  int(16*v) % 16
 			thestr = ""
@@ -486,7 +485,8 @@ class Strength(WBCUnit):
 
 	def stras(self, unit):
 		if unit == self.PLATO:
-			return '{:.1f}{:}'.format(self, str(chr(0x00b0) + 'P'))
+			return '{:.1f}{:}'.format(pluszero(self),
+			    str(chr(0x00b0) + 'P'))
 		elif unit == self.SG:
 			return '{:.3f}'.format(self.valueas(self.SG))
 		else:
