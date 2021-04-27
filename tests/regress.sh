@@ -67,21 +67,21 @@ doprep ()
 	resetcount
 	for x in compiled-recipes/*.yaml; do
 		[ -f ${x} ] || die internal error: ${x}
-		prepcmd recipe-std wbcrecipe.py -p params-std ${x}
+		prepcmd recipe-std wbcrecipe -p params-std ${x}
 	done
 
 	resetcount
 	for x in compiled-recipes/*infusion,step*.yaml; do
 		[ -f ${x} ] || die internal error: ${x}
-		prepcmd recipe-alt wbcrecipe.py -p params-mltdirect+sg+us ${x}
+		prepcmd recipe-alt wbcrecipe -p params-mltdirect+sg+us ${x}
 	done
 
 	resetcount
-	prepcmd vol wbcrecipe.py -v 30l -p params-std \
+	prepcmd vol wbcrecipe -v 30l -p params-std \
 	    test-recipes/proto-byweight.yaml
-	prepcmd vol wbcrecipe.py -V 30l -p params-std \
+	prepcmd vol wbcrecipe -V 30l -p params-std \
 	    test-recipes/proto-byweight.yaml
-	prepcmd vol wbcrecipe.py -v 40l -P bM=35L -p params-std \
+	prepcmd vol wbcrecipe -v 40l -P bM=35L -p params-std \
 	    test-recipes/proto-byweight.yaml
 
 	resetcount
