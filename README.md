@@ -18,6 +18,10 @@ discussed below.  The other utilties are:
   * `wbckegp`: takes two of {pressure, temperature, dissolved CO2} and
     calculates the missing value, along with headspace CO2 required to
     push the beer out
+  * `wbcsolve`: takes two of {volume, extract, strength} and
+    calculates the missing value, making it for example possible to
+    "play with" simple sugar recipes, or calculate "ppg" from
+    the extract percentage commonly found on a nutrition labels
 
 `wbcrecipe`
 -----------
