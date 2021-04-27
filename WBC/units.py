@@ -288,8 +288,10 @@ class Strength(WBCUnit):
 		# just cut things off at some point: the conversion
 		# polynomials are unlikely to work reliably, and
 		# something else "wrong" is probably happening anyway
-		if value > 42:
-			raise PilotError('strength input too high')
+		if value > 42.05:
+			raise PilotError('strength ' + '{:.1f}'.format(value)
+			    + str(chr(0x00b0) + 'P')
+			    + ' out of bounds, 42 max accepted')
 
 		return super(Strength, cls).__new__(cls, value, unit,
 		    Strength.PLATO)
