@@ -325,9 +325,33 @@ Add('Simpsons', 'Brown',
 Add('Simpsons', 'Aromatic',
 	Extract(70, FGDB, FCD_UNKNOWN, 5.0),
 	Color(60, EBC))
+
+Add('Simpsons', 'Caramalt',
+	Extract(71.0, FGDB, FCD_UNKNOWN, 7.5),
+	Color(36, EBC))
+Add('Simpsons', 'Premium English Caramalt',
+	Extract(71.0, FGDB, FCD_UNKNOWN, 3.5),
+	Color(60, EBC))
+
+Add('Simpsons', 'Crystal Light',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 6.0),
+	Color(104, EBC))
+Add('Simpsons', 'Crystal T50',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
+	Color(137.5, EBC))
+Add('Simpsons', 'Crystal Medium',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
+	Color(178.5, EBC))
 Add('Simpsons', 'Crystal Dark',
 	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	Color(267.5, EBC))
+Add('Simpsons', 'Crystal Extra Dark',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
+	Color(475, EBC))
+
+Add('Simpsons', 'Heritage Crystal Malt',
+	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
+	Color(178.5, EBC))
 Add('Simpsons', 'Double Roasted Crystal',
 	Extract(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	Color(300, EBC))
