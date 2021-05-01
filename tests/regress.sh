@@ -78,11 +78,11 @@ doprep ()
 
 	resetcount
 	prepcmd vol wbcrecipe -v 30l -p params-std \
-	    test-recipes/proto-byweight.yaml
+	    test-recipes/proto-bymass.yaml
 	prepcmd vol wbcrecipe -V 30l -p params-std \
-	    test-recipes/proto-byweight.yaml
+	    test-recipes/proto-bymass.yaml
 	prepcmd vol wbcrecipe -v 40l -P bM=35L -p params-std \
-	    test-recipes/proto-byweight.yaml
+	    test-recipes/proto-bymass.yaml
 
 	resetcount
 	while read line; do
