@@ -23,7 +23,6 @@ class Hop:
 	Pellet	= object()
 	Leaf	= object()
 
-
 	def __init__(self, name, aapers, type = Pellet):
 		aalow = 1
 		aahigh = 100 # I guess some hop extracts are [close to] 100%
@@ -54,8 +53,14 @@ class Hop:
 	# whirlpool hops or dryhopping.
 	#
 	def __util(self, strength, time):
-		if not isinstance(time, timespec.Boil):
-			return 0
+		# account for anything that might qualify as first-wort
+		# hopping.  Now, anything besides "MashSpecial / firstwort"
+		# will have the solids removed, but since it's the
+		# alpha acids that isomerize, we'll just assume they're
+		# present in full force.  We could technically
+		# adjust pre-firstwort by mash lautering efficiency, but
+		# let's no do that until someone points out why the
+		# added calculation accurately solves an actual problem.
 
 		# FWH gets this much more mins for IBU calculations.
 		# (some sources say it should get IBUs for this many minutes
@@ -63,9 +68,14 @@ class Hop:
 		# leave the sith to deal with absolutes)
 		FWH_BONUS= 20
 
-		mins = time.time
-		if time.spec == 'FWH':
-			mins += FWH_BONUS
+		if isinstance(time, timespec.Mash) \
+		    or isinstance(time, timespec.MashSpecial):
+			mins = timespec._boiltime + FWH_BONUS
+
+		elif isinstance(time, timespec.Boil):
+			mins = time.time
+		else:
+			return 0
 
 		# strength needs to be SG
 		SG = strength.valueas(strength.SG)

@@ -2,11 +2,11 @@ defs:
     - [ &th1 [ Testhop1, 18.8%, pellet ]]
 
 hops:
-    - [ [ Testhop2,     10.0% ],        20g,        FWH            ]
-    - [ [ Testhop_leaf,  4.5%, leaf ],  2g/l,       boiltime       ]
+    - [ [ Testhop2,     10.0% ],        20g,        mash @ firstwort ]
+    - [ [ Testhop_leaf,  4.5%, leaf ],  2g/l,       boiltime         ]
 
-    - [ *th1,                           10 IBU,     12min          ]
+    - [ *th1,                           10 IBU,     12min            ]
 
-    - [ *th1,                           3g/l,       20min @ 75degC ]
-    - [ *th1,                           2g/l,       fermentor      ]
-    - [ *th1,                           1g/l,       package        ]
+    - [ *th1,                           3g/l,       20min @ 75degC   ]
+    - [ *th1,                           2g/l,       fermentor        ]
+    - [ *th1,                           1g/l,       package          ]

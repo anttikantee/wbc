@@ -1,6 +1,5 @@
 name:   proto
 yeast:  yeastieboys
-boil:   120min
 volume: 20l
 
 mashparams:
@@ -9,9 +8,6 @@ mashparams:
 fermentables:
     mash:
         Weyermann Munich I:         5kg
-
-    15min:
-        Invert No3:                 500g
 
     fermentor:
         table sugar:                1.5lb
@@ -23,5 +19,6 @@ defs:
     - [ &th1 [ Testhop1, 18.8%, pellet ]]
 
 hops:
-    - [ [ Testhop_leaf,  4.5%, leaf ],  15g,        boiltime       ]
-    - [ [ Testhop1,      8.8% ],        10 IBU,     12min          ]
+    - [ [ Testhop2,      10.0% ],       20g,    mash @ mashin ]
+    - [ [ Testhop_leaf,  4.5%, leaf ],  15g,    fermentor     ]
+    - [ [ Testhop1,      8.8% ],        10g,    package       ]

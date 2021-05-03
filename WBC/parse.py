@@ -15,7 +15,7 @@
 #
 
 from WBC import units
-from WBC.utils import PilotError
+from WBC.utils import PilotError, warn
 from WBC.wbc import Recipe
 from WBC.hop import Hop
 
@@ -109,6 +109,8 @@ def timespec(input):
 	# avoidance here.
 	import WBC
 
+	mash = WBC.timespec.Mash
+	mspec = WBC.timespec.MashSpecial
 	if input == 'package':
 		return WBC.timespec.Package()
 	elif 'mash' in input:
@@ -116,17 +118,10 @@ def timespec(input):
 			r = input.split('@')
 			s = r[1].strip()
 
-			mash = WBC.timespec.Mash
-			mspec = WBC.timespec.MashSpecial
 			try:
-				t = {
-					'mashin'  : [ mash,	mash.MASHIN ],
-					'mashout' : [ mspec,	mspec.MASHOUT ],
-					'steep'   : [ mspec,	mspec.STEEP ],
-					'sparge'  : [ mspec,	mspec.SPARGE ],
-				}[s]
-				ts = t[0]
-				tv = t[1]
+				ts = {**{ x: mash for x in mash.values },
+				    **{ x: mspec for x in mspec.values }}[s]
+				tv = s
 			except KeyError:
 				ts = WBC.timespec.Mash
 				tv = temperature(r[1])
@@ -144,7 +139,10 @@ def timespec(input):
 	elif '@' in input:
 		time, temp = timedtemperature(input)
 		return WBC.timespec.Whirlpool(time, temp)
-	elif input == 'FWH' or input == 'boiltime':
+	elif input == 'FWH':
+		warn('using deprecated "FWH" timespec. use "firstwort"\n')
+		return mspec(mspec.FIRSTWORT)
+	elif input == 'boiltime':
 		return WBC.timespec.Boil(input)
 	elif 'min' in input:
 		return WBC.timespec.Boil(kettletime(input))

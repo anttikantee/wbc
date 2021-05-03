@@ -50,6 +50,8 @@ class Timespec:
 class Mash(Timespec):
 	MASHIN=		'mashin'
 
+	values=		[ MASHIN ]
+
 	def __init__(self, when = MASHIN):
 		if when != self.MASHIN:
 			checktype(when, Temperature)
@@ -91,8 +93,9 @@ class MashSpecial(Mash):
 	STEEP=		'steep'
 	MASHOUT=	'mashout'
 	SPARGE=		'sparge'
+	FIRSTWORT=	'firstwort'
 
-	values=		[ STEEP, MASHOUT, SPARGE ]
+	values=		[ STEEP, MASHOUT, SPARGE, FIRSTWORT ]
 
 	def __init__(self, when):
 		if when not in self.values:
@@ -105,7 +108,7 @@ class MashSpecial(Mash):
 		return rv
 
 class Boil(Timespec):
-	specials = [ 'FWH', 'boiltime' ]
+	specials = [ 'boiltime' ]
 
 	def __init__(self, spec):
 		import numbers
@@ -122,10 +125,6 @@ class Boil(Timespec):
 				raise PilotError('boiltime ('
 				    + str(specval)+') > wort boiltime')
 			self.time = specval
-		if spec == 'FWH':
-			self._cmptime = self.time + 1
-		else:
-			self._cmptime = self.time
 		self.spec = spec
 
 	# uuuh.  not sure why I'm punishing myself with
@@ -147,10 +146,10 @@ class Boil(Timespec):
 		return 'Timespec boil: ' + str(self)
 
 	def _tslt(self, other):
-		return self._cmptime < other._cmptime
+		return self.time < other.time
 
 	def _tseq(self, other):
-		return self._cmptime == other._cmptime
+		return self.time == other.time
 
 class Whirlpool(Timespec):
 	def __init__(self, time, temp):
