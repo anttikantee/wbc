@@ -36,13 +36,16 @@ class Timespec:
 		scls = self.__class__
 		ocls = other.__class__
 		if scls == ocls:
-			raise TypeError('I cannot compare')
+			return self._tslt(other)
 		return _order.index(scls) < _order.index(ocls)
 
 	def __eq__(self, other):
 		if self.__class__ != other.__class__:
 			return False
-		raise TypeError('I cannot compare')
+		return self._tseq(other)
+
+	def __str__(self):
+		return str(self.spec)
 
 class Mash(Timespec):
 	MASHIN=		'mashin'
@@ -53,11 +56,7 @@ class Mash(Timespec):
 			if when < 1 or when > 99:
 				raise PilotError('unbelievable mash '
 				    + 'temperature: ' + when)
-		self.when = when
-		self.spec = None
-
-	def __str__(self):
-		return str(self.when)
+		self.spec = when
 
 	def timespecstr(self):
 		return 'mash'
@@ -65,9 +64,9 @@ class Mash(Timespec):
 	def __repr__(self):
 		return 'Timespec mash: ' + str(self)
 
-	def __cmpvalue(self, other):
-		ts = self.when
-		to = other.when
+	def _cmpvalue(self, other):
+		ts = self.spec
+		to = other.spec
 		tmap = {
 			self.MASHIN  : 0,
 		}
@@ -79,20 +78,15 @@ class Mash(Timespec):
 
 	# Note: for mashing, unlike boiling, a smaller value means
 	# an *earlier* addition, so smaller is larger (i.e. earlier).
-	def __lt__(self, other):
-		try:
-			return super().__lt__(other)
-		except TypeError:
-			c1, c2 = self.__cmpvalue(other)
-			return c1 > c2
+	def _tslt(self, other):
+		c1, c2 = self._cmpvalue(other)
+		return c1 > c2
 
-	def __eq__(self, other):
-		try:
-			return super().__eq__(other)
-		except TypeError:
-			c1, c2 = self.__cmpvalue(other)
-			return c1 == c2
+	def _tseq(self, other):
+		c1, c2 = self._cmpvalue(other)
+		return c1 == c2
 
+# Note: inherited from Mash, not Timespec
 class MashSpecial(Mash):
 	STEEP=		'steep'
 	MASHOUT=	'mashout'
@@ -103,18 +97,12 @@ class MashSpecial(Mash):
 	def __init__(self, when):
 		if when not in self.values:
 			raise PilotError('invalid MashSpecial timing')
-		self.when = when
-		self.spec = None
+		self.spec = when
 
-	def __cmpvalue(self, other):
-		rv = (values.index(self), values.index(other))
+	def _cmpvalue(self, other):
+		v = self.values
+		rv = (v.index(self.spec), v.index(other.spec))
 		return rv
-
-	def __lt__(self, other):
-		return super().__lt__(other)
-
-	def __eq__(self, other):
-		return super().__eq__(other)
 
 class Boil(Timespec):
 	specials = [ 'FWH', 'boiltime' ]
@@ -158,17 +146,11 @@ class Boil(Timespec):
 	def __repr__(self):
 		return 'Timespec boil: ' + str(self)
 
-	def __lt__(self, other):
-		try:
-			return super().__lt__(other)
-		except TypeError:
-			return self._cmptime < other._cmptime
+	def _tslt(self, other):
+		return self._cmptime < other._cmptime
 
-	def __eq__(self, other):
-		try:
-			return super().__eq__(other)
-		except TypeError:
-			return self._cmptime == other._cmptime
+	def _tseq(self, other):
+		return self._cmptime == other._cmptime
 
 class Whirlpool(Timespec):
 	def __init__(self, time, temp):
@@ -187,20 +169,13 @@ class Whirlpool(Timespec):
 	def __repr__(self):
 		return 'Timespec steep: ' + str(self)
 
-	def __lt__(self, other):
-		try:
-			return super().__lt__(other)
-		except TypeError:
-			if self.temp == other.temp:
-				return self.time < other.time
-			return self.temp < other.temp
+	def _tslt(self, other):
+		if self.temp == other.temp:
+			return self.time < other.time
+		return self.temp < other.temp
 
-	def __eq__(self, other):
-		try:
-			return super().__eq__(other)
-		except TypeError:
-			return self.temp == other.temp and \
-			    self.time == other.time
+	def _tseq(self, other):
+		return self.temp == other.temp and self.time == other.time
 
 class Fermentor(Timespec):
 	# in case you don't want to care about the days,
@@ -232,12 +207,7 @@ class Fermentor(Timespec):
 	def __repr__(self):
 		return 'Timespec fermentor: ' + str(self)
 
-	def __lt__(self, other):
-		try:
-			return super().__lt__(other)
-		except TypeError:
-			pass
-
+	def _tslt(self, other):
 		# undef compares less than defined days (i.e.
 		# "earlier" addition)
 		if self.indays == self.UNDEF:
@@ -253,20 +223,14 @@ class Fermentor(Timespec):
 				return True
 		return False
 
-	def __eq__(self, other):
-		try:
-			return super().__eq__(other)
-		except TypeError:
-			return self.indays == other.indays and \
-			    self.outdays == other.outdays
+	def _tseq(self, other):
+		return self.indays == other.indays and \
+		    self.outdays == other.outdays
 
 class Package(Timespec):
 	def __init__(self):
 		self.time = 0
-		self.spec = None
-
-	def __str__(self):
-		return 'package'
+		self.spec = 'package'
 
 	def timespecstr(self):
 		return 'package'
@@ -274,17 +238,11 @@ class Package(Timespec):
 	def __repr__(self):
 		return 'Timespec: package'
 
-	def __lt__(self, other):
-		try:
-			return super().__lt__(other)
-		except TypeError:
-			return False
+	def _tslt(self, other):
+		return False
 
-	def __eq__(self, other):
-		try:
-			return super().__eq__(other)
-		except TypeError:
-			return True
+	def _tseq(self, other):
+		return True
 
 # from "smallest" to "largest" (opposite of first-to-last)
 _order = [Package, Fermentor, Whirlpool, Boil, MashSpecial, Mash]
