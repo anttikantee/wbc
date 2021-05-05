@@ -23,13 +23,13 @@ from WBC.getparam import getparam
 
 from WBC.utils import *
 from WBC.units import *
-from WBC.units import _Mass, _Strength, _Temperature, _Volume
+from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
 from WBC.hop import Hop
 from WBC.mash import Mash
 from WBC.worter import Worter
 
 from WBC import brewutils, timespec
-from WBC.timespec import Timespec
+from WBC.timespec import Timespec, Boil
 
 def checkconfig():
 	return True
@@ -38,7 +38,7 @@ class WBC:
 	pass
 
 class Recipe:
-	def __init__(self, name, yeast, volume, boiltime = 60):
+	def __init__(self, name, yeast, volume, boiltime = None):
 		# volume may be None if the recipe contains only relative units
 		if volume is not None:
 			checktype(volume, Volume)
@@ -53,7 +53,8 @@ class Recipe:
 		input['notes']['recipe'] = []
 
 		self.boiltime = input['boiltime'] = boiltime
-		timespec.set_boiltime(self.boiltime)
+		timespec.set_boiltime(boiltime)
+
 		self.input = input
 
 		self.volume_inherent = volume
@@ -123,6 +124,12 @@ class Recipe:
 		rv = getparam('grain_absorption')
 		absorp = rv[0] / rv[1]
 		return absorp
+
+	def _boiloff(self):
+		if self.boiltime is None:
+			return _Volume(0)
+		return _Volume(getparam('boiloff_perhour')
+		    * (self.boiltime/60.0))
 
 	def _reference_temp(self):
 		return getparam('ambient_temp')
@@ -561,8 +568,7 @@ class Recipe:
 
 			if self.waterguess is None:
 				vol_loss = _Volume(sum(l.values())
-				    + getparam('boiloff_perhour')
-				      * (self.boiltime/60.0)
+				    + self._boiloff()
 				    + self.mash.evaporation().water())
 				self.waterguess = _Mass(self._final_volume()
 				    + vol_loss)
@@ -733,8 +739,7 @@ class Recipe:
 
 		res[Worter.PREBOIL] = copy.deepcopy(w)
 
-		w.adjust_water(_Mass(-getparam('boiloff_perhour')
-		    * (self.boiltime/60.0)))
+		w.adjust_water(_Mass(-self._boiloff()))
 		w.adjust_extract(self._extract_bytimespec(Timespec.KETTLE))
 		res[Worter.POSTBOIL] = copy.deepcopy(w)
 
@@ -769,8 +774,7 @@ class Recipe:
 		res[Worter.POSTBOIL] = copy.deepcopy(w)
 
 		w.adjust_extract(-self._extract_bytimespec(Timespec.KETTLE))
-		w.adjust_water(_Mass(getparam('boiloff_perhour')
-		    * self.boiltime/60.0))
+		w.adjust_water(_Mass(self._boiloff()))
 		res[Worter.PREBOIL] = copy.deepcopy(w)
 
 		actext = (self._extract_bytimespec(Timespec.MASH)
@@ -904,11 +908,11 @@ class Recipe:
 		# calculate "timer" field values
 		prevtype = None
 		timer = 0
-		boiltimer = 0
+		boiltimer = _Duration(0)
 		for t in reversed(timers):
 			time = t['time']
 			if prevtype is None or not isinstance(time, prevtype):
-				timer = 0
+				timer = _Duration(0)
 				prevval = None
 				prevtype = time.__class__
 
@@ -926,30 +930,28 @@ class Recipe:
 						t['timer'] = '=='
 					else:
 						v = time.time - prevval[1]
-						t['timer'] = str(v) + ' min'
+						t['timer'] = str(v)
 				else:
-					t['timer'] = str(time.time) + ' min'
+					t['timer'] = str(time.time)
 				prevval = (time.temp, time.time)
 
 			if isinstance(time, timespec.Boil):
-				cmpval = time.time
+				cmpval = time.spec
 				thisval = '=='
 
-				if time.spec == 'FWH':
-					cmpval = self.boiltime
-
 				if cmpval != timer:
-					thisval = str(cmpval - timer) + ' min'
+					thisval = str(cmpval - timer)
 					timer = cmpval
 				t['timer'] = thisval
 				boiltimer = timer
 
 		# if timers don't start from start of boil, add an opaque
 		# to specify initial timer value
-		if self.boiltime > 0 and boiltimer != self.boiltime:
+		if ((self.boiltime is not None and self.boiltime > 0)
+		    and boiltimer != self.boiltime):
 			sb = self._opaquestore('', '',
-			    timespec.Boil(self.boiltime))
-			sb['timer'] = str(self.boiltime - boiltimer) + ' min'
+			    timespec.Boil('boiltime'))
+			sb['timer'] = str(self.boiltime - boiltimer)
 			timers = sorted([sb] + timers,
 			    key=lambda x: x['time'], reverse=True)
 

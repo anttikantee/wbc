@@ -96,11 +96,11 @@ def pressure(input):
 	}
 	return _unit(units.Pressure, suffixes, input)
 
-def kettletime(input):
+def duration(input):
 	suffixes = {
-		'min'	: None,
+		units.Duration.MINUTE	: units.Duration.MINUTE,
 	}
-	return _unit(int, suffixes, input, name = 'kettletime')
+	return _unit(units.Duration, suffixes, input, name = 'duration')
 
 def timespec(input):
 	# XXX: collision between timespec module and this function.
@@ -142,10 +142,10 @@ def timespec(input):
 	elif input == 'FWH':
 		warn('using deprecated "FWH" timespec. use "firstwort"\n')
 		return mspec(mspec.FIRSTWORT)
-	elif input == 'boiltime':
+	elif input == WBC.timespec.Boil.BOILTIME:
 		return WBC.timespec.Boil(input)
-	elif 'min' in input:
-		return WBC.timespec.Boil(kettletime(input))
+	elif WBC.units.Duration.MINUTE in input:
+		return WBC.timespec.Boil(duration(input))
 	else:
 		raise PilotError('could not parse timespec: ' + input)
 
@@ -199,7 +199,7 @@ def ratio(input, r1, r2):
 	return split(input, '/', r1, r2)
 
 def timedtemperature(input):
-	return split(input, '@', kettletime, temperature)
+	return split(input, '@', duration, temperature)
 
 def mashmethod(input):
 	methods = {

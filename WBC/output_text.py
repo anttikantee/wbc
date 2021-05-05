@@ -90,7 +90,7 @@ def _printmash(input, results):
 		ms = x['step']
 		steptemp = str(ms.temperature)
 		if ms.time is not ms.TIME_UNSPEC:
-			steptime = str(ms.time) + ' min'
+			steptime = str(ms.time)
 		else:
 			steptime = 'UNS'
 
@@ -202,12 +202,6 @@ def _printtimers(input, results):
 		elif 'opaque' in t:
 			v = opaquevals(t)
 
-		if time.spec == input['boiltime']:
-			# XXX
-			timestr = '@ boil'
-		else:
-			timestr = time.timespecstr()
-
 		#stage = timespec.timespec2stage[time.__class__]
 		stage = time.__class__
 		if prevstage is not None and \
@@ -215,7 +209,7 @@ def _printtimers(input, results):
 			prtsep('-')
 		prevstage = stage
 
-		print(onefmt.format(*v, timestr, t['timer']))
+		print(onefmt.format(*v, time.timespecstr(), t['timer']))
 	prtsep()
 	print()
 
@@ -273,7 +267,7 @@ def _keystats(input, results, miniprint):
 	    'Fermentor:',
 	    str(fl.volume()) + ' / ' + str(fl.extract())))
 
-	print(twofmt_tight.format('Boil:', str(input['boiltime']) + 'min',
+	print(twofmt_tight.format('Boil:', str(input['boiltime']),
 	    'Yeast:', input['yeast']))
 	print(twofmt_tight.format(
 	    'Water (' + str(getparam('ambient_temp')) + '):',

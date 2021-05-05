@@ -1,6 +1,7 @@
 name:   proto
 yeast:  yeastieboys
 volume: 20l
+boil:   0min
 
 mashparams:
     temperature: 65degC
@@ -19,6 +20,6 @@ defs:
     - [ &th1 [ Testhop1, 18.8%, pellet ]]
 
 hops:
-    - [ [ Testhop_leaf,  4.5%, leaf ],  15g,    mash @ firstwort ]
+    - [ [ Testhop_leaf2, 4.5%, leaf ],  25g,    mash @ firstwort ]
     - [ [ Testhop_leaf,  4.5%, leaf ],  15g,    fermentor        ]
     - [ [ Testhop1,      8.8% ],        10g,    package          ]

@@ -15,7 +15,7 @@
 #
 
 from WBC.utils import PilotError, checktype
-from WBC.units import Temperature, _Temperature
+from WBC.units import Temperature, _Temperature, Duration
 
 # XXX
 _boiltime = None
@@ -108,36 +108,27 @@ class MashSpecial(Mash):
 		return rv
 
 class Boil(Timespec):
-	specials = [ 'boiltime' ]
+	BOILTIME=	'boiltime'
 
-	def __init__(self, spec):
-		import numbers
-		if not isinstance(spec, numbers.Number) \
-		    and spec not in Boil.specials:
-			raise PilotError('invalid boiltime format')
+	def __init__(self, value):
+		if _boiltime is None:
+			raise PilotError('boil specifier "' + str(value)
+			    + '" in a recipe without a boil')
 
-		assert(_boiltime is not None)
-		if spec in Boil.specials:
-			self.time = _boiltime
+		if not isinstance(value, Duration) \
+		    and value != self.BOILTIME:
+			raise PilotError('invalid boiltime: ' + str(value))
+
+		if value == self.BOILTIME:
+			self.spec = _boiltime
 		else:
-			specval = int(spec)
-			if specval > _boiltime:
+			if value > _boiltime:
 				raise PilotError('boiltime ('
-				    + str(specval)+') > wort boiltime')
-			self.time = specval
-		self.spec = spec
-
-	# uuuh.  not sure why I'm punishing myself with
-	# __str__() vs. timespecstr()
-	def __str__(self):
-		assert(self.time is not None)
-		if self.spec in Boil.specials:
-			return self.spec
-		return str(int(self.time)) + ' min'
+				    + str(value)+') > wort boiltime')
+			self.spec = value
 
 	def timespecstr(self):
-		assert(self.time is not None)
-		if self.spec == 'boiltime':
+		if abs(self.spec - _boiltime) < 0.1:
 			return '@ boil'
 		else:
 			return str(self)
@@ -146,10 +137,10 @@ class Boil(Timespec):
 		return 'Timespec boil: ' + str(self)
 
 	def _tslt(self, other):
-		return self.time < other.time
+		return self.spec < other.spec
 
 	def _tseq(self, other):
-		return self.time == other.time
+		return self.spec == other.spec
 
 class Whirlpool(Timespec):
 	def __init__(self, time, temp):

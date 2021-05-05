@@ -27,7 +27,7 @@ class MashStep:
 	def __init__(self, temperature, time = TIME_UNSPEC):
 		checktype(temperature, Temperature)
 		if time is not self.TIME_UNSPEC:
-			checktype(time, int)
+			checktype(time, Duration)
 
 		self.temperature = temperature
 		self.time = time

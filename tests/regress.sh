@@ -85,6 +85,12 @@ doprep ()
 	    test-recipes/proto-bymass.yaml
 
 	resetcount
+	prepcmd noboil wbcrecipe -p params-std \
+	    test-recipes/proto-bymass-noboil.yaml
+	prepcmd noboil wbcrecipe -p params-std \
+	    test-recipes/proto-bymass-0boil.yaml
+
+	resetcount
 	while read line; do
 		set -- ${line}
 		[ $# -ne 0 ] || continue

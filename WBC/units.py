@@ -594,6 +594,17 @@ class Pressure(WBCUnit):
 		else:
 			raise PilotError('invalid pressure unit')
 
+class Duration(WBCUnit):
+	MINUTE=		'min'
+	#HOUR=		'h'
+
+	def __new__(cls, value, unit):
+		return super(Duration, cls).__new__(cls, value,
+		    Duration.MINUTE, Duration.MINUTE)
+
+	def __str__(self):
+		return '{:} min'.format(int(self))
+
 # Internally, we always use liters for volume and degC for temperature.
 # So, define internal names to avoid having to type the units every
 # time.  _Mass and _Strength use the internal value of the
@@ -630,3 +641,9 @@ class _Strength(Strength):
 		return rv
 	def __init__(self, value):
 		super(_Strength, self).__init__(value, Strength.PLATO)
+
+class _Duration(Duration):
+	def __new__(cls, value):
+		rv = super(_Duration, cls).__new__(cls, value, Duration.MINUTE)
+		rv.__class__ = Duration
+		return rv

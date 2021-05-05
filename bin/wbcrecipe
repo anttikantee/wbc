@@ -159,17 +159,14 @@ def processyaml(clist, odict, data):
 	name = getdef('name')
 	yeast = getdef('yeast')
 
+	boiltime = volume = None
+
 	if 'volume' in d:
 		volume = parse.volume(getdef('volume'))
-	else:
-		volume = None
-
 	if 'boil' in d:
-		boiltime = getdef('boil')
-	else:
-		boiltime = '60min'
+		boiltime = parse.duration(getdef('boil'))
 
-	r = Recipe(name, yeast, volume, parse.kettletime(boiltime))
+	r = Recipe(name, yeast, volume, boiltime)
 
 	applyparams(r, clist, odict)
 

@@ -3,6 +3,8 @@ yeast:  yeastieboys
 boil:   120min
 volume: 20l
 
+notes:  no @boil additions
+
 mashparams:
     temperature: 65degC
 
@@ -23,5 +25,5 @@ defs:
     - [ &th1 [ Testhop1, 18.8%, pellet ]]
 
 hops:
-    - [ [ Testhop_leaf,  4.5%, leaf ],  15g,        boiltime       ]
-    - [ [ Testhop1,      8.8% ],        10 IBU,     12min          ]
+    - [ [ Testhop_leaf,  4.5%, leaf ],  15g,        20min       ]
+    - [ [ Testhop1,      8.8% ],        10 IBU,     12min       ]

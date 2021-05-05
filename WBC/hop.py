@@ -15,7 +15,7 @@
 #
 
 from WBC.units import *
-from WBC.units import _Temperature, _Volume, _Mass
+from WBC.units import _Temperature, _Volume, _Mass, _Duration
 from WBC.utils import checktype
 from WBC import timespec
 
@@ -53,6 +53,9 @@ class Hop:
 	# whirlpool hops or dryhopping.
 	#
 	def __util(self, strength, time):
+		if timespec._boiltime is None:
+			return 0
+
 		# account for anything that might qualify as first-wort
 		# hopping.  Now, anything besides "MashSpecial / firstwort"
 		# will have the solids removed, but since it's the
@@ -66,14 +69,14 @@ class Hop:
 		# (some sources say it should get IBUs for this many minutes
 		# total boil time.  we'll just roll with the bonus and
 		# leave the sith to deal with absolutes)
-		FWH_BONUS= 20
+		FWH_BONUS= _Duration(20)
 
 		if isinstance(time, timespec.Mash) \
 		    or isinstance(time, timespec.MashSpecial):
 			mins = timespec._boiltime + FWH_BONUS
 
 		elif isinstance(time, timespec.Boil):
-			mins = time.time
+			mins = time.spec
 		else:
 			return 0
 
@@ -81,7 +84,7 @@ class Hop:
 		SG = strength.valueas(strength.SG)
 
 		bignessfact = 1.65 * pow(0.000125, SG-1)
-		boilfact = (1 - pow(math.e, -0.04 * mins)) / 4.15
+		boilfact = (1 - pow(math.e, -0.04 * int(mins))) / 4.15
 		bonus = 1.0
 		if self.type is self.Pellet:
 			bonus = 1.1
