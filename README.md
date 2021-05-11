@@ -86,6 +86,9 @@ fermentables:
         Weyermann Munich I:     8.8%
         Weyermann Melanoidin:   2.8%
 
+    package:
+        table sugar:            5g/l
+
 hops:
     - [ [ Magnum,    12.7%, ], 0.42 Recipe BUGU, boiltime ]
     - [ [ Tettnanger, 3.7%, ], 1 g/l,              30 min ]
@@ -95,59 +98,61 @@ translated with `wbcrecipe -P units_output=metric -P strength_output=plato`:
 ```
 ===============================================================================
 Name:               MarBock
-Aggregate strength: TBD                Package volume: 19.0l                    
-Total fermentables: 5.75 kg            Total hops:     54.4 g                   
-IBU (Tinseth):      31.14              BUGU:           0.42                     
-Boil:               60min              Yeast:          WLP833                   
-Water (20.0°C):     32.1l              Color (Morey):  12.1 EBC, 6.2 SRM        
+Aggregate strength: 16.8°P             Package volume: 19.0L                    
+Total fermentables: 5.72 kg            Total hops:     52.3 g                   
+Tinseth IBU / BUGU: 29  / 0.42         Color (Morey):  11.2 EBC, 5.7 SRM        
+Loss (v/e) Kettle:  1.5L / 265 g       Fermentor:      8.0dL / 140 g            
+Boil:               60 min             Yeast:          WLP833                   
+Water (20.0°C):     31.6L              Brewhouse eff:  78.9%                    
 
-Preboil  volume  :  25.3l (70.0°C)     Measured:                                
-Preboil  strength:  14.6°P             Measured:                                
-Postboil volume  :  22.2l (100.0°C)    Measured:                                
-Postboil strength:  16.8°P             Measured:                                
+Preboil  volume  :  25.8L (100.0°C)    Measured:                                
+Preboil  strength:  14.2°P             Measured:                                
+Postboil volume  :  22.2L (100.0°C)    Measured:                                
+Postboil strength:  16.4°P             Measured:                                
 
-Kettle loss (est):  1.5l               Fermenter loss (est): 8.0dl              
-Mash eff (conf) :   88.0%              Brewhouse eff (est):  85.5%              
-
-Pitch rate, ale:    267 billion        Pitch rate, lager:    534 billion        
+Pitch rate, ale:    242 billion        Pitch rate, lager:    485 billion        
 ===============================================================================
-bo:3.5l|fl:0.8l|ga:1.1l/kg|kl:1.2l|me:88%|mh:1.5|ml:1l|mr:50%|mt:transfer
-|so:plato|st:82degC|ta:20degC|tb:100degC|tp:70degC|uo:metric
+Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
+|me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=plato|uo=metric
 ===============================================================================
 
 Fermentables                                    amount  ext (100%)   ext (88%)
 ===============================================================================
 Mash
-Avangard Pilsner                      4.58 kg ( 79.6%)     3.47 kg     3.05 kg
-Weyermann Munich I                      506 g (  8.8%)       386 g       339 g
-Avangard Vienna                         506 g (  8.8%)       379 g       333 g
-Weyermann Melanoidin                    161 g (  2.8%)       116 g       102 g
-                                      5.75 kg (100.0%)     4.35 kg     3.83 kg
+Avangard Pilsner                      4.46 kg ( 77.9%)     3.36 kg     2.96 kg
+Weyermann Munich I                      503 g (  8.8%)       382 g       336 g
+Avangard Vienna                         503 g (  8.8%)       374 g       329 g
+Weyermann Melanoidin                    160 g (  2.8%)       115 g       101 g
+                                      5.62 kg ( 98.3%)     4.23 kg     3.72 kg
+-------------------------------------------------------------------------------
+Package
+table sugar                            95.0 g (  1.7%)      95.0 g      95.0 g
 ===============================================================================
-                                      5.75 kg (100.0%)     4.35 kg     3.83 kg
+                                      5.72 kg (100.0%)     4.32 kg     3.82 kg
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
-63.0°C          30 min           15.0l @  73.8°C       2.55 l/kg         18.7l
-70.0°C          45 min            4.8l @ 100.0°C       3.35 l/kg         23.3l
+63.0°C          30 min           15.7L @  73.2°C       2.72 L/kg         19.6L
+70.0°C          45 min            4.9L @ 100.0°C       3.56 L/kg         24.8L
 -------------------------------------------------------------------------------
-Mashstep water:     19.2l @ 20.0°C (1st runnings: ~11.9l)
-Sparge water:       13.3l @ 82.0°C
-1st wort (conv. %): 15.7°P (85%), 16.6°P (90%), 17.5°P (95%), 18.4°P (100%)
+Mashstep water:     20.0L @ 20.0°C (1st runnings: ~13.2L @ 70.0°C)
+Sparge water:       11.9L @ 82.0°C (11.6L @ 20.0°C)
+1st wort (conv. %): 15.2°P (85%), 16.0°P (90%), 16.7°P (95%), 17.4°P (100%)
 ===============================================================================
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Magnum (pellet)                  12.7%  21.8      16.4 g      @ boil    30 min
-Tettnanger (pellet)               3.7%   5.7      19.0 g      30 min    15 min
+Magnum (pellet)                  12.7%  19.4      14.3 g      @ boil    30 min
+Tettnanger (pellet)               3.7%   5.8      19.0 g      30 min    15 min
 Tettnanger (pellet)               3.7%   3.7      19.0 g      15 min    15 min
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
 ===============================================================================
   Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
- 7.5°P    60%   5.8%       5.6°P    70%   6.8%       3.8°P    80%   7.9%      
- 6.6°P    65%   6.3%       4.7°P    75%   7.3%       2.8°P    85%   8.4%      
+ 7.0°P    60%   5.3%       4.4°P    75%   6.8%       1.8°P    90%   8.3%      
+ 6.1°P    65%   5.8%       3.5°P    80%   7.3%       0.9°P    95%   8.8%      
+ 5.2°P    70%   6.3%       2.6°P    85%   7.8%       0.0°P    100%  9.3%      
 ===============================================================================
 
 ```
@@ -156,59 +161,61 @@ translated with `wbcrecipe -P units_output=us -P strength_output=sg`:
 ```
 ===============================================================================
 Name:               MarBock
-Aggregate strength: TBD                Package volume: 5.0gal                   
-Total fermentables: 12 5/8 lb          Total hops:     1.92 oz                  
-IBU (Tinseth):      31.14              BUGU:           0.42                     
-Boil:               60min              Yeast:          WLP833                   
-Water (68.0°F):     8.5gal             Color (Morey):  12.1 EBC, 6.2 SRM        
+Aggregate strength: 1.069              Package volume: 5.0gal                   
+Total fermentables: 12 9/16 lb         Total hops:     1.85 oz                  
+Tinseth IBU / BUGU: 29  / 0.42         Color (Morey):  11.2 EBC, 5.7 SRM        
+Loss (v/e) Kettle:  1.6qt / 9.35 oz    Fermentor:      3.4cup / 4.94 oz         
+Boil:               60 min             Yeast:          WLP833                   
+Water (68.0°F):     8.3gal             Brewhouse eff:  78.9%                    
 
-Preboil  volume  :  6.7gal (158.0°F)   Measured:                                
-Preboil  strength:  1.059              Measured:                                
+Preboil  volume  :  6.8gal (212.0°F)   Measured:                                
+Preboil  strength:  1.058              Measured:                                
 Postboil volume  :  5.9gal (212.0°F)   Measured:                                
-Postboil strength:  1.069              Measured:                                
+Postboil strength:  1.067              Measured:                                
 
-Kettle loss (est):  1.6qt              Fermenter loss (est): 0.8qt              
-Mash eff (conf) :   88.0%              Brewhouse eff (est):  85.5%              
-
-Pitch rate, ale:    267 billion        Pitch rate, lager:    534 billion        
+Pitch rate, ale:    242 billion        Pitch rate, lager:    485 billion        
 ===============================================================================
-bo:3.5l|fl:0.8l|ga:1.1l/kg|kl:1.2l|me:88%|mh:1.5|ml:1l|mr:50%|mt:transfer
-|so:sg|st:82degC|ta:20degC|tb:100degC|tp:70degC|uo:us
+Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
+|me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=sg|uo=us
 ===============================================================================
 
 Fermentables                                    amount  ext (100%)   ext (88%)
 ===============================================================================
 Mash
-Avangard Pilsner                   10 1/16 lb ( 79.6%)    7 5/8 lb  6 11/16 lb
-Weyermann Munich I                  1 1/16 lb (  8.8%)    13.61 oz    11.97 oz
-Avangard Vienna                     1 1/16 lb (  8.8%)    13.36 oz    11.76 oz
-Weyermann Melanoidin                  5.68 oz (  2.8%)     4.10 oz     3.60 oz
-                                    12 5/8 lb (100.0%)   9 9/16 lb   8 7/16 lb
+Avangard Pilsner                   9 13/16 lb ( 77.9%)    7 3/8 lb    6 1/2 lb
+Weyermann Munich I                  1 1/16 lb (  8.8%)    13.47 oz    11.86 oz
+Avangard Vienna                     1 1/16 lb (  8.8%)    13.21 oz    11.62 oz
+Weyermann Melanoidin                  5.65 oz (  2.8%)     4.05 oz     3.56 oz
+                                    12 3/8 lb ( 98.3%)   9 5/16 lb   8 3/16 lb
+-------------------------------------------------------------------------------
+Package
+table sugar                           3.35 oz (  1.7%)     3.35 oz     3.35 oz
 ===============================================================================
-                                    12 5/8 lb (100.0%)   9 9/16 lb   8 7/16 lb
+                                   12 9/16 lb (100.0%)    9 1/2 lb    8 3/8 lb
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
-145.4°F         30 min          4.0gal @ 164.9°F      5.32 qt/lb        4.9gal
-158.0°F         45 min          1.3gal @ 212.0°F      6.98 qt/lb        6.1gal
+145.4°F         30 min          4.1gal @ 163.8°F      5.67 qt/lb        5.2gal
+158.0°F         45 min          1.3gal @ 212.0°F      7.42 qt/lb        6.6gal
 -------------------------------------------------------------------------------
-Mashstep water:     5.1gal @ 68.0°F (1st runnings: ~3.1gal)
-Sparge water:       3.5gal @ 179.6°F
-1st wort (conv. %): 1.064 (85%), 1.068 (90%), 1.072 (95%), 1.076 (100%)
+Mashstep water:     5.3gal @ 68.0°F (1st runnings: ~3.5gal @ 158.0°F)
+Sparge water:       3.1gal @ 179.6°F (3.1gal @ 68.0°F)
+1st wort (conv. %): 1.062 (85%), 1.065 (90%), 1.069 (95%), 1.072 (100%)
 ===============================================================================
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Magnum (pellet)                  12.7%  21.8     0.58 oz      @ boil    30 min
-Tettnanger (pellet)               3.7%   5.7     0.67 oz      30 min    15 min
+Magnum (pellet)                  12.7%  19.4     0.51 oz      @ boil    30 min
+Tettnanger (pellet)               3.7%   5.8     0.67 oz      30 min    15 min
 Tettnanger (pellet)               3.7%   3.7     0.67 oz      15 min    15 min
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
 ===============================================================================
   Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
- 1.030    60%   5.8%       1.022    70%   6.8%       1.015    80%   7.9%      
- 1.026    65%   6.3%       1.019    75%   7.3%       1.011    85%   8.4%      
+ 1.028    60%   5.3%       1.017    75%   6.8%       1.007    90%   8.3%      
+ 1.024    65%   5.8%       1.014    80%   7.3%       1.003    95%   8.8%      
+ 1.021    70%   6.3%       1.010    85%   7.8%       1.000    100%  9.3%      
 ===============================================================================
 
 ```
@@ -232,7 +239,7 @@ fermentables:
                 Avangard Vienna:  18%
                 flaked oats:      10%
 
-        ferment:
+        fermentor:
                 table sugar:       5%
 
 defs:
@@ -257,54 +264,52 @@ translated with `wbcrecipe -P units_output=metric -P strength_output=plato`:
 ```
 ===============================================================================
 Name:               Return to IPAnema
-Aggregate strength: TBD                Package volume: 19.5l                    
-Total fermentables: 5.61 kg            Total hops:     196 g                    
-IBU (Tinseth):      19.33              BUGU:           0.27                     
-Boil:               20min              Yeast:          WLP095                   
-Water (20.0°C):     30.1l              Color (Morey):  12.2 EBC, 6.2 SRM        
+Aggregate strength: 16.0°P             Package volume: 19.5L                    
+Total fermentables: 5.59 kg            Total hops:     196 g                    
+Tinseth IBU / BUGU: 19  / 0.30         Color (Morey):  11.2 EBC, 5.7 SRM        
+Loss (v/e) Kettle:  1.6L / 256 g       Fermentor:      9.3dL / 159 g            
+Boil:               20 min             Yeast:          WLP095                   
+Water (20.0°C):     29.6L              Brewhouse eff:  78.9%                    
 
-Preboil  volume  :  23.7l (70.0°C)     Measured:                                
+Preboil  volume  :  24.0L (100.0°C)    Measured:                                
 Preboil  strength:  14.2°P             Measured:                                
-Postboil volume  :  23.0l (100.0°C)    Measured:                                
+Postboil volume  :  22.8L (100.0°C)    Measured:                                
 Postboil strength:  14.9°P             Measured:                                
 
-Kettle loss (est):  1.6l               Fermenter loss (est): 9.3dl              
-Mash eff (conf) :   88.0%              Brewhouse eff (est):  85.7%              
+Pitch rate, ale:    245 billion        Pitch rate, lager:    490 billion        
 
-Pitch rate, ale:    263 billion        Pitch rate, lager:    526 billion        
-
-NOTE: package hops absorb: 6.2dl => effective yield: 18.9l
-NOTE: package hop volume: ~2.1dl => packaged volume: 19.7l
+NOTE: package hops absorb: 6.2dL => effective yield: 18.9L
+NOTE: package hop volume: ~2.1dL => packaged volume: 19.7L
 ===============================================================================
-bo:3.5l|fl:0.8l|ga:1.1l/kg|kl:1.2l|me:88%|mh:1.5|ml:1l|mr:50%|mt:transfer
-|so:plato|st:82degC|ta:20degC|tb:100degC|tp:70degC|uo:metric
+Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
+|me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=plato|uo=metric
 ===============================================================================
 
 Fermentables                                    amount  ext (100%)   ext (88%)
 ===============================================================================
 Mash
-Briess Pale                           3.76 kg ( 67.0%)     2.83 kg     2.49 kg
-Avangard Vienna                       1.01 kg ( 18.0%)       757 g       666 g
-flaked oats                             561 g ( 10.0%)       362 g       318 g
-                                      5.33 kg ( 95.0%)     3.95 kg     3.48 kg
+Briess Pale                           3.75 kg ( 67.0%)     2.82 kg     2.48 kg
+Avangard Vienna                       1.01 kg ( 18.0%)       749 g       659 g
+flaked oats                             559 g ( 10.0%)       360 g       317 g
+                                      5.31 kg ( 95.0%)     3.93 kg     3.46 kg
 -------------------------------------------------------------------------------
 Ferment
-table sugar                             281 g (  5.0%)       281 g       281 g
+table sugar                             280 g (  5.0%)       280 g       280 g
 ===============================================================================
-                                      5.61 kg (100.0%)     4.23 kg     3.76 kg
+                                      5.59 kg (100.0%)     4.21 kg     3.74 kg
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
-66.0°C             UNS           18.4l @  75.0°C       3.37 l/kg         21.7l
+66.0°C             UNS           19.3L @  74.6°C       3.54 L/kg         23.0L
 -------------------------------------------------------------------------------
-Mashstep water:     18.0l @ 20.0°C (1st runnings: ~11.1l)
-Sparge water:       12.4l @ 82.0°C
-1st wort (conv. %): 15.3°P (85%), 16.2°P (90%), 17.1°P (95%), 18.0°P (100%)
+Mashstep water:     18.8L @ 20.0°C (1st runnings: ~12.2L @ 66.0°C)
+Sparge water:       11.1L @ 82.0°C (10.8L @ 20.0°C)
+1st wort (conv. %): 15.1°P (85%), 15.9°P (90%), 16.6°P (95%), 17.3°P (100%)
 ===============================================================================
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Citra (pellet)                   14.0%   9.0      10.0 g      @ boil        ==
+Citra (pellet)                   14.0%   9.1      10.0 g      @ boil        ==
 Mosaic (pellet)                  12.4%   8.0      10.0 g      @ boil    18 min
 Citra (pellet)                   14.0%   1.3      10.0 g       2 min        ==
 Mosaic (pellet)                  12.4%   1.1      10.0 g       2 min     2 min
@@ -322,8 +327,9 @@ Mosaic (pellet)                  12.4%   0.0      52.0 g     package   package
 Speculative apparent attenuation and resulting ABV
 ===============================================================================
   Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
- 7.1°P    60%   5.5%       5.4°P    70%   6.5%       3.6°P    80%   7.5%      
- 6.3°P    65%   6.0%       4.5°P    75%   7.0%       2.7°P    85%   8.0%      
+ 6.6°P    60%   5.1%       4.2°P    75%   6.4%       1.7°P    90%   7.9%      
+ 5.8°P    65%   5.5%       3.3°P    80%   6.9%       0.8°P    95%   8.3%      
+ 5.0°P    70%   6.0%       2.5°P    85%   7.4%       0.0°P    100%  8.8%      
 ===============================================================================
 
 ```
@@ -332,27 +338,25 @@ translated with `wbcrecipe -P units_output=us -P strength_output=sg`:
 ```
 ===============================================================================
 Name:               Return to IPAnema
-Aggregate strength: TBD                Package volume: 5.2gal                   
-Total fermentables: 12 3/8 lb          Total hops:     6.91 oz                  
-IBU (Tinseth):      19.33              BUGU:           0.27                     
-Boil:               20min              Yeast:          WLP095                   
-Water (68.0°F):     7.9gal             Color (Morey):  12.2 EBC, 6.2 SRM        
+Aggregate strength: 1.065              Package volume: 5.2gal                   
+Total fermentables: 12 5/16 lb         Total hops:     6.91 oz                  
+Tinseth IBU / BUGU: 19  / 0.30         Color (Morey):  11.2 EBC, 5.7 SRM        
+Loss (v/e) Kettle:  1.7qt / 9.04 oz    Fermentor:      3.9cup / 5.60 oz         
+Boil:               20 min             Yeast:          WLP095                   
+Water (68.0°F):     7.8gal             Brewhouse eff:  78.9%                    
 
-Preboil  volume  :  6.3gal (158.0°F)   Measured:                                
+Preboil  volume  :  6.4gal (212.0°F)   Measured:                                
 Preboil  strength:  1.058              Measured:                                
-Postboil volume  :  6.1gal (212.0°F)   Measured:                                
+Postboil volume  :  6.0gal (212.0°F)   Measured:                                
 Postboil strength:  1.061              Measured:                                
 
-Kettle loss (est):  1.7qt              Fermenter loss (est): 1.0qt              
-Mash eff (conf) :   88.0%              Brewhouse eff (est):  85.7%              
+Pitch rate, ale:    245 billion        Pitch rate, lager:    490 billion        
 
-Pitch rate, ale:    263 billion        Pitch rate, lager:    526 billion        
-
-NOTE: package hops absorb: 0.7qt => effective yield: 5.0gal
-NOTE: package hop volume: ~0.2qt => packaged volume: 5.2gal
+NOTE: package hops absorb: 2.6cup => effective yield: 5.0gal
+NOTE: package hop volume: ~42.2tsp => packaged volume: 5.2gal
 ===============================================================================
-bo:3.5l|fl:0.8l|ga:1.1l/kg|kl:1.2l|me:88%|mh:1.5|ml:1l|mr:50%|mt:transfer
-|so:sg|st:82degC|ta:20degC|tb:100degC|tp:70degC|uo:us
+Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
+|me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=sg|uo=us
 ===============================================================================
 
 Fermentables                                    amount  ext (100%)   ext (88%)
@@ -360,26 +364,26 @@ Fermentables                                    amount  ext (100%)   ext (88%)
 Mash
 Briess Pale                          8 1/4 lb ( 67.0%)   6 3/16 lb   5 7/16 lb
 Avangard Vienna                     2 3/16 lb ( 18.0%)    1 5/8 lb   1 7/16 lb
-flaked oats                         1 3/16 lb ( 10.0%)    12.75 oz    11.22 oz
-                                    11 3/4 lb ( 95.0%)  8 11/16 lb    7 5/8 lb
+flaked oats                         1 3/16 lb ( 10.0%)    12.70 oz    11.18 oz
+                                  11 11/16 lb ( 95.0%)    8 5/8 lb    7 5/8 lb
 -------------------------------------------------------------------------------
 Ferment
-table sugar                           9.90 oz (  5.0%)     9.90 oz     9.90 oz
+table sugar                           9.86 oz (  5.0%)     9.86 oz     9.86 oz
 ===============================================================================
-                                    12 3/8 lb (100.0%)   9 5/16 lb    8 1/4 lb
+                                   12 5/16 lb (100.0%)    9 1/4 lb   8 3/16 lb
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
-150.8°F            UNS          4.9gal @ 167.0°F      7.03 qt/lb        5.7gal
+150.8°F            UNS          5.1gal @ 166.3°F      7.38 qt/lb        6.1gal
 -------------------------------------------------------------------------------
-Mashstep water:     4.7gal @ 68.0°F (1st runnings: ~2.9gal)
-Sparge water:       3.3gal @ 179.6°F
-1st wort (conv. %): 1.062 (85%), 1.066 (90%), 1.070 (95%), 1.074 (100%)
+Mashstep water:     5.0gal @ 68.0°F (1st runnings: ~3.2gal @ 150.8°F)
+Sparge water:       2.9gal @ 179.6°F (2.9gal @ 68.0°F)
+1st wort (conv. %): 1.062 (85%), 1.065 (90%), 1.068 (95%), 1.071 (100%)
 ===============================================================================
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Citra (pellet)                   14.0%   9.0     0.35 oz      @ boil        ==
+Citra (pellet)                   14.0%   9.1     0.35 oz      @ boil        ==
 Mosaic (pellet)                  12.4%   8.0     0.35 oz      @ boil    18 min
 Citra (pellet)                   14.0%   1.3     0.35 oz       2 min        ==
 Mosaic (pellet)                  12.4%   1.1     0.35 oz       2 min     2 min
@@ -397,8 +401,9 @@ Mosaic (pellet)                  12.4%   0.0     1.83 oz     package   package
 Speculative apparent attenuation and resulting ABV
 ===============================================================================
   Str.    Att.  ABV         Str.    Att.  ABV         Str.    Att.  ABV       
- 1.028    60%   5.5%       1.021    70%   6.5%       1.014    80%   7.5%      
- 1.025    65%   6.0%       1.018    75%   7.0%       1.011    85%   8.0%      
+ 1.026    60%   5.1%       1.016    75%   6.4%       1.007    90%   7.9%      
+ 1.023    65%   5.5%       1.013    80%   6.9%       1.003    95%   8.3%      
+ 1.020    70%   6.0%       1.010    85%   7.4%       1.000    100%  8.8%      
 ===============================================================================
 
 ```
