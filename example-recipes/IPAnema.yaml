@@ -14,7 +14,7 @@ fermentables:
                 Avangard Vienna:  18%
                 flaked oats:      10%
 
-        ferment:
+        fermentor:
                 table sugar:       5%
 
 defs:
