@@ -375,16 +375,8 @@ class Recipe:
 		    for x in self._fermentables_bytimespec(stage)]))
 
 	def _sanity_check(self):
-		pbs = self.worter[Worter.PREBOIL].strength()
-		fw = self.results['mash_conversion'][100]
-
-		if pbs > fw:
-			warn("preboil strength is greater than 100% "
-			    "converted mash.\n", '\n')
-			warn('=> impossible mash efficiency. '
-			    'adjust "mash_efficiency" parameter.\n\n')
-
-		# XXX: more checks on lautering feasibility needed
+		# XXX: none at the time
+		pass
 
 	def _fermentables_bymass(self):
 		# convert massvol to mass now that we know final_volume
@@ -663,11 +655,10 @@ class Recipe:
 			self._reference_temp(), self.worter[Worter.MASH],
 			self._grain_absorption())
 
+		self.results['mash_conversion'] = {}
 		theor_extract = self._extract_bytimespec(Worter.MASH,
 		    theoretical=True)
 		watermass = self.results['mash']['mashstep_water'].water()
-
-		self.results['mash_conversion'] = {}
 		for x in range(5, 100+1, 5):
 			extract = theor_extract * x/100.0
 			fw = 100 * (extract / (extract + watermass))
@@ -676,8 +667,6 @@ class Recipe:
 		w = copy.deepcopy(self.results['mash']['mashstep_water'])
 		w.adjust_extract(self._extract_bytimespec(Timespec.MASH))
 		w -= self.mash.evaporation()
-
-		mf = self._fermentables_bytimespec(Timespec.MASH)
 		rloss = (self._fermentables_mass(mf)*self._grain_absorption()
 		    + getparam('mlt_loss'))
 		w.adjust_volume(_Volume(-rloss))
@@ -1021,7 +1010,8 @@ class Recipe:
 			self._dofermentables_and_worters()
 			self._doboiladj()
 
-			self._domash()
+			if self._extract_bytimespec(Timespec.MASH) > 0.001:
+				self._domash()
 			self._dohops()
 
 			# We need to have hit *at least* the final volume.

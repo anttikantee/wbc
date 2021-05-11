@@ -91,6 +91,10 @@ doprep ()
 	    test-recipes/proto-bymass-0boil.yaml
 
 	resetcount
+	prepcmd nomash wbcrecipe -p params-std \
+	    test-recipes/proto-bymass-nomash.yaml
+
+	resetcount
 	while read line; do
 		set -- ${line}
 		[ $# -ne 0 ] || continue

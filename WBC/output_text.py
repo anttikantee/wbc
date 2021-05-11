@@ -28,7 +28,7 @@ from WBC.worter import Worter
 def __reference_temp():
 	return getparam('ambient_temp')
 
-def _printmash(input, results):
+def _printfermentables(input, results):
 	fmtstr = '{:34}{:>20}{:>12}{:>12}'
 	print(fmtstr.format("Fermentables",
 	    "amount", "ext (100%)", "ext ("
@@ -72,8 +72,11 @@ def _printmash(input, results):
 	    str(allstats['amount']) + ' (100.0%)',
 	    str(allstats['extract_theoretical']),
 	    str(allstats['extract_predicted'])))
-
 	print()
+
+def _printmash(input, results):
+	if 'mash' not in results:
+		return
 
 	spargewater = results['mash']['sparge_water']
 	yesnosparge = ")"
@@ -362,6 +365,7 @@ def printit(input, results, miniprint):
 	prtsep()
 	print()
 
+	_printfermentables(input, results)
 	_printmash(input, results)
 	_printtimers(input, results)
 	if not miniprint:

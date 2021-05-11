@@ -1,0 +1,13 @@
+name:   proto
+yeast:  yeastieboys
+volume: 20l
+
+mashparams:
+    temperature: 65degC
+
+fermentables:
+    fermentor:
+        candi syrup d-180:          2kg
+
+    package:
+        raw sugar:                  12oz
