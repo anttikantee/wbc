@@ -574,3 +574,25 @@ Add(None, 'Invert No4',
 	Extract(89, CGDB, FCD_UNKNOWN, 0),
 	Color(600, EBC),
 	conversion = False)
+
+# Cand"i" syrups.  We'll just go with the same color values and names
+# as the D-foo ones.  They claim 32ppg, which is 314g/gal, which is
+# roughly 70%.  Seems like they're diluted from the cooking strength.
+# If making them at home, one can either be mindful of the extra ~2dl
+# of water per kilo, or not.
+Add(None, 'Candi syrup D-45',
+	Extract(70, CGAI, FCD_UNKNOWN, 30),
+	Color(45, LOVIBOND),
+	conversion = False)
+Add(None, 'Candi syrup D-90',
+	Extract(70, CGAI, FCD_UNKNOWN, 30),
+	Color(90, LOVIBOND),
+	conversion = False)
+Add(None, 'Candi syrup D-180',
+	Extract(70, CGAI, FCD_UNKNOWN, 30),
+	Color(180, LOVIBOND),
+	conversion = False)
+Add(None, 'Candi syrup D-240',
+	Extract(70, CGAI, FCD_UNKNOWN, 30),
+	Color(240, LOVIBOND),
+	conversion = False)
