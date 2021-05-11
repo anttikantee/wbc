@@ -167,6 +167,9 @@ def _printmash(input, results):
 	print()
 
 def _printtimers(input, results):
+	if len(results['timer_additions']) == 0:
+		return
+
 	namelen = 32
 	onefmt = '{:' + str(namelen) + '}{:>6}{:>6}{:>12}{:>12}{:>10}'
 	print(onefmt.format("Additions & Hops", "  AA%", "IBUs",
