@@ -15,6 +15,9 @@ fermentables:
         Weyermann Munich I:     8.8%
         Weyermann Melanoidin:   2.8%
 
+    package:
+        table sugar:            5g/l
+
 hops:
     - [ [ Magnum,    12.7%, ], 0.42 Recipe BUGU, boiltime ]
     - [ [ Tettnanger, 3.7%, ], 1 g/l,              30 min ]
