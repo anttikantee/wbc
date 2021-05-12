@@ -595,34 +595,60 @@ class Recipe:
 		self.worter = res
 
 	def _dofermentablestats(self):
+		assert('losses' in self.results)
+
 		allmass = self._fermentables_mass(self.fermentables)
 		stats = {}
 
+		# Calculate amount of extract -- extract-equivalent --
+		# that makes it into packaging.  We start with the amount
+		# of extract we know we're getting, and then subtract
+		# the normalized share at each stage until we're at
+		# packaging.  Since the mash is accounted
+		# for in configuration, we only need to handle the
+		# losses in the kettle and fermentor.
+		#
+		# XXX: it's somewhat inelegant because fermentables
+		# are added as timespecs, while losses are given
+		# as worters.
+		def extract_predicted(f, stage):
+			f_ext = self._fermentable_extract(f)
+			tss = Timespec.stages
+			losses = self.results['losses']
+			worters = self.worter
+
+			def stageloss(stagecmp, wname):
+				v = 0
+				if tss.index(stage) < tss.index(stagecmp):
+					stageloss = losses[wname].extract()
+					stageext = worters[wname].extract()
+
+					v = stageloss * (f_ext/stageext)
+				return _Mass(v)
+
+			f_ext -= stageloss(Timespec.FERMENTOR, Worter.POSTBOIL)
+			f_ext -= stageloss(Timespec.PACKAGE, Worter.FERMENTOR)
+
+			return f_ext
+
 		for f in self.fermentables:
-			when = timespec.timespec2stage[f['when'].__class__]
+			stage = timespec.timespec2stage[f['when'].__class__]
 			f['percent'] = 100.0 * (f['mass'] / allmass)
-			f['extract_predicted'] = self._fermentable_extract(f)
+			f['extract_predicted'] = extract_predicted(f, stage)
 			f['extract_theoretical'] = self._fermentable_extract(f,
 			    theoretical=True)
 
-			stats.setdefault(when, {})
-			stats[when].setdefault('percent', 0)
-			stats[when].setdefault('amount', 0)
-			stats[when].setdefault('extract_predicted', 0)
-			stats[when].setdefault('extract_theoretical', 0)
-			stats[when]['percent'] += f['percent']
-			stats[when]['amount'] += f['mass']
-			stats[when]['extract_predicted'] \
+			stats.setdefault(stage, {})
+			stats[stage].setdefault('percent', 0)
+			stats[stage].setdefault('amount', _Mass(0))
+			stats[stage].setdefault('extract_predicted', _Mass(0))
+			stats[stage].setdefault('extract_theoretical', _Mass(0))
+			stats[stage]['percent'] += f['percent']
+			stats[stage]['amount'] += f['mass']
+			stats[stage]['extract_predicted'] \
 			    += f['extract_predicted']
-			stats[when]['extract_theoretical'] \
+			stats[stage]['extract_theoretical'] \
 			    += f['extract_theoretical']
-
-		for s in stats:
-			stats[s]['amount'] = _Mass(stats[s]['amount'])
-			stats[s]['extract_predicted'] \
-			    = _Mass(stats[s]['extract_predicted'])
-			stats[s]['extract_theoretical'] \
-			    = _Mass(stats[s]['extract_theoretical'])
 
 		allstats = {}
 		allstats['amount'] \
@@ -946,10 +972,7 @@ class Recipe:
 
 		self.results['timer_additions'] = timers
 
-	def _doferment(self):
-		self._doattenuate()
-
-	def _doattenuate(self, attenuation = (60, 101, 5)):
+	def _doattenuations(self, attenuation = (60, 101, 5)):
 		res = []
 		fin = self.worter[Worter.PACKAGE].strength()
 		for x in range(*attenuation):
@@ -1041,8 +1064,17 @@ class Recipe:
 
 		self._dotimers()
 
+		# calculate losses as worters
+		rl = {}
+		for x in self.vol_losses:
+			w = Worter()
+			w.set_volstrength(self.vol_losses[x],
+			    self.worter[x].strength())
+			rl[x] = w
+		self.results['losses'] = rl
+
 		self._dofermentablestats()
-		self._doferment()
+		self._doattenuations()
 
 		# calculate suggested pitch rates in billions of cells,
 		# using 0.75mil/ml/degP for ales and 1.5mil for lagers
@@ -1074,15 +1106,6 @@ class Recipe:
 		# these are easy
 		self.results['hopsdrunk'] = self.hopsdrunk
 		self.results['fermentables'] = self.fermentables
-
-		# calculate losses as worters
-		rl = {}
-		for x in self.vol_losses:
-			w = Worter()
-			w.set_volstrength(self.vol_losses[x],
-			    self.worter[x].strength())
-			rl[x] = w
-		self.results['losses'] = rl
 
 		self.results['total_water'] = self.worter[Worter.MASH] \
 		    + Worter(water = self._boiladj)

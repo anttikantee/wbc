@@ -31,8 +31,7 @@ def __reference_temp():
 def _printfermentables(input, results):
 	fmtstr = '{:34}{:>20}{:>12}{:>12}'
 	print(fmtstr.format("Fermentables",
-	    "amount", "ext (100%)", "ext ("
-	    + str(int(getparam('mash_efficiency'))) + "%)"))
+	    "amount", "ext (100%)", "ext (pkg)"))
 	prtsep()
 
 	def handleonestage(stage, needsep):
