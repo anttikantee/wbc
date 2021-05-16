@@ -82,7 +82,7 @@ def oneround(w_orig, args, n):
 	printline2('Extract, Original',
 	    w_orig.extract().stras_system('metric'),
 	    w_orig.extract().stras_system('us'))
-	printline2('Extract, Added',
+	printline2('Extract, Adjusted',
 	    w_adj.extract().stras_system('metric'),
 	    w_adj.extract().stras_system('us'))
 	printline2('Extract, Aggregate',
@@ -93,7 +93,7 @@ def oneround(w_orig, args, n):
 	printline2('Water, Original',
 	    w_orig.water().stras_system('metric'),
 	    w_orig.water().stras_system('us'))
-	printline2('Water, Added',
+	printline2('Water, Adjusted',
 	    w_adj.water().stras_system('metric'),
 	    w_adj.water().stras_system('us'))
 	printline2('Water, New',
