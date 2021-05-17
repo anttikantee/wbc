@@ -183,9 +183,9 @@ def _printtimers(input, results):
 	def hopvals(h):
 		(hop,mass,ibu) = (h['hop'],h['mass'],h['ibu'])
 		nam = hop.name
-		typ = hop.typestr
+		typ = hop.type
 		if len(nam) + len(typ) + len(' ()') >= namelen:
-			typ = hop.typestr[0]
+			typ = hop.type[0]
 		typ = ' (' + typ + ')'
 		maxlen = (namelen-1) - len(typ)
 		if len(nam) > maxlen:

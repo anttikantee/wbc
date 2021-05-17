@@ -20,21 +20,22 @@ from WBC.utils import checktype
 from WBC import timespec
 
 class Hop:
-	Pellet	= object()
-	Leaf	= object()
+	PELLET	= 'pellet'
+	T90	= 'pellet'
+	T45	= 'pellet'
+	LEAF	= 'leaf'
 
-	def __init__(self, name, aapers, type = Pellet):
+	types = [ PELLET, LEAF ]
+
+	def __init__(self, name, aapers, type = PELLET):
+		if type != Hop.PELLET and type != Hop.LEAF:
+			raise PilotError('invalid hop type: ' + type)
+
 		aalow = 1
 		aahigh = 100 # I guess some hop extracts are [close to] 100%
 
 		self.name = name
 		self.type = type
-		if type is Hop.Pellet:
-			self.typestr = 'pellet'
-		elif type is Hop.Leaf:
-			self.typestr = 'leaf'
-		else:
-			raise PilotError('invalid hop type: ' + type)
 
 		if aapers < aalow or aapers > aahigh:
 			raise PilotError('Alpha acid percentage must be ' \
@@ -43,7 +44,7 @@ class Hop:
 		self.aapers = aapers
 
 	def __repr__(self):
-		return 'Hop object for: ' + self.name + '/' + self.typestr \
+		return 'Hop object for: ' + self.name + '/' + self.type \
 		    + '/' + str(self.aapers) + '%'
 
 	#
@@ -86,7 +87,7 @@ class Hop:
 		bignessfact = 1.65 * pow(0.000125, SG-1)
 		boilfact = (1 - pow(math.e, -0.04 * int(mins))) / 4.15
 		bonus = 1.0
-		if self.type is self.Pellet:
+		if self.type == self.PELLET:
 			bonus = 1.1
 		return bonus * bignessfact * boilfact
 
@@ -115,10 +116,10 @@ class Hop:
 
 	def absorption(self, mass):
 		checktype(mass, Mass)
-		if self.type is self.Pellet:
+		if self.type == self.PELLET:
 			abs_c = constants.pellethop_absorption_mlg
 		else:
-			assert(self.type is self.Leaf)
+			assert(self.type == self.LEAF)
 			abs_c = constants.leafhop_absorption_mlg
 		# l/kg == ml/g
 		v = _Volume(mass * abs_c)
@@ -126,9 +127,9 @@ class Hop:
 
 	def volume(self, mass):
 		checktype(mass, Mass)
-		if self.type is self.Pellet:
+		if self.type == self.PELLET:
 			density = constants.pellethop_density_gl
 		else:
-			assert(self.type is self.Leaf)
+			assert(self.type == self.LEAF)
 			density = constants.leafhop_density_gl
 		return _Volume(mass.valueas(Mass.G) / density)

@@ -30,15 +30,12 @@ import getopt
 import io
 import sys
 
-hoptypes = { 'leaf' : Hop.Leaf, 'pellet': Hop.Pellet }
-
 def dohop(r, hopspec, unit, timespec):
-	typstr = hopspec[2] if len(hopspec) > 2 else 'pellet'
-	if typstr not in hoptypes:
-		raise PilotError('invalid hop type: ' + typstr)
-	typ = hoptypes[typstr]
+	hoptyp = hopspec[2] if len(hopspec) > 2 else Hop.PELLET
+	if hoptyp not in Hop.types:
+		raise PilotError('invalid hop type: ' + hoptyp)
 	aa = parse.percent(hopspec[1])
-	hop = Hop(hopspec[0], aa, typ)
+	hop = Hop(hopspec[0], aa, hoptyp)
 
 	fun, hu = parse.hopunit(unit)
 	ts = parse.timespec(timespec)

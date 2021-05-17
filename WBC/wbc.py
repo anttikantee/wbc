@@ -1156,7 +1156,7 @@ class Recipe:
 			timespec = str(timespec)
 
 			print('hop|{:}|{:}|{:}|{:}|{:}|{:}'
-			    .format(hop.name, hop.typestr, hop.aapers,
+			    .format(hop.name, hop.type, hop.aapers,
 				float(h['mass']), timeclass, timespec))
 
 	# parti-gyle calculations was actually the reason I initially
