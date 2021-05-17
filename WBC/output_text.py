@@ -46,7 +46,7 @@ def _printfermentables(input, results):
 
 		for f in lst:
 			persstr = ' ({:5.1f}%)'.format(f['percent'])
-			print(fmtstr.format(f['name'],
+			print(fmtstr.format(f['fermentable'].name,
 			    str(f['mass']) + persstr,
 			    str(f['extract_theoretical']),
 			    str(f['extract_predicted'])))

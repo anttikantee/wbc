@@ -292,9 +292,8 @@ class Recipe:
 			    + 'once per stage')
 
 	@staticmethod
-	def _fermmap(name, fermentable, type, amount, when):
+	def _fermmap(fermentable, type, amount, when):
 		return {
-			'name': name,
 			'fermentable' : fermentable,
 			type : amount,
 			'when' : when,
@@ -306,7 +305,7 @@ class Recipe:
 		fermentable = fermentables.Get(name)
 		self._validate_ferm(fermentable, when)
 
-		f = self._fermmap(name, fermentable, 'mass', mass, when)
+		f = self._fermmap(fermentable, 'mass', mass, when)
 		self.fermentables_bymass.append(f)
 
 	def fermentable_bymassvolratio(self, name, mv, when):
@@ -319,7 +318,7 @@ class Recipe:
 		fermentable = fermentables.Get(name)
 		self._validate_ferm(fermentable, when)
 
-		f = self._fermmap(name, fermentable, 'massvol', normmass, when)
+		f = self._fermmap(fermentable, 'massvol', normmass, when)
 		self.fermentables_bymassvol.append(f)
 
 	# percent of fermentable's mass, not extract's mass
@@ -331,7 +330,7 @@ class Recipe:
 		fermentable = fermentables.Get(name)
 		self._validate_ferm(fermentable, when)
 
-		f = self._fermmap(name, fermentable, 'percent', percent, when)
+		f = self._fermmap(fermentable, 'percent', percent, when)
 		if percent is self.THEREST:
 			self.fermentables_therest.append(f)
 		else:
@@ -667,7 +666,8 @@ class Recipe:
 		# 2) extract mass
 		# 3) alphabet
 		ferms = self.fermentables
-		ferms = sorted(ferms, key=lambda x: x['name'], reverse=True)
+		ferms = sorted(ferms, key=lambda x: x['fermentable'].name,
+		    reverse=True)
 		ferms = sorted(ferms, key=lambda x: x['extract_predicted'])
 		ferms = sorted(ferms, key=lambda x: x['mass'])
 		self.fermentables = ferms[::-1]
