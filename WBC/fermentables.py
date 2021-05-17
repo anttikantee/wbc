@@ -498,15 +498,15 @@ Alias('Weyermann', 'Carafa 3 Special', 'Weyermann Carafa 3')
 
 # Extract yields for non-malts from 'How To Brew' [Palmer]
 # Moisture content from BSG website
-Add(None, 'Flaked wheat',
+Add(None, 'flaked wheat',
 	Extract(77, CGDB, FCD_UNKNOWN, 7.0),
 	Color(1, LOVIBOND))
-Add(None, 'Flaked oats',
+Add(None, 'flaked oats',
 	Extract(70, CGDB, FCD_UNKNOWN, 8.0),
 	Color(1, LOVIBOND))
 
 # guess and assume
-Add(None, 'Flaked rye',
+Add(None, 'flaked rye',
 	Extract(70, CGDB, FCD_UNKNOWN, 12),
 	Color(3, LOVIBOND))
 
@@ -515,18 +515,18 @@ Add(None, 'Flaked rye',
 # takes from the Briess raw red wheat datasheet, and colors mostly
 # just guessed.  in the typical fashion of maltster consitency, Briess
 # supplies extract only for red wheat and color only for white wheat.
-Add(None, 'Raw Red wheat',
+Add(None, 'raw red wheat',
 	Extract(80, CGDB, FCD_UNKNOWN, 12.0),
 	Color(3, LOVIBOND))
-Add(None, 'Raw White Wheat',
+Add(None, 'raw white wheat',
 	Extract(80, CGDB, FCD_UNKNOWN, 12.0),
 	Color(2, LOVIBOND))
 # extract from Briess, color from absolutely nowhere except a hat
-Add(None, 'Raw Rye',
+Add(None, 'raw rye',
 	Extract(77, CGDB, FCD_UNKNOWN, 12.0),
 	Color(8, LOVIBOND))
 # aaaand we just guess
-Add(None, 'Raw Oats',
+Add(None, 'raw oats',
 	Extract(70, CGDB, FCD_UNKNOWN, 12.0),
 	Color(8, LOVIBOND))
 
@@ -538,12 +538,12 @@ Add(None, 'Raw Oats',
 # oven, but one percent point of extract here or there doesn't matter
 # too much unless you're using a lot of rice, and even if I did it,
 # it wouldn't be the same for your rice.
-Add(None, 'Rice',
+Add(None, 'rice',
 	Extract(80, FGDB, FCD_UNKNOWN, 11.0),
 	Color(1, EBC))
 
 # sugars ("self-converting")
-Add(None, 'Table sugar',
+Add(None, 'table sugar',
 	Extract(100, CGDB, FCD_UNKNOWN, 0),
 	Color(0, EBC),
 	conversion = False)
@@ -558,19 +558,19 @@ Add(None, 'raw sugar',
 # is 85% sugar, so we'll start from that and guess a bit of moisture
 # loss from cooking to obtain the color.  shouldn't matter too much if
 # they're a %-point off in one direction or another.
-Add(None, 'Invert No1',
+Add(None, 'invert No1',
 	Extract(86, CGDB, FCD_UNKNOWN, 0),
 	Color(30, EBC),
 	conversion = False)
-Add(None, 'Invert No2',
+Add(None, 'invert No2',
 	Extract(87, CGDB, FCD_UNKNOWN, 0),
 	Color(60, EBC),
 	conversion = False)
-Add(None, 'Invert No3',
+Add(None, 'invert No3',
 	Extract(88, CGDB, FCD_UNKNOWN, 0),
 	Color(130, EBC),
 	conversion = False)
-Add(None, 'Invert No4',
+Add(None, 'invert No4',
 	Extract(89, CGDB, FCD_UNKNOWN, 0),
 	Color(600, EBC),
 	conversion = False)
@@ -580,19 +580,19 @@ Add(None, 'Invert No4',
 # roughly 70%.  Seems like they're diluted from the cooking strength.
 # If making them at home, one can either be mindful of the extra ~2dl
 # of water per kilo, or not.
-Add(None, 'Candi syrup D-45',
+Add(None, 'candi syrup D-45',
 	Extract(70, CGAI, FCD_UNKNOWN, 30),
 	Color(45, LOVIBOND),
 	conversion = False)
-Add(None, 'Candi syrup D-90',
+Add(None, 'candi syrup D-90',
 	Extract(70, CGAI, FCD_UNKNOWN, 30),
 	Color(90, LOVIBOND),
 	conversion = False)
-Add(None, 'Candi syrup D-180',
+Add(None, 'candi syrup D-180',
 	Extract(70, CGAI, FCD_UNKNOWN, 30),
 	Color(180, LOVIBOND),
 	conversion = False)
-Add(None, 'Candi syrup D-240',
+Add(None, 'candi syrup D-240',
 	Extract(70, CGAI, FCD_UNKNOWN, 30),
 	Color(240, LOVIBOND),
 	conversion = False)
