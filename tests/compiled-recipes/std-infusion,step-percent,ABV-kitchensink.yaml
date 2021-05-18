@@ -25,6 +25,9 @@ hops:
     - [ *th1,                           3g/l,       20min @ 75degC   ]
     - [ *th1,                           2g/l,       fermentor        ]
     - [ *th1,                           1g/l,       package          ]
+
+    - [ [ AA 5g, 11% ],                 AA 5g,      30min            ]
+    - [ [ AA 500mg/l, 12% ],            AA 500mg/l, 45min            ]
 # also exercises small units
 opaques:
   bymass:
