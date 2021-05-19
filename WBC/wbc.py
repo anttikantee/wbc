@@ -198,14 +198,14 @@ class Recipe:
 	# alpha acid mass
 	def hop_byAA(self, hop, mass, time):
 		checktypes([(hop, Hop), (mass, Mass)])
-		hopmass = _Mass(mass / (hop.aapers/100.0))
+		hopmass = _Mass(mass / hop.aapers)
 		self.hops_bymass.append(self._hopstore(hop, hopmass, time))
 
 	# alpha acid mass per final volume
 	def hop_byAAvolratio(self, hop, mv, time):
 		(mass, vol) = mv
 		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
-		hopmass = _Mass((mass / (hop.aapers/100.0)) / vol)
+		hopmass = _Mass((mass / hop.aapers) / vol)
 		self.hops_bymassvolume.append(self._hopstore(hop,
 		    hopmass, time))
 
@@ -1156,7 +1156,7 @@ class Recipe:
 			timespec = str(timespec)
 
 			print('hop|{:}|{:}|{:}|{:}|{:}|{:}'
-			    .format(hop.name, hop.type, hop.aapers,
+			    .format(hop.name, hop.type, hop.aa,
 				float(h['mass']), timeclass, timespec))
 
 	# parti-gyle calculations was actually the reason I initially

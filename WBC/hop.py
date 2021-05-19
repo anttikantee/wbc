@@ -44,16 +44,16 @@ class Hop:
 			raise PilotError('Alpha acid percentage must be ' \
 			    + 'between ' + str(aalow) + ' and ' + str(aahigh))
 
-		self.aapers = aapers
+		self.aa = aapers/100.0
 
 	def __repr__(self):
 		return 'Hop object for: ' + self.name + '/' + self.type \
-		    + '/' + '{4.1%}'.format(self.aapers/100.0)
+		    + '/' + '{4.1%}'.format(self.aa)
 
 	def name2str(self, maxlen):
 		n = self.name
 		t = self.type
-		a = self.aapers/100.0
+		a = self.aa
 
 		tstr = '[{:4s} {:5.1%}]'.format(t, a)
 		tlen = len(tstr)
@@ -117,7 +117,7 @@ class Hop:
 		checktypes([(strength, Strength), (mass, Mass)])
 
 		util = self.__util(strength, time)
-		v = util * (self.aapers/100.0) * mass.valueas(Mass.MG) / volume
+		v = util * self.aa * mass.valueas(Mass.MG) / volume
 		return v
 
 	def mass(self, strength, volume, time, IBU):
@@ -126,7 +126,7 @@ class Hop:
 		util = self.__util(strength, time)
 
 		# calculate mass
-		m = (IBU * volume) / (util * self.aapers/100.0)
+		m = (IBU * volume) / (util * self.aa)
 
 		# store with 0.01g accuracy.
 		# need to round here and supply as the native unit,
