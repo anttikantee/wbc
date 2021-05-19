@@ -175,25 +175,9 @@ def _printtimers(input, results):
 	    "amount", "timespec", "timer"))
 	prtsep()
 
-	# printing IBUs with a decimal point, given all
-	# other inaccuracy involved, is rather silly.
-	# but what would we be if not silly?
-	ibufmt = '{:.1f}'
-
 	def hopvals(h):
-		(hop,mass,ibu) = (h['hop'],h['mass'],h['ibu'])
-		nam = hop.name
-		typ = hop.type
-		if len(nam) + len(typ) + len(' ()') >= namelen:
-			typ = hop.type[0]
-		typ = ' (' + typ + ')'
-		maxlen = (namelen-1) - len(typ)
-		if len(nam) > maxlen:
-			nam = nam[0:maxlen-2] + '..'
-
-		ibustr = ibufmt.format(ibu)
-
-		return (nam+typ, str(hop.aapers)+'%', ibustr, str(mass))
+		return (h['hop'].name2str(namelen), str(h['hop'].aapers)+'%',
+		    '{:.1f}'.format(h['ibu']), str(h['mass']))
 
 	def opaquevals(o):
 		(opaque,amount) = (o['opaque'],o['amount'])

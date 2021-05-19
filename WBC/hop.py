@@ -20,22 +20,23 @@ from WBC.utils import checktype
 from WBC import timespec
 
 class Hop:
-	PELLET	= 'pellet'
-	T90	= 'pellet'
-	T45	= 'pellet'
 	LEAF	= 'leaf'
+	PLUG	= 'plug'
+	T90	= 'T90'
+	T45	= 'T45'
 
-	types = [ PELLET, LEAF ]
+	types = [ T90, T45, LEAF, PLUG ]
+	_lctypes = [x.lower() for x in types]
 
-	def __init__(self, name, aapers, type = PELLET):
-		if type != Hop.PELLET and type != Hop.LEAF:
+	def __init__(self, name, aapers, type = T90):
+		if type.lower() not in self._lctypes:
 			raise PilotError('invalid hop type: ' + type)
 
 		aalow = 1
 		aahigh = 100 # I guess some hop extracts are [close to] 100%
 
 		self.name = name
-		self.type = type
+		self.type = self.types[self._lctypes.index(type.lower())]
 
 		if aapers < aalow or aapers > aahigh:
 			raise PilotError('Alpha acid percentage must be ' \
@@ -46,6 +47,18 @@ class Hop:
 	def __repr__(self):
 		return 'Hop object for: ' + self.name + '/' + self.type \
 		    + '/' + str(self.aapers) + '%'
+
+	def name2str(self, maxlen):
+		n = self.name
+		t = self.type
+
+		if maxlen != -1 and len(n) + len(t) + len(' ()') > maxlen:
+			t = t[0]
+		tstr = ' (' + t + ')'
+		namemaxlen = maxlen - len(tstr)
+		if len(n) > namemaxlen:
+			n = n[0:namemaxlen-2] + '..'
+		return n+tstr
 
 	#
 	# Tinseth IBUs, from http://realbeer.com/hops/research.html
@@ -87,7 +100,7 @@ class Hop:
 		bignessfact = 1.65 * pow(0.000125, SG-1)
 		boilfact = (1 - pow(math.e, -0.04 * int(mins))) / 4.15
 		bonus = 1.0
-		if self.type == self.PELLET:
+		if self.type != self.LEAF:
 			bonus = 1.1
 		return bonus * bignessfact * boilfact
 
@@ -116,10 +129,9 @@ class Hop:
 
 	def absorption(self, mass):
 		checktype(mass, Mass)
-		if self.type == self.PELLET:
+		if self.type != self.LEAF:
 			abs_c = constants.pellethop_absorption_mlg
 		else:
-			assert(self.type == self.LEAF)
 			abs_c = constants.leafhop_absorption_mlg
 		# l/kg == ml/g
 		v = _Volume(mass * abs_c)
@@ -127,9 +139,8 @@ class Hop:
 
 	def volume(self, mass):
 		checktype(mass, Mass)
-		if self.type == self.PELLET:
+		if self.type != self.LEAF:
 			density = constants.pellethop_density_gl
 		else:
-			assert(self.type == self.LEAF)
 			density = constants.leafhop_density_gl
 		return _Volume(mass.valueas(Mass.G) / density)

@@ -12,9 +12,6 @@ fermentables:
         Weyermann Munich I:         rest
         Weyermann Pale:         1kg
 
-defs:
-    - [ &th1 [ Testhop1, 18.8%, pellet ]]
-
 hops:
     - [ [ Testhop2,      10.0% ],       2g/l,       mash @ firstwort      ]
     - [ [ Testhop1,      8.8% ],        10 IBU,     12min          ]

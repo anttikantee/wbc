@@ -31,9 +31,7 @@ import io
 import sys
 
 def dohop(r, hopspec, unit, timespec):
-	hoptyp = hopspec[2] if len(hopspec) > 2 else Hop.PELLET
-	if hoptyp not in Hop.types:
-		raise PilotError('invalid hop type: ' + hoptyp)
+	hoptyp = hopspec[2] if len(hopspec) > 2 else Hop.T90
 	aa = parse.percent(hopspec[1])
 	hop = Hop(hopspec[0], aa, hoptyp)
 

@@ -14,10 +14,10 @@ fermentables:
     #package:
         #table sugar:                160g
 defs:
-    - [ &th1 [ Testhop1, 18.8%, pellet ]]
+    - [ &th1 [ Testhop1, 18.8%, T90 ]]
 
 hops:
-    - [ [ Testhop2,     10.0% ],        20g,        mash @ firstwort ]
+    - [ [ Testhop2,     10.0%, T45 ],   20g,        mash @ firstwort ]
     - [ [ Testhop_leaf,  4.5%, leaf ],  2g/l,       boiltime         ]
 
     - [ *th1,                           10 IBU,     12min            ]

@@ -15,9 +15,6 @@ fermentables:
     package:
         raw sugar:                  12oz
 
-defs:
-    - [ &th1 [ Testhop1, 18.8%, pellet ]]
-
 hops:
     - [ [ Testhop_leaf,  4.5%, leaf ],  15g,    mash @ firstwort ]
     - [ [ Testhop_leaf,  4.5%, leaf ],  15g,    fermentor        ]

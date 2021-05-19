@@ -18,8 +18,8 @@ fermentables:
                 table sugar:       5%
 
 defs:
-        - [ &mosaic [ Mosaic,    12.4%,  pellet ] ]
-        - [ &citra  [ Citra,     14.0%,  pellet ] ]
+        - [ &mosaic [ Mosaic,    12.4%,  T90 ] ]
+        - [ &citra  [ Citra,     14.0%,  T90 ] ]
 
 hops:
         - [ *citra,      10g, 20 min ]
