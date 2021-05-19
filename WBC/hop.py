@@ -33,7 +33,9 @@ class Hop:
 			raise PilotError('invalid hop type: ' + type)
 
 		aalow = 1
-		aahigh = 100 # I guess some hop extracts are [close to] 100%
+		# maybe the don't go that high, but the main goal is to
+		# prevent 100% from screwing up [x]x.x% formatting
+		aahigh = 88
 
 		self.name = name
 		self.type = self.types[self._lctypes.index(type.lower())]
@@ -46,19 +48,26 @@ class Hop:
 
 	def __repr__(self):
 		return 'Hop object for: ' + self.name + '/' + self.type \
-		    + '/' + str(self.aapers) + '%'
+		    + '/' + '{4.1%}'.format(self.aapers/100.0)
 
 	def name2str(self, maxlen):
 		n = self.name
 		t = self.type
+		a = self.aapers/100.0
 
-		if maxlen != -1 and len(n) + len(t) + len(' ()') > maxlen:
-			t = t[0]
-		tstr = ' (' + t + ')'
-		namemaxlen = maxlen - len(tstr)
-		if len(n) > namemaxlen:
-			n = n[0:namemaxlen-2] + '..'
-		return n+tstr
+		tstr = '[{:4s} {:5.1%}]'.format(t, a)
+		tlen = len(tstr)
+		minnamefield = 12
+		minnamelen = tlen + minnamefield + 1
+		if maxlen != -1 and maxlen < minnamelen:
+			raise PilotError('min field size:' + str(minnamelen))
+
+		nlen = maxlen - (tlen+1)
+
+		if len(n) > nlen:
+			n = n[0:nlen-2] + '..'
+		fmt = '{:' + str(nlen) + '} {:}'
+		return fmt.format(n, tstr)
 
 	#
 	# Tinseth IBUs, from http://realbeer.com/hops/research.html

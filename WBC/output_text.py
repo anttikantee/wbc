@@ -169,19 +169,19 @@ def _printtimers(input, results):
 	if len(results['timer_additions']) == 0:
 		return
 
-	namelen = 32
-	onefmt = '{:' + str(namelen) + '}{:>6}{:>6}{:>12}{:>12}{:>10}'
-	print(onefmt.format("Additions & Hops", "  AA%", "IBUs",
+	namelen = 38
+	onefmt = '{:' + str(namelen) + '}{:>6}{:>12}{:>12}{:>10}'
+	print(onefmt.format("Additions & Hops", "IBUs",
 	    "amount", "timespec", "timer"))
 	prtsep()
 
 	def hopvals(h):
-		return (h['hop'].name2str(namelen), str(h['hop'].aapers)+'%',
+		return (h['hop'].name2str(namelen),
 		    '{:.1f}'.format(h['ibu']), str(h['mass']))
 
 	def opaquevals(o):
 		(opaque,amount) = (o['opaque'],o['amount'])
-		return (opaque, '' ,'', str(amount))
+		return (opaque, '', str(amount))
 
 	prevstage = None
 	for t in results['timer_additions']:
