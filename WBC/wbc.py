@@ -58,7 +58,7 @@ class Recipe:
 		self.input = input
 
 		self.volume_inherent = volume
-		self.volume_scaled = None
+		self.volume_set = self.volume_scaled = None
 
 		self.hops_bymass = []
 		self.hops_bymassvolume = []
@@ -109,9 +109,8 @@ class Recipe:
 
 	def _final_volume(self):
 		assert(self._calculatestatus > 0)
-		if self.volume_scaled is not None:
-			return self.volume_scaled
-		return self.volume_inherent
+		v = [self.volume_scaled, self.volume_set, self.volume_inherent ]
+		return ([x for x in v if x is not None] + [None])[0]
 
 	def _final_extract(self):
 		if self.final_strength is None:
@@ -158,7 +157,7 @@ class Recipe:
 
 	def set_volume(self, volume):
 		checktype(volume, Volume)
-		self.volume_inherent = volume
+		self.volume_set = volume
 
 	# set opaque water notes to be printed with recipe
 	def set_waternotes(self, waternotes):
