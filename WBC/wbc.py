@@ -21,6 +21,7 @@ from WBC import constants
 from WBC import fermentables
 from WBC.getparam import getparam
 
+from WBC.addition import Addition, Opaque
 from WBC.utils import *
 from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
@@ -59,12 +60,10 @@ class Recipe:
 
 		self.volume_inherent = volume
 		self.volume_set = self.volume_scaled = None
+		self.needinherent = []
 
-		self.hops_bymass = []
-		self.hops_bymassvolume = []
-		self.hops_byIBU = []
-		self.hops_recipeIBU = None
-		self.hops_recipeBUGU = None
+		self.hops = []
+		self.hops_recipeIBUBUGU = None
 
 		self.fermentables_bymass = []
 		self.fermentables_bymassvol = []
@@ -81,11 +80,7 @@ class Recipe:
 		# amount used in the forward calculation
 		self.waterguess = None
 
-		self.opaques_bymass = []
-		self.opaques_bymassvolume = []
-		self.opaques_byvolume = []
-		self.opaques_byvolumevolume = []
-		self.opaques_byopaque = []
+		self.opaques = []
 
 		self.input['stolen_wort'] = Worter()
 		self._boiladj = _Mass(0)
@@ -133,6 +128,13 @@ class Recipe:
 	def _reference_temp(self):
 		return getparam('ambient_temp')
 
+	def _needinherentvol(self, what):
+		if what not in self.needinherent:
+			self.needinherent.append(what)
+
+	#
+	# various scaling routines
+	#
 	def _scale(self, what):
 		if self.volume_inherent is None or self.volume_scaled is None:
 			return what
@@ -142,6 +144,14 @@ class Recipe:
 		scale = self.volume_scaled / self.volume_inherent
 		return what.__class__(scale * what, what.defaultunit)
 
+	def _xvol2x(self, x):
+		assert(isinstance(x, Mass) or isinstance(x, Volume))
+		return x.__class__(x * self._final_volume(), x.defaultunit)
+
+	#
+	# other helpers
+	#
+
 	def _once(self, callme, *args):
 		cf = inspect.stack()[1]
 		caller = cf[1] + '/' + str(cf[2]) + '/' + cf[3]
@@ -150,6 +160,10 @@ class Recipe:
 
 		self._oncelst.append(caller)
 		callme(*args)
+
+	#
+	# user interfaces
+	#
 
 	def set_volume_and_scale(self, volume):
 		checktype(volume, Volume)
@@ -174,104 +188,103 @@ class Recipe:
 		checktype(note, str)
 		self.input['notes']['recipe'].append(note)
 
-	def _hopstore(self, hop, amount, time):
-		return [hop, amount, time]
+	#
+	# Hops.
+	#
+	def _hopstore(self, hop, amount, resolver, time, cookie):
+		checktypes([(hop, Hop), (time, Timespec)])
+		a = Addition(hop, amount, resolver, time, cookie = cookie)
+		self.hops.append(a)
+		return a
 
-	#
-	# hop additions all have the signature (hop, amountspec, time)
-	# where "amountspec" is more complicated than one variable,
-	# e.g. mass/vol, a tuple is used to retain signature
-	#
 	def hop_bymass(self, hop, mass, time):
-		checktypes([(hop, Hop), (mass, Mass)])
-		self.hops_bymass.append(self._hopstore(hop, mass, time))
+		checktype(mass, Mass)
+		self._needinherentvol('hops')
+		amount = mass
+		self._hopstore(hop, mass, self._scale, time, 'm')
 
 	# mass per final volume
 	def hop_bymassvolratio(self, hop, mv, time):
 		(mass, vol) = mv
-		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
-		hopmass = _Mass(mass / vol)
-		self.hops_bymassvolume.append(self._hopstore(hop,
-		    hopmass, time))
+		checktypes([(mass, Mass), (vol, Volume)])
+		amount = _Mass(mass / vol)
+		self._hopstore(hop, amount, self._xvol2x, time, 'm')
 
 	# alpha acid mass
 	def hop_byAA(self, hop, mass, time):
-		checktypes([(hop, Hop), (mass, Mass)])
-		hopmass = _Mass(mass / hop.aapers)
-		self.hops_bymass.append(self._hopstore(hop, hopmass, time))
+		checktype(mass, Mass)
+		self._needinherentvol('hops')
+		amount = _Mass(mass / hop.aa)
+		self._hopstore(hop, amount, self._scale, time, 'm')
 
 	# alpha acid mass per final volume
 	def hop_byAAvolratio(self, hop, mv, time):
 		(mass, vol) = mv
-		checktypes([(hop, Hop), (mass, Mass), (vol, Volume)])
-		hopmass = _Mass((mass / hop.aapers) / vol)
-		self.hops_bymassvolume.append(self._hopstore(hop,
-		    hopmass, time))
+		checktypes([(mass, Mass), (vol, Volume)])
+		amount = _Mass((mass / hop.aa) / vol)
+		self._hopstore(hop, amount, self._xvol2x, time, 'm')
 
 	def hop_byIBU(self, hop, IBU, time):
-		checktype(hop, Hop)
-		self.hops_byIBU.append(self._hopstore(hop, IBU, time))
+		a = self._hopstore(hop, None, None, time, 'i')
+		a.info = IBU
+
+	def _setIBUBUGU(self, hop, time, value, what):
+		if self.hops_recipeIBUBUGU is not None:
+			raise PilotError('total IBU/BUGU specified >once')
+		checktypes([(hop, Hop), (time, Timespec)])
+
+		self.hops_recipeIBUBUGU = {
+			'hop': hop,
+			'time': time,
+			'value': value,
+			'type': what,
+		}
 
 	def hop_byrecipeIBU(self, hop, IBU, time):
-		checktype(hop, Hop)
-		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
-			if IBU > 120.0:
-				warn("Hop \"" + hop.name + "\" has high IBU ("
-				    + str(IBU) + ")\n")
-			self.hops_recipeIBU = self._hopstore(hop, IBU, time)
-		else:
-			raise PilotError('total IBU/BUGU specified >once')
+		if IBU > 120.0:
+			warn("Hop \"" + hop.name + "\" has high IBU ("
+			    + str(IBU) + ")\n")
+		self._setIBUBUGU(hop, time, IBU, 'IBU')
 
-	def hop_byrecipeBUGU(self, hop, bugu, time):
-		checktype(hop, Hop)
-		if self.hops_recipeIBU is None and self.hops_recipeBUGU is None:
-			if bugu > 2.0:
-				warn("Hop \"" + hop.name + "\" has high BUGU ("
-				    + str(bugu) + ")\n")
-			self.hops_recipeBUGU = self._hopstore(hop, bugu, time)
-		else:
-			raise PilotError('total IBU/BUGU specified >once')
-
+	def hop_byrecipeBUGU(self, hop, BUGU, time):
+		if BUGU > 2.0:
+			warn("Hop \"" + hop.name + "\" has high BUGU ("
+			    + str(BUGU) + ")\n")
+		self._setIBUBUGU(hop, time, BUGU, 'BUGU')
 
 	# opaque additions.  not used for in-recipe calculations,
 	# just printed out in timed additions.
-	@staticmethod
-	def _opaquestore(opaque, amount, time):
-		return {
-			'opaque': opaque,
-			'amount': amount,
-			'time'  : time,
-		}
+
+	def _opaquestore(self, opaque, amount, resolver, time):
+		checktype(time, Timespec)
+		a = Addition(Opaque(opaque), amount, resolver, time)
+		self.opaques.append(a)
 
 	def opaque_bymass(self, opaque, mass, time):
 		checktypes([(mass, Mass), (time, Timespec)])
-		self.opaques_bymass.append(self._opaquestore(opaque,
-		    mass, time))
+		self._needinherentvol('opaque_bymass')
+		self._opaquestore(opaque, mass, self._scale, time)
 	def opaque_byvol(self, opaque, volume, time):
 		checktypes([(volume, Volume), (time, Timespec)])
-		self.opaques_byvolume.append(self._opaquestore(opaque,
-		    volume, time))
+		self._needinherentvol('opaque_byvol')
+		self._opaquestore(opaque, volume, self._scale, time)
 
 	def opaque_bymassvolratio(self, opaque, mv, time):
 		(mass, vol) = mv
 		checktypes([(mass, Mass), (vol, Volume), (time, Timespec)])
-		opaquemass = _Mass(mass / vol)
-		self.opaques_bymassvolume.append(self._opaquestore(opaque,
-		    opaquemass, time))
+		amount = _Mass(mass / vol)
+		self._opaquestore(opaque, amount, self._xvol2x, time)
 	def opaque_byvolvolratio(self, opaque, vv, time):
 		(v1, v2) = vv
 		checktypes([(v1, Volume), (v2, Volume), (time, Timespec)])
-		opaquevolume = _Volume(v1 / v2)
-		self.opaques_byvolumevolume.append(self._opaquestore(opaque,
-		    opaquevolume, time))
+		amount = _Volume(v1 / v2)
+		self._opaquestore(opaque, amount, self._xvol2x, time)
 
-	# mass per final volume
 	def opaque_byopaque(self, opaque, ospec, time):
 		checktype(time, Timespec)
 		if ospec.__class__ != str:
 			raise PilotError('opaque spec must be a string')
-		self.opaques_byopaque.append(self._opaquestore(opaque,
-		    ospec, time))
+		self._opaquestore(opaque, ospec, None, time)
 
 	def anchor_bystrength(self, strength):
 		checktype(strength, Strength)
@@ -812,18 +825,6 @@ class Recipe:
 
 		return res
 
-	@staticmethod
-	def _hopmap(hop, mass, time, ibu):
-		return {
-		    'hop' : hop,
-		    'mass' : mass,
-		    'time' : time,
-		    'ibu' : ibu,
-		}
-	@staticmethod
-	def _hopunmap(h):
-		return (h['hop'], h['mass'], h['time'], h['ibu'])
-
 	def _dohops(self):
 		allhop = []
 
@@ -836,62 +837,53 @@ class Recipe:
 		    + wrt[Worter.POSTBOIL].strength().valueas(Strength.SG))
 		sg = Strength(t/2, Strength.SG)
 
-		# calculate IBU produced by "bymass" hops and add to printables
-		for h in self.hops_bymass:
-			if self.volume_inherent is None:
-				raise PilotError("recipe with absolute hop "
-				    + "mass does not have an inherent volume")
-			mass = self._scale(h[1])
-			ibu = h[0].IBU(sg, v_post, h[2], mass)
-			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
+		#
+		# Do the hop calculations.  We edit the original input
+		# objects, but since we only use the original values on
+		# all iterations.  Saves a big deepcopy.
+		#
+		# calculate IBU produced by "bymass" hops
+		for hs, h in [(x, x.obj) for x in self.hops if x.cookie == 'm']:
+			ibu = h.mass2IBU(sg, v_post, hs.time, hs.get_amount())
+			hs.info = ibu
 
-		for h in self.hops_bymassvolume:
-			mass = _Mass(h[1] * self._final_volume())
-			ibu = h[0].IBU(sg, v_post, h[2], mass)
-			allhop.append(Recipe._hopmap(h[0], mass, h[2], ibu))
+		# calculate mass of "byIBU" hops
+		for hs, h in [(x, x.obj) for x in self.hops if x.cookie == 'i']:
+			mass = h.IBU2mass(sg, v_post, hs.time, hs.info)
+			hs.set_amount(mass)
 
-		# calculate mass of "byIBU" hops and add to printables
-		for h in self.hops_byIBU:
-			mass = h[0].mass(sg, v_post, h[2], h[1])
-			allhop.append(Recipe._hopmap(h[0], mass, h[2], h[1]))
+		allhop = self.hops[:]
+		totibus = sum([x.info for x in allhop])
+		if self.hops_recipeIBUBUGU is not None:
+			x = self.hops_recipeIBUBUGU
+			h, t, v = x['hop'], x['time'], x['value']
 
-		totibus = sum([x['ibu'] for x in allhop])
-		if self.hops_recipeIBU is not None:
-			h = self.hops_recipeIBU
-			missibus = self.hops_recipeIBU[1] - totibus
+			if x['type'] == 'BUGU':
+				stren = self.worter[Worter.PACKAGE].strength()
+				v *= stren.valueas(stren.SG_PTS)
+			missibus = v - totibus
 			if missibus <= 0:
-				raise PilotError('total IBUs are greater than '\
-				    + 'desired total')
-			mass = h[0].mass(sg, v_post, h[2], missibus)
-			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
-			totibus += missibus
+				raise PilotError('recipe IBU/BUGU exceeded')
 
-		if self.hops_recipeBUGU is not None:
-			h = self.hops_recipeBUGU
-			bugu = self.hops_recipeBUGU[1]
-			stren = self.worter[Worter.PACKAGE].strength()
-			ibus = stren.valueas(stren.SG_PTS) * bugu
-			missibus = ibus - totibus
-			mass = h[0].mass(sg, v_post, h[2], missibus)
-			allhop.append(Recipe._hopmap(h[0], mass, h[2],missibus))
+			mass = h.IBU2mass(sg, v_post, t, missibus)
 			totibus += missibus
-
-		# sort alphabetically here (generic code doesn't know how)
-		allhop = sorted(allhop, key=lambda x: x['hop'].name)
+			hs = Addition(h, mass, None, t, cookie = 'r')
+			hs.info = missibus
+			allhop.append(hs)
 
 		# calculate amount of wort that hops will drink
 		hd = {x: 0 for x in self.hopsdrunk}
 		packagedryhopvol = 0
 		for h in allhop:
-			(hop, mass, time, ibu) = Recipe._hopunmap(h)
-			if isinstance(time, timespec.Fermentor):
-				hd['fermentor'] += hop.absorption(mass)
-			elif isinstance(time, timespec.Package):
-				hd['package'] += hop.absorption(mass)
-				packagedryhopvol += hop.volume(mass)
+			hop = h.obj
+			if isinstance(h.time, timespec.Fermentor):
+				hd['fermentor'] += hop.absorption(h.get_amount())
+			elif isinstance(h.time, timespec.Package):
+				hd['package'] += hop.absorption(h.get_amount())
+				packagedryhopvol += hop.volume(h.get_amount())
 			else:
 				# XXX
-				hd['kettle'] += hop.absorption(mass)
+				hd['kettle'] += hop.absorption(h.get_amount())
 
 		hopsdrunk = {x: _Volume(hd[x]) for x in hd}
 		hopsdrunk['volume'] = _Volume(packagedryhopvol)
@@ -899,54 +891,39 @@ class Recipe:
 
 		self.results['hops'] = allhop
 
-		totmass = _Mass(sum(x['mass'] for x in allhop))
-		self.results['hop_stats'] = Recipe._hopmap('all',
-		    totmass, None, totibus)
+		totmass = _Mass(sum(x.get_amount() for x in allhop))
+		self.results['hop_stats'] = {'mass': totmass, 'ibu' : totibus}
 
 	def _dotimers(self):
-		opaques = self.opaques_bymass + self.opaques_byvolume \
-		    + self.opaques_byopaque
-		for o in self.opaques_bymassvolume:
-			mass = _Mass(o['amount'] * self._final_volume())
-			opaques.append(self._opaquestore(o['opaque'], mass,
-			    o['time']))
-		for o in self.opaques_byvolumevolume:
-			volume = _Volume(o['amount'] * self._final_volume())
-			opaques.append(self._opaquestore(o['opaque'], volume,
-			    o['time']))
-
 		# sort the timerable additions
-		timers = self.results['hops'] + opaques
-		timers = sorted(timers, key=lambda x: x['time'], reverse=True)
+		timers = self.results['hops'] + self.opaques
+		timers = sorted(timers, key=lambda x: x.time, reverse=True)
 
 		# calculate "timer" field values
 		prevtype = None
 		timer = 0
 		boiltimer = _Duration(0)
 		for t in reversed(timers):
-			time = t['time']
+			time = t.time
 			if prevtype is None or not isinstance(time, prevtype):
 				timer = _Duration(0)
 				prevval = None
 				prevtype = time.__class__
 
-			if isinstance(time, timespec.Mash):
-				t['timer'] = str(time)
-			if isinstance(time, timespec.Fermentor):
-				t['timer'] = str(time)
-			if isinstance(time, timespec.Package):
-				t['timer'] = str(time)
+			if isinstance(time, (timespec.Mash, timespec.Fermentor,
+			    timespec.Package)):
+				t.timer = time
 
 			if isinstance(time, timespec.Whirlpool):
 				if prevval is not None \
 				    and prevval[0] == time.temp:
 					if prevval[1] == time.time:
-						t['timer'] = '=='
+						t.timer = '=='
 					else:
 						v = time.time - prevval[1]
-						t['timer'] = str(v)
+						t.timer = v
 				else:
-					t['timer'] = str(time.time)
+					t.timer = time.time
 				prevval = (time.temp, time.time)
 
 			if isinstance(time, timespec.Boil):
@@ -956,18 +933,18 @@ class Recipe:
 				if cmpval != timer:
 					thisval = str(cmpval - timer)
 					timer = cmpval
-				t['timer'] = thisval
+				t.timer = thisval
 				boiltimer = timer
 
 		# if timers don't start from start of boil, add an opaque
 		# to specify initial timer value
 		if ((self.boiltime is not None and self.boiltime > 0)
 		    and boiltimer != self.boiltime):
-			sb = self._opaquestore('', '',
+			sb = Addition(Opaque(''), '', None,
 			    timespec.Boil('boiltime'))
-			sb['timer'] = str(self.boiltime - boiltimer)
+			sb.timer = self.boiltime - boiltimer
 			timers = sorted([sb] + timers,
-			    key=lambda x: x['time'], reverse=True)
+			    key=lambda x: x.time, reverse=True)
 
 		self.results['timer_additions'] = timers
 
@@ -992,6 +969,15 @@ class Recipe:
 			adj = brewutils.water_voltemp_to_mass(diff, boiltemp)
 			self._boiladj += adj
 
+	def _checkinputs(self):
+		if self._final_volume() is None:
+			raise PilotError("final volume is not set")
+
+		if len(self.needinherent) > 0 and self.volume_inherent is None:
+			raise PilotError("recipe has absolute amounts but "
+			    + "no inherent volume: "
+			    + ','.join(self.needinherent))
+
 	def calculate(self):
 		sysparams.checkset()
 
@@ -999,8 +985,7 @@ class Recipe:
 			raise PilotError("you can calculate() a recipe once")
 		self._calculatestatus += 1
 
-		if self._final_volume() is None:
-			raise PilotError("final volume is not set")
+		self._checkinputs()
 
 		s = self._scale(_Mass(1))
 		if abs(s - 1.0) > .0001:

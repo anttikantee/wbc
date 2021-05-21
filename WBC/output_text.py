@@ -169,36 +169,22 @@ def _printtimers(input, results):
 	if len(results['timer_additions']) == 0:
 		return
 
-	namelen = 38
-	onefmt = '{:' + str(namelen) + '}{:>6}{:>12}{:>12}{:>10}'
+	nlen = 38
+	ilen = 6
+	onefmt = '{:' + str(nlen) + '}{:>' + str(ilen) + '}{:>12}{:>12}{:>10}'
 	print(onefmt.format("Additions & Hops", "IBUs",
 	    "amount", "timespec", "timer"))
 	prtsep()
 
-	def hopvals(h):
-		return (h['hop'].name2str(namelen),
-		    '{:.1f}'.format(h['ibu']), str(h['mass']))
-
-	def opaquevals(o):
-		(opaque,amount) = (o['opaque'],o['amount'])
-		return (opaque, '', str(amount))
-
 	prevstage = None
 	for t in results['timer_additions']:
-		time = t['time']
-		if 'hop' in t:
-			v = hopvals(t)
-		elif 'opaque' in t:
-			v = opaquevals(t)
-
-		#stage = timespec.timespec2stage[time.__class__]
-		stage = time.__class__
-		if prevstage is not None and \
-		    prevstage is not stage:
+		stage = t.time.__class__
+		if prevstage is not None and prevstage is not stage:
 			prtsep('-')
 		prevstage = stage
 
-		print(onefmt.format(*v, time.timespecstr(), t['timer']))
+		v = (t.namestr(nlen), t.infostr(ilen), str(t.get_amount()))
+		print(onefmt.format(*v, t.time.timespecstr(), t.timerstr(None)))
 	prtsep()
 	print()
 

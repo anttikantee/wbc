@@ -48,9 +48,9 @@ class Hop:
 
 	def __repr__(self):
 		return 'Hop object for: ' + self.name + '/' + self.type \
-		    + '/' + '{4.1%}'.format(self.aa)
+		    + '/' + '{:4.1%}'.format(self.aa)
 
-	def name2str(self, maxlen):
+	def namestr(self, maxlen):
 		n = self.name
 		t = self.type
 		a = self.aa
@@ -59,15 +59,22 @@ class Hop:
 		tlen = len(tstr)
 		minnamefield = 12
 		minnamelen = tlen + minnamefield + 1
-		if maxlen != -1 and maxlen < minnamelen:
-			raise PilotError('min field size:' + str(minnamelen))
-
-		nlen = maxlen - (tlen+1)
-
-		if len(n) > nlen:
-			n = n[0:nlen-2] + '..'
+		if maxlen != None:
+			if maxlen < minnamelen:
+				raise PilotError('min field size:'
+				    + str(minnamelen))
+			nlen = maxlen - (tlen+1)
+			if len(n) > nlen:
+				n = n[0:nlen-2] + '..'
+			nstr = str(nlen)
+		else:
+			nstr = ''
 		fmt = '{:' + str(nlen) + '} {:}'
 		return fmt.format(n, tstr)
+
+	# format IBU
+	def infostr(self, maxlen, info):
+		return '{:.1f}'.format(info)
 
 	#
 	# Tinseth IBUs, from http://realbeer.com/hops/research.html
@@ -113,14 +120,14 @@ class Hop:
 			bonus = 1.1
 		return bonus * bignessfact * boilfact
 
-	def IBU(self, strength, volume, time, mass):
+	def mass2IBU(self, strength, volume, time, mass):
 		checktypes([(strength, Strength), (mass, Mass)])
 
 		util = self.__util(strength, time)
 		v = util * self.aa * mass.valueas(Mass.MG) / volume
 		return v
 
-	def mass(self, strength, volume, time, IBU):
+	def IBU2mass(self, strength, volume, time, IBU):
 		checktype(strength, Strength)
 
 		util = self.__util(strength, time)
