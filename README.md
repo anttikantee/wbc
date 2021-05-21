@@ -116,19 +116,19 @@ Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
 |me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=plato|uo=metric
 ===============================================================================
 
-Fermentables                                    amount  ext (100%)   ext (88%)
+Fermentables                                    amount  ext (100%)   ext (pkg)
 ===============================================================================
 Mash
-Avangard Pilsner                      4.46 kg ( 77.9%)     3.36 kg     2.96 kg
-Weyermann Munich I                      503 g (  8.8%)       382 g       336 g
-Avangard Vienna                         503 g (  8.8%)       374 g       329 g
-Weyermann Melanoidin                    160 g (  2.8%)       115 g       101 g
-                                      5.62 kg ( 98.3%)     4.23 kg     3.72 kg
+Avangard Pilsner                      4.46 kg ( 77.9%)     3.36 kg     2.63 kg
+Weyermann Munich I                      503 g (  8.8%)       382 g       300 g
+Avangard Vienna                         503 g (  8.8%)       374 g       294 g
+Weyermann Melanoidin                    160 g (  2.8%)       115 g      90.0 g
+                                      5.62 kg ( 98.3%)     4.23 kg     3.32 kg
 -------------------------------------------------------------------------------
 Package
 table sugar                            95.0 g (  1.7%)      95.0 g      95.0 g
 ===============================================================================
-                                      5.72 kg (100.0%)     4.32 kg     3.82 kg
+                                      5.72 kg (100.0%)     4.32 kg     3.41 kg
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
@@ -142,9 +142,9 @@ Sparge water:       11.9L @ 82.0°C (11.6L @ 20.0°C)
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Magnum (pellet)                  12.7%  19.4      14.3 g      @ boil    30 min
-Tettnanger (pellet)               3.7%   5.8      19.0 g      30 min    15 min
-Tettnanger (pellet)               3.7%   3.7      19.0 g      15 min    15 min
+Magnum (T90)                     12.7%  19.4      14.3 g      @ boil    30 min
+Tettnanger (T90)                  3.7%   5.8      19.0 g      30 min    15 min
+Tettnanger (T90)                  3.7%   3.7      19.0 g      15 min    15 min
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
@@ -179,19 +179,19 @@ Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
 |me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=sg|uo=us
 ===============================================================================
 
-Fermentables                                    amount  ext (100%)   ext (88%)
+Fermentables                                    amount  ext (100%)   ext (pkg)
 ===============================================================================
 Mash
-Avangard Pilsner                   9 13/16 lb ( 77.9%)    7 3/8 lb    6 1/2 lb
-Weyermann Munich I                  1 1/16 lb (  8.8%)    13.47 oz    11.86 oz
-Avangard Vienna                     1 1/16 lb (  8.8%)    13.21 oz    11.62 oz
-Weyermann Melanoidin                  5.65 oz (  2.8%)     4.05 oz     3.56 oz
-                                    12 3/8 lb ( 98.3%)   9 5/16 lb   8 3/16 lb
+Avangard Pilsner                   9 13/16 lb ( 77.9%)    7 3/8 lb    5 3/4 lb
+Weyermann Munich I                  1 1/16 lb (  8.8%)    13.47 oz    10.56 oz
+Avangard Vienna                     1 1/16 lb (  8.8%)    13.21 oz    10.36 oz
+Weyermann Melanoidin                  5.65 oz (  2.8%)     4.05 oz     3.18 oz
+                                    12 3/8 lb ( 98.3%)   9 5/16 lb    7 1/4 lb
 -------------------------------------------------------------------------------
 Package
 table sugar                           3.35 oz (  1.7%)     3.35 oz     3.35 oz
 ===============================================================================
-                                   12 9/16 lb (100.0%)    9 1/2 lb    8 3/8 lb
+                                   12 9/16 lb (100.0%)    9 1/2 lb    7 1/2 lb
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
@@ -205,9 +205,9 @@ Sparge water:       3.1gal @ 179.6°F (3.1gal @ 68.0°F)
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Magnum (pellet)                  12.7%  19.4     0.51 oz      @ boil    30 min
-Tettnanger (pellet)               3.7%   5.8     0.67 oz      30 min    15 min
-Tettnanger (pellet)               3.7%   3.7     0.67 oz      15 min    15 min
+Magnum (T90)                     12.7%  19.4     0.51 oz      @ boil    30 min
+Tettnanger (T90)                  3.7%   5.8     0.67 oz      30 min    15 min
+Tettnanger (T90)                  3.7%   3.7     0.67 oz      15 min    15 min
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
@@ -243,8 +243,8 @@ fermentables:
                 table sugar:       5%
 
 defs:
-        - [ &mosaic [ Mosaic,    12.4%,  pellet ] ]
-        - [ &citra  [ Citra,     14.0%,  pellet ] ]
+        - [ &mosaic [ Mosaic,    12.4%,  T90 ] ]
+        - [ &citra  [ Citra,     14.0%,  T90 ] ]
 
 hops:
         - [ *citra,      10g, 20 min ]
@@ -285,18 +285,18 @@ Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
 |me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=plato|uo=metric
 ===============================================================================
 
-Fermentables                                    amount  ext (100%)   ext (88%)
+Fermentables                                    amount  ext (100%)   ext (pkg)
 ===============================================================================
 Mash
-Briess Pale                           3.75 kg ( 67.0%)     2.82 kg     2.48 kg
-Avangard Vienna                       1.01 kg ( 18.0%)       749 g       659 g
-flaked oats                             559 g ( 10.0%)       360 g       317 g
-                                      5.31 kg ( 95.0%)     3.93 kg     3.46 kg
+Briess Pale                           3.75 kg ( 67.0%)     2.82 kg     2.20 kg
+Avangard Vienna                       1.01 kg ( 18.0%)       749 g       582 g
+flaked oats                             559 g ( 10.0%)       360 g       280 g
+                                      5.31 kg ( 95.0%)     3.93 kg     3.06 kg
 -------------------------------------------------------------------------------
 Ferment
-table sugar                             280 g (  5.0%)       280 g       280 g
+table sugar                             280 g (  5.0%)       280 g       267 g
 ===============================================================================
-                                      5.59 kg (100.0%)     4.21 kg     3.74 kg
+                                      5.59 kg (100.0%)     4.21 kg     3.32 kg
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
@@ -309,19 +309,19 @@ Sparge water:       11.1L @ 82.0°C (10.8L @ 20.0°C)
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Citra (pellet)                   14.0%   9.1      10.0 g      @ boil        ==
-Mosaic (pellet)                  12.4%   8.0      10.0 g      @ boil    18 min
-Citra (pellet)                   14.0%   1.3      10.0 g       2 min        ==
-Mosaic (pellet)                  12.4%   1.1      10.0 g       2 min     2 min
+Citra (T90)                      14.0%   9.1      10.0 g      @ boil        ==
+Mosaic (T90)                     12.4%   8.0      10.0 g      @ boil    18 min
+Citra (T90)                      14.0%   1.3      10.0 g       2 min        ==
+Mosaic (T90)                     12.4%   1.1      10.0 g       2 min     2 min
 -------------------------------------------------------------------------------
-Citra (pellet)                   14.0%   0.0      15.0 g    @ 85.0°C        ==
-Mosaic (pellet)                  12.4%   0.0      15.0 g    @ 85.0°C    10 min
+Citra (T90)                      14.0%   0.0      15.0 g    @ 85.0°C        ==
+Mosaic (T90)                     12.4%   0.0      15.0 g    @ 85.0°C    10 min
 -------------------------------------------------------------------------------
-Citra (pellet)                   14.0%   0.0      11.0 g   fermentor  3d -> 0d
-Mosaic (pellet)                  12.4%   0.0      11.0 g   fermentor  3d -> 0d
+Citra (T90)                      14.0%   0.0      11.0 g   fermentor  3d -> 0d
+Mosaic (T90)                     12.4%   0.0      11.0 g   fermentor  3d -> 0d
 -------------------------------------------------------------------------------
-Citra (pellet)                   14.0%   0.0      52.0 g     package   package
-Mosaic (pellet)                  12.4%   0.0      52.0 g     package   package
+Citra (T90)                      14.0%   0.0      52.0 g     package   package
+Mosaic (T90)                     12.4%   0.0      52.0 g     package   package
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
@@ -359,18 +359,18 @@ Ta=20degC|Tb=100degC|Tp=100degC|Ts=82degC|bo=3.5l|fl=0.8l|ga=1.50L/kg|kl=1.2l
 |me=88%|mh=1.5|ml=1l|mr=50%|mt=transfer|so=sg|uo=us
 ===============================================================================
 
-Fermentables                                    amount  ext (100%)   ext (88%)
+Fermentables                                    amount  ext (100%)   ext (pkg)
 ===============================================================================
 Mash
-Briess Pale                          8 1/4 lb ( 67.0%)   6 3/16 lb   5 7/16 lb
-Avangard Vienna                     2 3/16 lb ( 18.0%)    1 5/8 lb   1 7/16 lb
-flaked oats                         1 3/16 lb ( 10.0%)    12.70 oz    11.18 oz
-                                  11 11/16 lb ( 95.0%)    8 5/8 lb    7 5/8 lb
+Briess Pale                          8 1/4 lb ( 67.0%)   6 3/16 lb  4 13/16 lb
+Avangard Vienna                     2 3/16 lb ( 18.0%)    1 5/8 lb    1 1/4 lb
+flaked oats                         1 3/16 lb ( 10.0%)    12.70 oz     9.88 oz
+                                  11 11/16 lb ( 95.0%)    8 5/8 lb  6 11/16 lb
 -------------------------------------------------------------------------------
 Ferment
-table sugar                           9.86 oz (  5.0%)     9.86 oz     9.86 oz
+table sugar                           9.86 oz (  5.0%)     9.86 oz     9.41 oz
 ===============================================================================
-                                   12 5/16 lb (100.0%)    9 1/4 lb   8 3/16 lb
+                                   12 5/16 lb (100.0%)    9 1/4 lb   7 5/16 lb
 
 Mashstep          Time                Adjustment           Ratio        Volume
 ===============================================================================
@@ -383,19 +383,19 @@ Sparge water:       2.9gal @ 179.6°F (2.9gal @ 68.0°F)
 
 Additions & Hops                   AA%  IBUs      amount    timespec     timer
 ===============================================================================
-Citra (pellet)                   14.0%   9.1     0.35 oz      @ boil        ==
-Mosaic (pellet)                  12.4%   8.0     0.35 oz      @ boil    18 min
-Citra (pellet)                   14.0%   1.3     0.35 oz       2 min        ==
-Mosaic (pellet)                  12.4%   1.1     0.35 oz       2 min     2 min
+Citra (T90)                      14.0%   9.1     0.35 oz      @ boil        ==
+Mosaic (T90)                     12.4%   8.0     0.35 oz      @ boil    18 min
+Citra (T90)                      14.0%   1.3     0.35 oz       2 min        ==
+Mosaic (T90)                     12.4%   1.1     0.35 oz       2 min     2 min
 -------------------------------------------------------------------------------
-Citra (pellet)                   14.0%   0.0     0.53 oz   @ 185.0°F        ==
-Mosaic (pellet)                  12.4%   0.0     0.53 oz   @ 185.0°F    10 min
+Citra (T90)                      14.0%   0.0     0.53 oz   @ 185.0°F        ==
+Mosaic (T90)                     12.4%   0.0     0.53 oz   @ 185.0°F    10 min
 -------------------------------------------------------------------------------
-Citra (pellet)                   14.0%   0.0     0.39 oz   fermentor  3d -> 0d
-Mosaic (pellet)                  12.4%   0.0     0.39 oz   fermentor  3d -> 0d
+Citra (T90)                      14.0%   0.0     0.39 oz   fermentor  3d -> 0d
+Mosaic (T90)                     12.4%   0.0     0.39 oz   fermentor  3d -> 0d
 -------------------------------------------------------------------------------
-Citra (pellet)                   14.0%   0.0     1.83 oz     package   package
-Mosaic (pellet)                  12.4%   0.0     1.83 oz     package   package
+Citra (T90)                      14.0%   0.0     1.83 oz     package   package
+Mosaic (T90)                     12.4%   0.0     1.83 oz     package   package
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
