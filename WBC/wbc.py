@@ -1133,15 +1133,15 @@ class Recipe:
 
 		print('# hop|name|type|aa%|mass|timeclass|timespec')
 		for h in self.results['hops']:
-			hop = h['hop']
-			time = h['time']
+			hop = h.obj
+			time = h.time
 			timeclass = time.__class__.__name__.lower()
 			timespec = str(time).replace(chr(0x00b0), "deg")
 			timespec = str(timespec)
 
-			print('hop|{:}|{:}|{:}|{:}|{:}|{:}'
-			    .format(hop.name, hop.type, hop.aa,
-				float(h['mass']), timeclass, timespec))
+			print('hop|{:}|{:}|{:.1f}|{:}|{:}|{:}'
+			    .format(hop.name, hop.type, 100.0*hop.aa,
+				float(h.get_amount()), timeclass, timespec))
 
 	# parti-gyle calculations was actually the reason I initially
 	# started writing WBC, but parti-gyle is now bitrotted a bit

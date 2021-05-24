@@ -35,7 +35,7 @@ class MashStep:
 	def __str__(self):
 		rv = ''
 		if self.time is not self.TIME_UNSPEC:
-			rv = str(self.time) + 'min @ '
+			rv = str(self.time) + ' @ '
 		return rv + str(self.temperature)
 
 class Mash:
