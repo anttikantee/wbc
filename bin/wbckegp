@@ -87,30 +87,32 @@ if __name__ == '__main__':
 		return Mass(x, Mass.G).valueas(Mass.OZ) \
 		    / Volume(1, Volume.QUART)
 
-	print('{:24}:{:>12}{:>12}'.format('Pressure',
-	    p().stras(Pressure.BAR), p().stras(Pressure.PSI)))
-	print('{:24}:{:>12}{:>12}'.format('Temperature',
-	    t().stras(Temperature.degC), t().stras(Temperature.degF)))
-	print('{:24}:{:>12.1f}'.format('CO2 (v/v)', v()))
+	def print1(fname, value1):
+		print('{:24}:{:>12}'.format(fname, value1))
+	def print2(fname, value1, value2):
+		print('{:24}:{:>12}{:>12}'.format(fname, value1, value2))
+	def print2_system(fname, o):
+		print2(fname, o.stras_system('metric'), o.stras_system('us'))
+
+	print2('Pressure', p().stras(Pressure.BAR), p().stras(Pressure.PSI))
+	print2_system('Temperature', t())
+	print1('CO2 (v/v)', '{:.1f}'.format(v()))
 	print()
 
 	co2gl = v() * constants.co2_stp_gl
-	print('{:24}:{:>12}{:>12}'.format('Dissolved CO2 (w/v)',
+	print2('Dissolved CO2 (w/v)',
 	    '{:.2f}'.format(co2gl) + ' g/l',
-	    '{:.2f}'.format(wvtous(co2gl)) + ' oz/qt'))
+	    '{:.2f}'.format(wvtous(co2gl)) + ' oz/qt')
 
-	print('{:24}:{:>12}{:>12}'.format('Headspace CO2 (w/v)',
+	print2('Headspace CO2 (w/v)',
 	    '{:.2f}'.format(co2head_gl) + ' g/l',
-	    '{:.2f}'.format(wvtous(co2head_gl)) + ' oz/qt'))
+	    '{:.2f}'.format(wvtous(co2head_gl)) + ' oz/qt')
 
 	if kegvol is not None:
 		print()
 		co2dis = Mass(co2gl * kegvol, Mass.G)
-		print('{:24}:{:>12}{:>12}'.format('Dissolved CO2 (init.)',
-		    co2dis.stras_system('metric'), co2dis.stras_system('us')))
+		print2_system('Dissolved CO2 (init.)', co2dis)
 		co2head = Mass(co2head_gl * kegvol, Mass.G)
-		print('{:24}:{:>12}{:>12}'.format('Headspace CO2 (final)',
-		    co2head.stras_system('metric'), co2head.stras_system('us')))
+		print2_system('Headspace CO2 (final)', co2head)
 		co2tot = _Mass(co2dis + co2head)
-		print('{:24}:{:>12}{:>12}'.format('Total CO2 use',
-		    co2tot.stras_system('metric'), co2tot.stras_system('us')))
+		print2_system('Total CO2 use', co2tot)
