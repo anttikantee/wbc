@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 	def wvtous(x):
 		return Mass(x, Mass.G).valueas(Mass.OZ) \
-		    / Volume(1, Volume.QUART)
+		    * Volume(1, Volume.QUART)
 
 	def print1(fname, value1):
 		print('{:24}:{:>12}'.format(fname, value1))
