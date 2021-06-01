@@ -852,6 +852,12 @@ class Recipe:
 	def _dotimers(self):
 		# sort the timerable additions
 		timers = self.results['hops'] + self.opaques
+
+		# include boiltime fermentables under timers.
+		# XXX: should be user-configurable
+		timers += [x for x in self.fermentables
+		    if isinstance(x.time, timespec.Boil)]
+
 		timers = sorted(timers, key=lambda x: x.time, reverse=True)
 
 		# calculate "timer" field values

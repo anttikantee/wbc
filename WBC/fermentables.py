@@ -44,6 +44,12 @@ class Fermentable:
 		else:
 			self.name = self.product
 
+	def namestr(self, maxlen):
+		return self.name
+
+	def infostr(self, maxlen, info):
+		return ''
+
 fermentables = []
 
 class Extract:
