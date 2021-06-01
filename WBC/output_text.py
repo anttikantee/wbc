@@ -36,7 +36,7 @@ def _printfermentables(input, results):
 
 	def handleonestage(stage, needsep):
 		lst = [x for x in results['fermentables']
-		    if timespec.timespec2stage[x['when'].__class__] == stage]
+		    if timespec.timespec2stage[x.time.__class__] == stage]
 		if len(lst) == 0:
 			return needsep
 
@@ -45,11 +45,11 @@ def _printfermentables(input, results):
 		print(stage.title())
 
 		for f in lst:
-			persstr = ' ({:5.1f}%)'.format(f['percent'])
-			print(fmtstr.format(f['fermentable'].name,
-			    str(f['mass']) + persstr,
-			    str(f['extract_theoretical']),
-			    str(f['extract_predicted'])))
+			persstr = ' ({:5.1f}%)'.format(f.info['percent'])
+			print(fmtstr.format(f.obj.name,
+			    str(f.get_amount()) + persstr,
+			    str(f.info['extract_theoretical']),
+			    str(f.info['extract_predicted'])))
 
 		# print stage summary only for stages with >1 fermentable
 		if len(lst) > 1:

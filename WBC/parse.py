@@ -218,7 +218,7 @@ def mashstep(input):
 		return mash.MashStep(temperature(input))
 
 def fermentableunit(input):
-	if input == 'rest':
+	if input == Recipe.THEREST:
 		return (Recipe.fermentable_bypercent, Recipe.THEREST)
 
 	if '/' in input:

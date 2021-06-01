@@ -65,11 +65,7 @@ class Recipe:
 		self.hops = []
 		self.hops_recipeIBUBUGU = None
 
-		self.fermentables_bymass = []
-		self.fermentables_bymassvol = []
-		self.fermentables_bypercent = []
-		self.fermentables_restguess = []
-		self.fermentables_therest = []
+		self.ferms_in = []
 
 		# the current "best guess" for additional extract needed
 		# to reach final-strength target (for applicable recipes)
@@ -100,7 +96,7 @@ class Recipe:
 	def paramfile(self, filename):
 		Sysparams.processfile(filename)
 
-	THEREST=	object()
+	THEREST=	'rest'
 
 	def _final_volume(self):
 		assert(self._calculatestatus > 0)
@@ -294,63 +290,45 @@ class Recipe:
 		self.final_strength = strength
 		self.input['strength'] = strength
 
-	def _validate_ferm(self, fermentable, when):
-		name = fermentable.name
-		ferms = self.fermentables_bymass + self.fermentables_bypercent
-		v = [x for x in ferms
-		    if x['fermentable'].name== name and x['when'] == when ]
+	def _fermstore(self, name, amount, resolver, time, cookie):
+		ferm = fermentables.Get(name)
+		v = [x for x in self.ferms_in
+		    if x.obj.name.lower() == name.lower() and x.time == time ]
 		if len(v) > 0:
 			raise PilotError('fermentables may be specified max '
 			    + 'once per stage')
 
-	@staticmethod
-	def _fermmap(fermentable, type, amount, when):
-		return {
-			'fermentable' : fermentable,
-			type : amount,
-			'when' : when,
-		}
+		checktypes([(ferm, fermentables.Fermentable), (time, Timespec)])
+		a = Addition(ferm, amount, resolver, time, cookie = cookie)
+		self.ferms_in.append(a)
+		return a
 
-	def fermentable_bymass(self, name, mass, when):
-		checktypes([(mass, Mass), (when, Timespec)])
-
-		fermentable = fermentables.Get(name)
-		self._validate_ferm(fermentable, when)
-
-		f = self._fermmap(fermentable, 'mass', mass, when)
-		self.fermentables_bymass.append(f)
-
-	def fermentable_bymassvolratio(self, name, mv, when):
-		checktype(when, Timespec)
-		(mass, vol) = mv
+	def fermentable_bymass(self, name, mass, time):
 		checktype(mass, Mass)
-		checktype(vol, Volume)
-		normmass = _Mass(mass / vol)
+		self._needinherentvol('fermentable_bymass')
+		amount = mass
+		self._fermstore(name, amount, self._scale, time, 'm')
 
-		fermentable = fermentables.Get(name)
-		self._validate_ferm(fermentable, when)
+	def fermentable_bymassvolratio(self, name, mv, time):
+		(mass, vol) = mv
+		checktypes([(mass, Mass), (vol, Volume)])
+		amount = _Mass(mass / vol)
 
-		f = self._fermmap(fermentable, 'massvol', normmass, when)
-		self.fermentables_bymassvol.append(f)
+		self._fermstore(name, amount, self._xvol2x, time, 'm')
 
 	# percent of fermentable's mass, not extract's mass
-	def fermentable_bypercent(self, name, percent, when):
-		if percent is not self.THEREST and percent <= 0:
-			raise PilotError('grain percentage must be positive '\
-			  '(it is a fun thing!)')
+	def fermentable_bypercent(self, name, percent, time):
+		if percent != self.THEREST:
+			if percent <= 0:
+				raise PilotError('grain percentage must be '
+				   + 'positive (it is a fun thing!)')
+			if sum([x.get_amount() for x in self.ferms_in
+			    if x.cookie == 'p']) + percent > 100.0001:
+				raise PilotError('captain, I cannot change the'
+				    + ' laws of math; 100% fermentables max!')
 
-		fermentable = fermentables.Get(name)
-		self._validate_ferm(fermentable, when)
-
-		f = self._fermmap(fermentable, 'percent', percent, when)
-		if percent is self.THEREST:
-			self.fermentables_therest.append(f)
-		else:
-			self.fermentables_bypercent.append(f)
-			if sum(x['percent'] \
-			    for x in self.fermentables_bypercent) > 100:
-				raise PilotError('captain, I cannot change the'\
-				    ' laws of math; 100% fermentables max!')
+		self._fermstore(name, percent, None, time,
+		    'p' if percent != self.THEREST else 'r')
 
 	# indicate that we want to "borrow" some wort at the preboil stage
 	# for e.g. building starters.
@@ -360,24 +338,27 @@ class Recipe:
 		self.input['stolen_wort'].set_volstrength(vol, strength)
 
 	def _fermentable_percentage(self, what, theoretical=False):
-		f = what['fermentable']
+		f = what.obj
 		percent = f.extract.cgai()
 		if f.conversion and not theoretical:
 			percent *= getparam('mash_efficiency')/100.0
 		return percent
 
 	def _fermentable_extract(self, what, theoretical=False):
-		return _Mass(what['mass']
+		return _Mass(what.get_amount()
 		    * self._fermentable_percentage(what, theoretical)/100.0)
 
 	def _fermentables_bytimespec(self, when):
 		spec = timespec.stage2timespec[when]
 
 		return [x for x in self.fermentables \
-		    if x['when'].__class__ in spec]
+		    if x.time.__class__ in spec]
 
-	def _fermentables_mass(self, fermlist):
-		return _Mass(sum(x['mass'] for x in fermlist))
+	def _fermentables_massof(self, fermlist):
+		return sum(x.get_amount() for x in fermlist)
+
+	def _fermfilter(self, sel):
+		return [x for x in self.ferms_in if x.cookie in tuple(sel)]
 
 	def _extract_bytimespec(self, stage, theoretical=False):
 		assert(stage in Timespec.stages)
@@ -389,30 +370,30 @@ class Recipe:
 		# XXX: none at the time
 		pass
 
-	def _fermentables_bymass(self):
-		# convert massvol to mass now that we know final_volume
-		for f in self.fermentables_bymassvol:
-			f['mass'] = _Mass(f['massvol'] * self._final_volume())
-			self.fermentables_bymass.append(f)
+	# set initial guesses for fermentables
+	def _dofermentables_preprocess(self):
+		rlst, plst = self._fermfilter('r'), self._fermfilter('p')
+		if len(rlst + plst) == 0:
+			return
 
-		# do the above only once, result is static
-		self.fermentables_bymassvol = []
+		ptot = sum([x.get_amount() for x in plst])
+		if len(rlst) == 0:
+			if abs(ptot - 100.) > .00001:
+				raise PilotError('need 100% fermentables. '
+				    + 'literally forgot "rest"?')
+			return
 
-		if (len(self.fermentables_bymass) == 0
-		    and self.volume_inherent is None):
-			raise PilotError("recipe with absolute "
-			    + "fermentable mass "
-			    + "does not have an inherent volume")
+		missing = 100. - ptot
+		if missing > .000001:
+			for f in rlst:
+				f.set_amount(missing / len(rlst))
 
-		# put grains onto our "working list", scaling them if
-		# necessary
-		ferms = []
-		for f in self.fermentables_bymass:
-			n = f.copy()
-			n['mass'] = self._scale(n['mass'])
-			ferms.append(n)
-
-		return ferms
+		# note: by-percent fermentables are 100% here.
+		# all fermentables (if by-mass are specified)
+		# might be over.  we'll adjust the guess for
+		# "rest" later so that sum of fermentables is 100%.
+		assert(abs(sum([x.get_amount() for x in rlst+plst])
+		    - 100.) < .000001)
 
 	def _dofermentables_bypercent(self, ferms):
 		#
@@ -425,39 +406,14 @@ class Recipe:
 		# of hop thirst, etc).
 		#
 		#
-		def allpers(r):
-			return (r.fermentables_bypercent
-			    + r.fermentables_restguess)
 
 		# Guess extract we get from "bymass" fermentables.
 		mext = _Mass(sum([self._fermentable_extract(x) for x in ferms]))
 
-		totpers = sum(x['percent'] for x in allpers(self))
-		missing = 100 - float(totpers)
-
-		if missing > .000001:
-			if len(self.fermentables_therest) > 0:
-				mp = missing / len(self.fermentables_therest)
-				for tr in self.fermentables_therest:
-					tr['percent'] = mp
-					self.fermentables_restguess.append(tr)
-				self.fermentables_therest = []
-
-				# note: by-percent fermentables are 100% here.
-				# all fermentables (if by-mass are specified)
-				# might be over.  we'll adjust "restguess"
-				# below so that sum of fermentables is 100%.
-				assert (abs(sum(x['percent'] \
-				    for x in allpers(self)) - 100.0) < .000001)
-			elif len(self.fermentables_restguess) == 0:
-				raise PilotError('need 100% of fermentables')
-
-		# calculate extract required for strength, and derive
-		# masses of fermentables from that
-
 		extract = self._final_extract() + self.fermentable_extadj
 
-		# take into account any yield we already get from
+		# set the amount of extract we need from by-percent
+		# fermentables (= total - yield_bymass)
 		# per-mass additions
 		if mext > extract:
 			raise PilotError('strength anchor and '
@@ -466,6 +422,7 @@ class Recipe:
 
 		# produce one best-current-guess for fermentable masses.
 		def guess(f_in):
+			allp = self._fermfilter(('r', 'p'))
 			# solve for the total mass of fermentables
 			# we need to reach our extract goal:
 			#
@@ -477,20 +434,21 @@ class Recipe:
 			# and   mn = %n * totmass
 			# and then solve: totmass = extract / (sum(yieldn*pn))
 			thesum = sum([self._fermentable_percentage(x)/100.0
-			    * x['percent']/100.0 for x in allpers(self)])
+			    * x.get_amount()/100.0 for x in allp])
 			totmass = _Mass(extract / thesum)
 
 			f_out = []
 			f_out += f_in
 
 			# set the masses of each individual fermentable
-			for x in allpers(self):
+			for x in allp:
 				# limit mass to 0.1g accuracy
-				m = int(10000*(x['percent']/100.0 * totmass)) \
-				    / 10000.0
-				#m = round(x['percent']/100.0 * totmass, 4)
-				n = x.copy()
-				n['mass'] = _Mass(m)
+				m = (int(10000*(x.get_amount()/100.0 * totmass))
+				    / 10000.0)
+				n = copy.copy(x)
+				# save original percent in info for later
+				n.info = x.get_amount()
+				n.set_amount(_Mass(m))
 				f_out.append(n)
 			return f_out
 
@@ -508,28 +466,28 @@ class Recipe:
 		# percentages is 100% (otherwise the fixed percentages
 		# are below their values), and recalculate the mass of
 		# the by-percent fermentables.
-		if (len(self.fermentables_bypercent) > 0
-		    and len(self.fermentables_restguess) > 0):
+		if (len(self._fermfilter('r')) > 0
+		    and len(self._fermfilter('p')) > 0):
 			iters = 30
 			if mext > 0.0001:
 				self._once(notice,
 				    'finding the solution for fixed '
 				    'percentages and masses\n')
 			for g in range(iters):
-				fr = self.fermentables_restguess
+				fr = self._fermfilter('r')
 				f_guess = guess(ferms)
-				fp = [x for x in f_guess if 'percent' in x]
+				fp = [x for x in f_guess if x.cookie == 'p']
 
 				# pick largest value to adjust against.
 				# gut feeling that it'll make things more
 				# accurate.  we have to pick *some* value
 				# in any case, so might as well pick this one.
-				f = sorted(fp, key=lambda x: x['percent'],
+				f = sorted(fp, key=lambda x: x.get_amount(),
 				   reverse=True)[0]
 
-				f_wanted = f['percent']
-				allmass = self._fermentables_mass(f_guess)
-				f_actual = 100.0 * (f['mass'] / allmass)
+				f_wanted = f.info
+				allmass = self._fermentables_massof(f_guess)
+				f_actual = 100.0 * (f.get_amount() / allmass)
 				diff = f_wanted - f_actual
 				if abs(diff) < 0.01:
 					break
@@ -537,14 +495,14 @@ class Recipe:
 
 				# scale the diff to the "rest" values we're
 				# adjusting
-				scale = (fr[0]['percent'] / f_wanted)
+				scale = (fr[0].get_amount() / f_wanted)
 				if scale < 1:
 					scale = 1/scale
 				assert(scale >= 1)
 				adj = scale * (diff / nrest)
 				for x in fr:
-					x['percent'] -= adj
-					if (x['percent'] < 0.01):
+					x.set_amount(x.get_amount() - adj)
+					if (x.get_amount() < 0.01):
 						raise PilotError('cannot solve '
 						    'recipe. lower bymass or '
 						    'raise strength')
@@ -560,13 +518,9 @@ class Recipe:
 	# turn percentages into masses, calculate expected worters
 	# for each worter stage
 	def _dofermentables_and_worters(self):
-		def allpers(r):
-			return (r.fermentables_bypercent
-			    + r.fermentables_restguess)
-
-		ferms = self._fermentables_bymass()
-		if len(allpers(self)) + len(self.fermentables_therest) == 0:
-			self._set_calcguess(ferms, None)
+		ferms_bymass = self._fermfilter('m')
+		if len(self._fermfilter(('r', 'p'))) == 0:
+			self._set_calcguess(ferms_bymass, None)
 			l = self.vol_losses
 
 			if self.waterguess is None:
@@ -593,7 +547,7 @@ class Recipe:
 		# account for "unknown" extract losses from stage to stage
 		# ("unknown" = not solved analytically)
 		for _ in range(10):
-			self._dofermentables_bypercent(ferms)
+			self._dofermentables_bypercent(ferms_bymass)
 			res = self._doworters_bystrength()
 			extoff = res[Worter.MASH].extract()
 			if abs(extoff.valueas(Mass.G)) < 1:
@@ -608,7 +562,7 @@ class Recipe:
 	def _dofermentablestats(self):
 		assert('losses' in self.results)
 
-		allmass = self._fermentables_mass(self.fermentables)
+		allmass = self._fermentables_massof(self.fermentables)
 		stats = {}
 
 		# Calculate amount of extract -- extract-equivalent --
@@ -643,23 +597,25 @@ class Recipe:
 			return f_ext
 
 		for f in self.fermentables:
-			stage = timespec.timespec2stage[f['when'].__class__]
-			f['percent'] = 100.0 * (f['mass'] / allmass)
-			f['extract_predicted'] = extract_predicted(f, stage)
-			f['extract_theoretical'] = self._fermentable_extract(f,
-			    theoretical=True)
+			stage = timespec.timespec2stage[f.time.__class__]
+			fs = {}
+			fs['percent'] = 100.0 * (f.get_amount() / allmass)
+			fs['extract_predicted'] = extract_predicted(f, stage)
+			fs['extract_theoretical'] \
+			    = self._fermentable_extract(f, theoretical=True)
 
 			stats.setdefault(stage, {})
 			stats[stage].setdefault('percent', 0)
 			stats[stage].setdefault('amount', _Mass(0))
 			stats[stage].setdefault('extract_predicted', _Mass(0))
 			stats[stage].setdefault('extract_theoretical', _Mass(0))
-			stats[stage]['percent'] += f['percent']
-			stats[stage]['amount'] += f['mass']
+			stats[stage]['percent'] += fs['percent']
+			stats[stage]['amount'] += f.get_amount()
 			stats[stage]['extract_predicted'] \
-			    += f['extract_predicted']
+			    += fs['extract_predicted']
 			stats[stage]['extract_theoretical'] \
-			    += f['extract_theoretical']
+			    += fs['extract_theoretical']
+			f.info = fs
 
 		allstats = {}
 		allstats['amount'] \
@@ -677,12 +633,11 @@ class Recipe:
 		# 1) mass
 		# 2) extract mass
 		# 3) alphabet
-		ferms = self.fermentables
-		ferms = sorted(ferms, key=lambda x: x['fermentable'].name,
-		    reverse=True)
-		ferms = sorted(ferms, key=lambda x: x['extract_predicted'])
-		ferms = sorted(ferms, key=lambda x: x['mass'])
-		self.fermentables = ferms[::-1]
+		f = self.fermentables
+		f = sorted(f, key=lambda x: x.obj.name, reverse=True)
+		f = sorted(f, key=lambda x: x.info['extract_predicted'])
+		f = sorted(f, key=lambda x: x.get_amount())
+		self.fermentables = f[::-1]
 
 	def _domash(self):
 		mf = self._fermentables_bytimespec(Timespec.MASH)
@@ -705,7 +660,7 @@ class Recipe:
 		w = copy.deepcopy(self.results['mash']['mashstep_water'])
 		w.adjust_extract(self._extract_bytimespec(Timespec.MASH))
 		w -= self.mash.evaporation()
-		rloss = (self._fermentables_mass(mf)*self._grain_absorption()
+		rloss = (self._fermentables_massof(mf)*self._grain_absorption()
 		    + getparam('mlt_loss'))
 		w.adjust_volume(_Volume(-rloss))
 		if w.volume() < 0:
@@ -722,7 +677,7 @@ class Recipe:
 		l = {}
 		f = self._fermentables_bytimespec(Timespec.MASH) \
 		    + self._fermentables_bytimespec(Timespec.POSTMASH)
-		m = self._fermentables_mass(f)
+		m = self._fermentables_massof(f)
 		l[Worter.MASH] = _Volume(m*self._grain_absorption()
 		    + getparam('mlt_loss'))
 
@@ -992,6 +947,8 @@ class Recipe:
 			notice('Scaling recipe ingredients by a factor of '
 			    + '{:.4f}'.format(s) + '\n')
 
+		self._dofermentables_preprocess()
+
 		# ok, so the problem is that the amount of hops affects the
 		# kettle crud, meaning we have non-constants loss between
 		# postboil and the fermentor.  that loss, in turn, affects
@@ -1072,8 +1029,8 @@ class Recipe:
 		self.results['pitch']['lager'] = mldegp * 1.50*mil / bil
 
 		# calculate color, via MCU & Morey equation
-		t = sum(f['mass'].valueas(Mass.LB) \
-		    * f['fermentable'].color.valueas(Color.LOVIBOND) \
+		t = sum(f.get_amount().valueas(Mass.LB) \
+		    * f.obj.color.valueas(Color.LOVIBOND) \
 		        for f in self.fermentables)
 		v = (self.worter[Worter.POSTBOIL].volume()
 		    + _Volume(self._boiladj)).valueas(Volume.GALLON)
