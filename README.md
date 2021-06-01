@@ -99,7 +99,7 @@ translated with `wbcrecipe -P units_output=metric -P strength_output=plato`:
 ===============================================================================
 Name:               MarBock
 Aggregate strength: 16.8°P             Package volume: 19.0L                    
-Total fermentables: 5.72 kg            Total hops:     52.3 g                   
+Total fermentables: 5.72 kg            Total hops:     52.4 g                   
 Tinseth IBU / BUGU: 29  / 0.42         Color (Morey):  11.2 EBC, 5.7 SRM        
 Loss (v/e) Kettle:  1.5L / 265 g       Fermentor:      8.0dL / 140 g            
 Boil:               60 min             Yeast:          WLP833                   
@@ -140,11 +140,11 @@ Sparge water:       11.9L @ 82.0°C (11.6L @ 20.0°C)
 1st wort (conv. %): 15.2°P (85%), 16.0°P (90%), 16.7°P (95%), 17.4°P (100%)
 ===============================================================================
 
-Additions & Hops                   AA%  IBUs      amount    timespec     timer
+Additions & Hops                        IBUs      amount    timespec     timer
 ===============================================================================
-Magnum (T90)                     12.7%  19.4      14.3 g      @ boil    30 min
-Tettnanger (T90)                  3.7%   5.8      19.0 g      30 min    15 min
-Tettnanger (T90)                  3.7%   3.7      19.0 g      15 min    15 min
+Magnum                    [T90  12.7%]  19.4      14.3 g      @ boil    30 min
+Tettnanger                [T90   3.7%]   5.8      19.0 g      30 min    15 min
+Tettnanger                [T90   3.7%]   3.7      19.0 g      15 min    15 min
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
@@ -183,7 +183,7 @@ Fermentables                                    amount  ext (100%)   ext (pkg)
 ===============================================================================
 Mash
 Avangard Pilsner                   9 13/16 lb ( 77.9%)    7 3/8 lb    5 3/4 lb
-Weyermann Munich I                  1 1/16 lb (  8.8%)    13.47 oz    10.56 oz
+Weyermann Munich I                  1 1/16 lb (  8.8%)    13.47 oz    10.57 oz
 Avangard Vienna                     1 1/16 lb (  8.8%)    13.21 oz    10.36 oz
 Weyermann Melanoidin                  5.65 oz (  2.8%)     4.05 oz     3.18 oz
                                     12 3/8 lb ( 98.3%)   9 5/16 lb    7 1/4 lb
@@ -203,11 +203,11 @@ Sparge water:       3.1gal @ 179.6°F (3.1gal @ 68.0°F)
 1st wort (conv. %): 1.062 (85%), 1.065 (90%), 1.069 (95%), 1.072 (100%)
 ===============================================================================
 
-Additions & Hops                   AA%  IBUs      amount    timespec     timer
+Additions & Hops                        IBUs      amount    timespec     timer
 ===============================================================================
-Magnum (T90)                     12.7%  19.4     0.51 oz      @ boil    30 min
-Tettnanger (T90)                  3.7%   5.8     0.67 oz      30 min    15 min
-Tettnanger (T90)                  3.7%   3.7     0.67 oz      15 min    15 min
+Magnum                    [T90  12.7%]  19.4     0.51 oz      @ boil    30 min
+Tettnanger                [T90   3.7%]   5.8     0.67 oz      30 min    15 min
+Tettnanger                [T90   3.7%]   3.7     0.67 oz      15 min    15 min
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
@@ -307,21 +307,21 @@ Sparge water:       11.1L @ 82.0°C (10.8L @ 20.0°C)
 1st wort (conv. %): 15.1°P (85%), 15.9°P (90%), 16.6°P (95%), 17.3°P (100%)
 ===============================================================================
 
-Additions & Hops                   AA%  IBUs      amount    timespec     timer
+Additions & Hops                        IBUs      amount    timespec     timer
 ===============================================================================
-Citra (T90)                      14.0%   9.1      10.0 g      @ boil        ==
-Mosaic (T90)                     12.4%   8.0      10.0 g      @ boil    18 min
-Citra (T90)                      14.0%   1.3      10.0 g       2 min        ==
-Mosaic (T90)                     12.4%   1.1      10.0 g       2 min     2 min
+Citra                     [T90  14.0%]   9.1      10.0 g      @ boil        ==
+Mosaic                    [T90  12.4%]   8.0      10.0 g      @ boil    18 min
+Citra                     [T90  14.0%]   1.3      10.0 g       2 min        ==
+Mosaic                    [T90  12.4%]   1.1      10.0 g       2 min     2 min
 -------------------------------------------------------------------------------
-Citra (T90)                      14.0%   0.0      15.0 g    @ 85.0°C        ==
-Mosaic (T90)                     12.4%   0.0      15.0 g    @ 85.0°C    10 min
+Citra                     [T90  14.0%]   0.0      15.0 g    @ 85.0°C        ==
+Mosaic                    [T90  12.4%]   0.0      15.0 g    @ 85.0°C    10 min
 -------------------------------------------------------------------------------
-Citra (T90)                      14.0%   0.0      11.0 g   fermentor  3d -> 0d
-Mosaic (T90)                     12.4%   0.0      11.0 g   fermentor  3d -> 0d
+Citra                     [T90  14.0%]   0.0      11.0 g   fermentor  3d -> 0d
+Mosaic                    [T90  12.4%]   0.0      11.0 g   fermentor  3d -> 0d
 -------------------------------------------------------------------------------
-Citra (T90)                      14.0%   0.0      52.0 g     package   package
-Mosaic (T90)                     12.4%   0.0      52.0 g     package   package
+Citra                     [T90  14.0%]   0.0      52.0 g     package   package
+Mosaic                    [T90  12.4%]   0.0      52.0 g     package   package
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
@@ -381,21 +381,21 @@ Sparge water:       2.9gal @ 179.6°F (2.9gal @ 68.0°F)
 1st wort (conv. %): 1.062 (85%), 1.065 (90%), 1.068 (95%), 1.071 (100%)
 ===============================================================================
 
-Additions & Hops                   AA%  IBUs      amount    timespec     timer
+Additions & Hops                        IBUs      amount    timespec     timer
 ===============================================================================
-Citra (T90)                      14.0%   9.1     0.35 oz      @ boil        ==
-Mosaic (T90)                     12.4%   8.0     0.35 oz      @ boil    18 min
-Citra (T90)                      14.0%   1.3     0.35 oz       2 min        ==
-Mosaic (T90)                     12.4%   1.1     0.35 oz       2 min     2 min
+Citra                     [T90  14.0%]   9.1     0.35 oz      @ boil        ==
+Mosaic                    [T90  12.4%]   8.0     0.35 oz      @ boil    18 min
+Citra                     [T90  14.0%]   1.3     0.35 oz       2 min        ==
+Mosaic                    [T90  12.4%]   1.1     0.35 oz       2 min     2 min
 -------------------------------------------------------------------------------
-Citra (T90)                      14.0%   0.0     0.53 oz   @ 185.0°F        ==
-Mosaic (T90)                     12.4%   0.0     0.53 oz   @ 185.0°F    10 min
+Citra                     [T90  14.0%]   0.0     0.53 oz   @ 185.0°F        ==
+Mosaic                    [T90  12.4%]   0.0     0.53 oz   @ 185.0°F    10 min
 -------------------------------------------------------------------------------
-Citra (T90)                      14.0%   0.0     0.39 oz   fermentor  3d -> 0d
-Mosaic (T90)                     12.4%   0.0     0.39 oz   fermentor  3d -> 0d
+Citra                     [T90  14.0%]   0.0     0.39 oz   fermentor  3d -> 0d
+Mosaic                    [T90  12.4%]   0.0     0.39 oz   fermentor  3d -> 0d
 -------------------------------------------------------------------------------
-Citra (T90)                      14.0%   0.0     1.83 oz     package   package
-Mosaic (T90)                     12.4%   0.0     1.83 oz     package   package
+Citra                     [T90  14.0%]   0.0     1.83 oz     package   package
+Mosaic                    [T90  12.4%]   0.0     1.83 oz     package   package
 ===============================================================================
 
 Speculative apparent attenuation and resulting ABV
