@@ -78,7 +78,7 @@ if __name__ == '__main__':
 		v_us = Mass(v, Mass.G).valueas(Mass.OZ) \
 		    * Volume(1, Volume.QUART)
 		printline2(str,
-		    '{:.1f} g/l'.format(v), '{:.1f} oz/qt'.format(v_us))
+		    '{:.1f} g/L'.format(v), '{:.1f} oz/qt'.format(v_us))
 
 	wvprint('oe_gl', 'Original  Extract (w/v)')
 	wvprint('re_gl', 'Remaining Extract (w/v)')
