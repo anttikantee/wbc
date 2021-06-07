@@ -1091,8 +1091,8 @@ class Recipe:
 		print('# fermentable|name|mass|when')
 		for g in self.fermentables:
 			print('fermentable|{:}|{:}|{:}'\
-			    .format(g['fermentable'].name,
-			      float(g['mass']), g['when']))
+			    .format(g.obj.name,
+			      float(g.get_amount()), g.time))
 
 		print('# hop|name|type|aa%|mass|timeclass|timespec')
 		for h in self.results['hops']:
