@@ -362,11 +362,17 @@ class Strength(WBCUnit):
 
 		ra = 100*(1-re/self)
 
+		# calculate CO2 production via Balling
+		#   2.0665g extract => 1g C2H6O + 0.9565g CO2 + 0.11g solids
+		#   ===> CO2 = extract * 0.9565/2.0665
+		co2_gl = (oe_gl - re_gl) * 0.9565/2.0665
+
 		return {
 			'ae': to,
 			're': re,
 			'oe_gl': oe_gl,
 			're_gl': re_gl,
+			'co2_gl': co2_gl,
 			'aa': aa,
 			'ra': ra,
 			'abv': abv,

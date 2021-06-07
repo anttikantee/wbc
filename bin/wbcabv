@@ -73,17 +73,19 @@ if __name__ == '__main__':
 
 	print()
 
-	def extractwvprint(what, str):
+	def wvprint(what, str):
 		v = r[what]
 		v_us = Mass(v, Mass.G).valueas(Mass.OZ) \
 		    / Volume(1, Volume.QUART)
-		printline2(str + ' Extract (w/v)',
+		printline2(str,
 		    '{:.1f} g/l'.format(v), '{:.1f} oz/qt'.format(v_us))
 
-	extractwvprint('oe_gl', 'Original ')
-	extractwvprint('re_gl', 'Remaining')
+	wvprint('oe_gl', 'Original  Extract (w/v)')
+	wvprint('re_gl', 'Remaining Extract (w/v)')
 
 	printline('Remaining Extract (w/w)', r['re'].stras(Strength.PLATO))
+	print()
+	wvprint('co2_gl', 'CO2 produced (m/v)')
 	print()
 	printline('Apparent attenuation (/sg)', '{:.1f}%'.format(r['aa']))
 	printline('Real attenuation (/plato)', '{:.1f}%'.format(r['ra']))
