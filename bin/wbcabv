@@ -76,7 +76,7 @@ if __name__ == '__main__':
 	def wvprint(what, str):
 		v = r[what]
 		v_us = Mass(v, Mass.G).valueas(Mass.OZ) \
-		    / Volume(1, Volume.QUART)
+		    * Volume(1, Volume.QUART)
 		printline2(str,
 		    '{:.1f} g/l'.format(v), '{:.1f} oz/qt'.format(v_us))
 
