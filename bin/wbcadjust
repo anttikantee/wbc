@@ -63,7 +63,7 @@ def oneround(w_orig, args, n):
 		try:
 			m = parse.mass(arg)
 			w_adj.adjust_extract(m)
-		except PilotError:
+		except ValueError:
 			v = parse.volume(arg)
 			w_adj.adjust_water(_Mass(v))
 

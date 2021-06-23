@@ -28,12 +28,11 @@ hops:
     - [ [ AA 500mg/l, 12% ],            AA 500mg/l, 45min            ]
 # also exercises small units
 opaques:
-  bymass:
+  byunit:
     # XXX: 5mg too small for US units
     #- [ foobar, 5mg, mash @ mashin ]
     - [ foobar, 5g, mash @ mashin ]
     - [ foobar2, 2oz, mash @ sparge ]
     - [ foobar3, 1g/l, mash @ firstwort ]
-  byvolume:
     - [ acid, 1.5ml, mash @ mashin ]
     - [ acid2, 1.2tsp, mash @ sparge ]

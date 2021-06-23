@@ -75,9 +75,7 @@ def main(argv):
 				v = m(what)
 				wegot[v.__class__] = v
 				return
-			except PilotError:
-				# XXX: PilotError lossage, might be fatal error
-				pass
+			except ValueError: pass
 		usage()
 	attempt(args[0])
 	attempt(args[1])

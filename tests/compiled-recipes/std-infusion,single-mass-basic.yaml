@@ -15,12 +15,11 @@ hops:
     - [ [ Testhopper,         11.0% ],  0.25 Recipe BUGU, 20min  ]
 # also exercises small units
 opaques:
-  bymass:
+  byunit:
     # XXX: 5mg too small for US units
     #- [ foobar, 5mg, mash @ mashin ]
     - [ foobar, 5g, mash @ mashin ]
     - [ foobar2, 2oz, mash @ sparge ]
     - [ foobar3, 1g/l, mash @ firstwort ]
-  byvolume:
     - [ acid, 1.5ml, mash @ mashin ]
     - [ acid2, 1.2tsp, mash @ sparge ]

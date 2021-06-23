@@ -27,6 +27,22 @@ def checktypes(lst):
 	for chk in lst:
 		checktype(*chk)
 
+def istype(type, cls):
+	try:
+		checktype(type, cls)
+		return True
+	except PilotError:
+		return False
+
+def istupletype(type, clss):
+	try:
+		checktype(type, tuple)
+		checktype(type[0], clss[0])
+		checktype(type[1], clss[1])
+		return True
+	except PilotError:
+		return False
+
 def warn(msg, prepend=''):
 	sys.stderr.write(prepend + 'WARNING: ' + msg)
 

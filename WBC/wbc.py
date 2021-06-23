@@ -35,6 +35,11 @@ from WBC.timespec import Timespec, Boil
 def checkconfig():
 	return True
 
+def _ismass(type): return istype(type, Mass)
+def _isvolume(type): return istype(type, Volume)
+def _ismassvolume(type): return istupletype(type, (Mass, Volume))
+def _isvolumevolume(type): return istupletype(type, (Volume, Volume))
+
 class WBC:
 	pass
 
@@ -141,8 +146,10 @@ class Recipe:
 		return what.__class__(scale * what, what.defaultunit)
 
 	def _xvol2x(self, x):
-		assert(isinstance(x, Mass) or isinstance(x, Volume))
-		return x.__class__(x * self._final_volume(), x.defaultunit)
+		assert(istupletype(x, (Mass, Volume))
+		    or istupletype(x, (Volume, Volume)))
+		return x[0].__class__(x[0]/x[1] * self._final_volume(),
+		    x[0].defaultunit)
 
 	#
 	# other helpers
@@ -156,6 +163,18 @@ class Recipe:
 
 		self._oncelst.append(caller)
 		callme(*args)
+
+	def _addunit(self, checkfuns, unit, fname):
+		rv = ([x for x in checkfuns if x(unit)] + [None])[0]
+		if rv is None:
+			raise PilotError('invalid input type for: ' + fname)
+
+		if isinstance(unit, tuple):
+			scale = self._xvol2x
+		else:
+			scale = self._scale
+			self._needinherentvol(fname)
+		return scale
 
 	#
 	# user interfaces
@@ -193,23 +212,14 @@ class Recipe:
 		self.hops.append(a)
 		return a
 
-	def hop_bymass(self, hop, mass, time):
-		checktype(mass, Mass)
-		self._needinherentvol('hops')
-		amount = mass
-		self._hopstore(hop, mass, self._scale, time, 'm')
-
-	# mass per final volume
-	def hop_bymassvolratio(self, hop, mv, time):
-		(mass, vol) = mv
-		checktypes([(mass, Mass), (vol, Volume)])
-		amount = _Mass(mass / vol)
-		self._hopstore(hop, amount, self._xvol2x, time, 'm')
+	def hop_byunit(self, name, unit, time):
+		scale = self._addunit([_ismass, _ismassvolume], unit, __name__)
+		self._hopstore(name, unit, scale, time, 'm')
 
 	# alpha acid mass
 	def hop_byAA(self, hop, mass, time):
 		checktype(mass, Mass)
-		self._needinherentvol('hops')
+		self._needinherentvol('hop_byAA')
 		amount = _Mass(mass / hop.aa)
 		self._hopstore(hop, amount, self._scale, time, 'm')
 
@@ -217,7 +227,7 @@ class Recipe:
 	def hop_byAAvolratio(self, hop, mv, time):
 		(mass, vol) = mv
 		checktypes([(mass, Mass), (vol, Volume)])
-		amount = _Mass((mass / hop.aa) / vol)
+		amount = (_Mass(mass / hop.aa), vol)
 		self._hopstore(hop, amount, self._xvol2x, time, 'm')
 
 	def hop_byIBU(self, hop, IBU, time):
@@ -256,25 +266,10 @@ class Recipe:
 		a = Addition(Opaque(opaque), amount, resolver, time)
 		self.opaques.append(a)
 
-	def opaque_bymass(self, opaque, mass, time):
-		checktypes([(mass, Mass), (time, Timespec)])
-		self._needinherentvol('opaque_bymass')
-		self._opaquestore(opaque, mass, self._scale, time)
-	def opaque_byvol(self, opaque, volume, time):
-		checktypes([(volume, Volume), (time, Timespec)])
-		self._needinherentvol('opaque_byvol')
-		self._opaquestore(opaque, volume, self._scale, time)
-
-	def opaque_bymassvolratio(self, opaque, mv, time):
-		(mass, vol) = mv
-		checktypes([(mass, Mass), (vol, Volume), (time, Timespec)])
-		amount = _Mass(mass / vol)
-		self._opaquestore(opaque, amount, self._xvol2x, time)
-	def opaque_byvolvolratio(self, opaque, vv, time):
-		(v1, v2) = vv
-		checktypes([(v1, Volume), (v2, Volume), (time, Timespec)])
-		amount = _Volume(v1 / v2)
-		self._opaquestore(opaque, amount, self._xvol2x, time)
+	def opaque_byunit(self, name, unit, time):
+		scale = self._addunit([_ismass, _isvolume,
+		    _ismassvolume, _isvolumevolume], unit, __name__)
+		self._opaquestore(name, unit, scale, time)
 
 	def opaque_byopaque(self, opaque, ospec, time):
 		checktype(time, Timespec)
@@ -303,18 +298,9 @@ class Recipe:
 		self.ferms_in.append(a)
 		return a
 
-	def fermentable_bymass(self, name, mass, time):
-		checktype(mass, Mass)
-		self._needinherentvol('fermentable_bymass')
-		amount = mass
-		self._fermstore(name, amount, self._scale, time, 'm')
-
-	def fermentable_bymassvolratio(self, name, mv, time):
-		(mass, vol) = mv
-		checktypes([(mass, Mass), (vol, Volume)])
-		amount = _Mass(mass / vol)
-
-		self._fermstore(name, amount, self._xvol2x, time, 'm')
+	def fermentable_byunit(self, name, unit, time):
+		scale = self._addunit([_ismass, _ismassvolume], unit, __name__)
+		self._fermstore(name, unit, scale, time, 'm')
 
 	# percent of fermentable's mass, not extract's mass
 	def fermentable_bypercent(self, name, percent, time):
@@ -1006,7 +992,7 @@ class Recipe:
 
 		if self._boiladj > 0.001:
 			tf = timespec.Fermentor
-			self.opaque_byvol('WBC boil volume adj.',
+			self.opaque_byunit('WBC boil volume adj.',
 			    _Volume(self._boiladj), tf(tf.UNDEF, tf.UNDEF))
 
 		self._dotimers()

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
+# Copyright (c) 2018, 2021 Antti Kantee <pooka@iki.fi>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -24,7 +24,7 @@ from WBC import mash
 import re
 import string
 
-def _unit(cls, sfxmap, input, fatal = True, name = None):
+def _unit(cls, sfxmap, input, name = None):
 	inputstr = str(input).strip()
 	alphastr = inputstr.lstrip(string.digits + '.' + '-')
 	numstr = inputstr[0:len(inputstr) - len(alphastr)]
@@ -38,11 +38,8 @@ def _unit(cls, sfxmap, input, fatal = True, name = None):
 		name = cls.__name__
 
 	if alphastr not in sfxmap:
-		if fatal:
-			raise PilotError('invalid suffix in: '
-			    + inputstr + ' (for ' + name + ')')
-		else:
-			return None
+		raise ValueError('invalid suffix in: '
+		    + inputstr + ' (for ' + name + ')')
 	sfx = sfxmap[alphastr]
 	if sfx is None:
 		return cls(float(numstr))
@@ -189,7 +186,7 @@ def split(input, splitter, i1, i2):
 	istr = str(input)
 	marr = istr.split(splitter)
 	if len(marr) != 2:
-		raise PilotError('input must contain exactly one "' + splitter
+		raise ValueError('input must contain exactly one "' + splitter
 		    + '", you gave: ' + istr)
 	res1 = i1(marr[0])
 	res2 = i2(marr[1])
@@ -217,36 +214,36 @@ def mashstep(input):
 	else:
 		return mash.MashStep(temperature(input))
 
+def _additionunit(input, acceptable):
+	ts = [x for x in acceptable if isinstance(x, tuple)]
+	for p in ts:
+		try: return split(input, '/', p[0], p[1])
+		except ValueError: pass
+	for p in [x for x in acceptable if x not in ts]:
+		try: return p(input)
+		except ValueError: pass
+
+	raise ValueError('additionunit mismatch')
+
 def fermentableunit(input):
+	try: return (Recipe.fermentable_bypercent, percent(input))
+	except ValueError: pass
+
 	if input == Recipe.THEREST:
 		return (Recipe.fermentable_bypercent, Recipe.THEREST)
 
-	if '/' in input:
-		rv = ratio(input, mass, volume)
-		return (Recipe.fermentable_bymassvolratio, rv)
-
-	rv = _unit(float, percentsfxs, input, fatal = False)
-	if rv is not None:
-		return (Recipe.fermentable_bypercent, rv)
-	rv = _unit(units.Mass, masssfx, input, fatal = False)
-	if rv is not None:
-		return (Recipe.fermentable_bymass, rv)
+	try: return (Recipe.fermentable_byunit,
+	    _additionunit(input, [mass, (mass, volume)]))
+	except ValueError: pass
 
 	raise PilotError('invalid fermentable quantity: ' + str(input))
 
-def opaquemassunit(input):
-	if '/' in input:
-		rv = ratio(input, mass, volume)
-		return (Recipe.opaque_bymassvolratio, rv)
-	else:
-		return (Recipe.opaque_bymass, mass(input))
+def opaqueunit(input):
+	try: return (Recipe.opaque_byunit, _additionunit(input,
+	    [mass, volume, (mass, volume), (volume, volume)]))
+	except ValueError: pass
 
-def opaquevolumeunit(input):
-	if '/' in input:
-		rv = ratio(input, volume, volume)
-		return (Recipe.opaque_byvolvolratio, rv)
-	else:
-		return (Recipe.opaque_byvol, volume(input))
+	raise PilotError('invalid opaque quantity: ' + str(input))
 
 def hopunit(input):
 	if input.startswith('AA '):
@@ -258,24 +255,16 @@ def hopunit(input):
 			rv = mass(input)
 			return (Recipe.hop_byAA, rv)
 
-	if '/' in input:
-		rv = ratio(input, mass, volume)
-		return (Recipe.hop_bymassvolratio, rv)
+	try: return (Recipe.hop_byunit,
+	    _additionunit(input, [mass, (mass, volume)]))
+	except ValueError: pass
 
-	rv = _unit(units.Mass, masssfx, input, fatal = False)
-	if rv is not None:
-		return (Recipe.hop_bymass, rv)
-
-	rv = _unit(float, { 'IBU' : None }, input, fatal=False)
-	if rv is not None:
-		return (Recipe.hop_byIBU, rv)
-
-	rv = _unit(float, { 'Recipe IBU':None }, input, fatal=False)
-	if rv is not None:
-		return (Recipe.hop_byrecipeIBU, rv)
-
-	rv = _unit(float, { 'Recipe BUGU': None }, input, fatal=False)
-	if rv is not None:
-		return (Recipe.hop_byrecipeBUGU, rv)
+	for t in [
+		( Recipe.hop_byIBU	  , { 'IBU' : None }		),
+	        ( Recipe.hop_byrecipeIBU  , { 'Recipe IBU' : None }	),
+	        ( Recipe.hop_byrecipeBUGU , { 'Recipe BUGU' : None }	),
+	]:
+		try: return (t[0], _unit(float, t[1], input))
+		except ValueError: pass
 
 	raise PilotError('invalid boilhop quantity: ' + str(input))
