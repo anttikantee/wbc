@@ -169,10 +169,11 @@ def _printtimers(input, results):
 	if len(results['timer_additions']) == 0:
 		return
 
-	nlen = 38
+	nlen = 36
 	ilen = 6
-	onefmt = '{:' + str(nlen) + '}{:>' + str(ilen) + '}{:>12}{:>12}{:>10}'
-	print(onefmt.format("Additions & Hops", "IBUs",
+	onefmt = ('{:} {:' + str(nlen) + '}{:>' + str(ilen)
+	    + '}{:>12}{:>12}{:>10}')
+	print(onefmt.format("T", "Additions & Hops", "IBUs",
 	    "amount", "timespec", "timer"))
 	prtsep()
 
@@ -183,7 +184,15 @@ def _printtimers(input, results):
 			prtsep('-')
 		prevstage = stage
 
-		v = (t.namestr(nlen), t.infostr(ilen), str(t.get_amount()))
+		# try to pick visually different characters for the types
+		c = {
+			'Hop':		'-',
+			'Opaque':	'o',
+			'Fermentable':	'X',
+			'Internal':	' ',
+		}.get(type(t.obj).__name__, '?')
+
+		v = (c, t.namestr(nlen), t.infostr(ilen), str(t.get_amount()))
 		print(onefmt.format(*v, t.time.timespecstr(), t.timerstr(None)))
 	prtsep()
 	print()

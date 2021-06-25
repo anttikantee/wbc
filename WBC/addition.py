@@ -66,3 +66,8 @@ class Opaque:
 
 	def infostr(self, _, info):
 		return ''
+
+# the following is a way to differentiate between user-specified
+# opaque additions and WBC-specified opaque additions
+class Internal(Opaque):
+	pass

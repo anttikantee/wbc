@@ -21,7 +21,7 @@ from WBC import constants
 from WBC import fermentables
 from WBC.getparam import getparam
 
-from WBC.addition import Addition, Opaque
+from WBC.addition import Addition, Opaque, Internal
 from WBC.utils import *
 from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
@@ -261,21 +261,21 @@ class Recipe:
 	# opaque additions.  not used for in-recipe calculations,
 	# just printed out in timed additions.
 
-	def _opaquestore(self, opaque, amount, resolver, time):
+	def _opaquestore(self, cls, opaque, amount, resolver, time):
 		checktype(time, Timespec)
-		a = Addition(Opaque(opaque), amount, resolver, time)
+		a = Addition(cls(opaque), amount, resolver, time)
 		self.opaques.append(a)
 
 	def opaque_byunit(self, name, unit, time):
 		scale = self._addunit([_ismass, _isvolume,
 		    _ismassvolume, _isvolumevolume], unit, __name__)
-		self._opaquestore(name, unit, scale, time)
+		self._opaquestore(Opaque, name, unit, scale, time)
 
 	def opaque_byopaque(self, opaque, ospec, time):
 		checktype(time, Timespec)
 		if ospec.__class__ != str:
 			raise PilotError('opaque spec must be a string')
-		self._opaquestore(opaque, ospec, None, time)
+		self._opaquestore(Opaque, opaque, ospec, None, time)
 
 	def anchor_bystrength(self, strength):
 		checktype(strength, Strength)
@@ -887,7 +887,7 @@ class Recipe:
 		# to specify initial timer value
 		if ((self.boiltime is not None and self.boiltime > 0)
 		    and boiltimer != self.boiltime):
-			sb = Addition(Opaque(''), '', None,
+			sb = Addition(Internal(''), '', None,
 			    timespec.Boil('boiltime'))
 			sb.timer = self.boiltime - boiltimer
 			timers = sorted([sb] + timers,
@@ -992,8 +992,9 @@ class Recipe:
 
 		if self._boiladj > 0.001:
 			tf = timespec.Fermentor
-			self.opaque_byunit('WBC boil volume adj.',
-			    _Volume(self._boiladj), tf(tf.UNDEF, tf.UNDEF))
+			self._opaquestore(Internal, 'WBC boil volume adj.',
+			    _Volume(self._boiladj), None,
+			    tf(tf.UNDEF, tf.UNDEF))
 
 		self._dotimers()
 
