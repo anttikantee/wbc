@@ -64,6 +64,12 @@ doprep ()
 {
 
 	mkdir -p testdata || die cannot create testdata
+
+	resetcount
+	# hack: make sure at least one recipe is tested first
+	prepcmd 0basicrecipe wbcrecipe -p params-std \
+	    test-recipes/proto-bymass.yaml
+
 	resetcount
 	for x in compiled-recipes/*.yaml; do
 		[ -f ${x} ] || die internal error: ${x}
