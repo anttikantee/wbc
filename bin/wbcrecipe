@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
+# Copyright (c) 2018, 2021 Antti Kantee <pooka@iki.fi>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,6 @@
 
 from WBC.wbc import Recipe, WBC
 from WBC.hop import Hop
-from WBC.mash import Mash
 from WBC.units import Mass, Temperature, Volume, Strength
 from WBC.units import _Mass, _Temperature, _Volume
 from WBC.utils import PilotError
@@ -30,33 +29,38 @@ import getopt
 import io
 import sys
 
+def _listify(x): return x if isinstance(x, list) else [x]
+
 def dohop(r, hopspec, unit, timespec):
 	hoptyp = hopspec[2] if len(hopspec) > 2 else Hop.T90
 	aa = parse.percent(hopspec[1])
 	hop = Hop(hopspec[0], aa, hoptyp)
 
 	fun, hu = parse.hopunit(unit)
-	ts = parse.timespec(timespec)
-	fun(r, hop, hu, ts)
+	for te in _listify(timespec):
+		ts = parse.timespec(te)
+		fun(r, hop, hu, ts)
 
 def dohops(r, d_hops):
 	for h in d_hops:
-		dohop(r, h[0], h[1], h[2])
+		dohop(r, *h)
 
 def doopaques(r, opaques):
 	def doopaque_byunit(r, opaque, input, timespec):
 		mu = parse.opaqueunit(input)
-		time = parse.timespec(timespec)
-		mu[0](r, opaque, mu[1], time)
+		for te in _listify(timespec):
+			ts = parse.timespec(te)
+			mu[0](r, opaque, mu[1], ts)
 
 	def doopaque_byopaque(r, opaque, input, timespec):
-		time = parse.timespec(timespec)
-		r.opaque_byopaque(opaque, str(input), time)
+		for te in _listify(timespec):
+			ts = parse.timespec(te)
+			r.opaque_byopaque(opaque, str(input), ts)
 
 	for o in opaques.pop('byunit', []):
-		doopaque_byunit(r, o[0], o[1], o[2])
+		doopaque_byunit(r, *o)
 	for o in opaques.pop('byopaque', []):
-		doopaque_byopaque(r, o[0], o[1], o[2])
+		doopaque_byopaque(r, *o)
 	if len(opaques) > 0:
 		raise PilotError('invalid opaque(s): '+','.join(opaques.keys()))
 

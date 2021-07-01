@@ -24,5 +24,4 @@ opaques:
     - [ foobar, 5g, mash @ mashin ]
     - [ foobar2, 2oz, mash @ sparge ]
     - [ foobar3, 1g/l, mash @ firstwort ]
-    - [ acid, 1.5ml, mash @ mashin ]
-    - [ acid2, 1.2tsp, mash @ sparge ]
+    - [ o1.5ml mashin + sparge, 1.5ml, [ mash @ mashin, mash @ sparge ] ]
