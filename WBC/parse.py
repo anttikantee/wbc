@@ -144,7 +144,7 @@ def timespec(input):
 	elif WBC.units.Duration.MINUTE in input:
 		return WBC.timespec.Boil(duration(input))
 	else:
-		raise PilotError('could not parse timespec: ' + input)
+		raise PilotError('could not parse timespec: ' + str(input))
 
 def days(input):
 	suffixes = {
