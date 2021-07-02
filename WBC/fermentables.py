@@ -52,6 +52,13 @@ class Fermentable:
 
 fermentables = []
 
+# convert the very friendly l*deg/kg to extract %
+# Since 1.001 SG is 0.257% extract by mass (*), the percentage of extract:
+#   extract = 0.00257 * (1.001 * ldegkg) * 100.0
+# *) https://www.asbcnet.org/Methods/Tools/Tables/Documents/TableWortBeerBrewingSugars.pdf
+def HWE2ext(ldegkg):
+	return 0.257 * 1.001 * ldegkg
+
 class Extract:
 	# extract figure is provided by the maltster as:
 	CGDB=		object()		# coarse grind dry basis
@@ -316,9 +323,21 @@ Add('Muntons', 'Crystal 150 EBC',
 	Extract(75, FGDB, FCD_UNKNOWN, 6.0),
 	Color(150, EBC))
 Alias('Muntons', 'Crystal 60 L', 'Muntons Crystal 150 EBC')
-Add('Muntons', 'Maris Otter',
-	Extract(81.5, FGDB, FCD_UNKNOWN, 3.0),
-	Color(5.8, EBC))
+
+# Maris Otters from:
+# https://www.muntons.com/wp-content/uploads/2020/11/Muntons-Brewers-Guide.pdf
+#
+# per mill gap 0.7mm = coarse & 0.2mm = fine, the values in the
+# document (dwt) are CGDB
+Add('Muntons', 'Maris Otter Pale',
+	Extract(HWE2ext(308), CGDB, FCD_UNKNOWN, 4.0),
+	Color(5, EBC))
+Add('Muntons', 'Maris Otter Extra Pale',
+	Extract(HWE2ext(310), CGDB, FCD_UNKNOWN, 5.0),
+	Color(4, EBC))
+Add('Muntons', 'Maris Otter Pale Blend',
+	Extract(HWE2ext(308), CGDB, FCD_UNKNOWN, 4.0),
+	Color(5, EBC))
 
 Add('Simpsons', 'Golden Promise',
 	Extract(81, FGDB, FCD_UNKNOWN, 3.7),
