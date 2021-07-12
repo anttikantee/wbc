@@ -36,10 +36,10 @@ def dohop(r, hopspec, unit, timespec):
 	aa = parse.percent(hopspec[1])
 	hop = Hop(hopspec[0], aa, hoptyp)
 
-	fun, hu = parse.hopunit(unit)
+	fun, amount = parse.hopunit(unit)
 	for te in _listify(timespec):
 		ts = parse.timespec(te)
-		fun(r, hop, hu, ts)
+		fun(r, hop, amount, ts)
 
 def dohops(r, d_hops):
 	for h in d_hops:
@@ -47,10 +47,10 @@ def dohops(r, d_hops):
 
 def doopaques(r, opaques):
 	def doopaque_byunit(r, opaque, input, timespec):
-		mu = parse.opaqueunit(input)
+		fun, amount = parse.opaqueunit(input)
 		for te in _listify(timespec):
 			ts = parse.timespec(te)
-			mu[0](r, opaque, mu[1], ts)
+			fun(r, opaque, amount, ts)
 
 	def doopaque_byopaque(r, opaque, input, timespec):
 		for te in _listify(timespec):
@@ -107,8 +107,12 @@ def domashparams(r, mashparams):
 		else:
 			raise PilotError('unknown mash parameter: ' + str(p))
 
-def dowater(r, v):
-	r.set_waternotes(v)
+def dowater(r, d_water):
+	for what, amount, when in d_water:
+		_, amount = parse.opaqueunit(amount)
+		for te in _listify(when):
+			ts = parse.timespec(te)
+			r.water_byunit(what, amount, ts)
 
 def dorecipenotes(r, v):
 	r.add_recipenote(v)

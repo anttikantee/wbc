@@ -21,7 +21,7 @@ from WBC import constants
 from WBC import fermentables
 from WBC.getparam import getparam
 
-from WBC.addition import Addition, Opaque, Internal
+from WBC.addition import Addition, Opaque, Water, Internal
 from WBC.utils import *
 from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
@@ -54,7 +54,6 @@ class Recipe:
 		input['yeast'] = yeast
 
 		input['notes'] = {}
-		input['notes']['water'] = None
 		input['notes']['brewday'] = []
 		input['notes']['recipe'] = []
 
@@ -82,6 +81,7 @@ class Recipe:
 		self.waterguess = None
 
 		self.opaques = []
+		self.water = []
 
 		self.input['stolen_wort'] = Worter()
 		self._boiladj = _Mass(0)
@@ -136,7 +136,7 @@ class Recipe:
 	#
 	# various scaling routines
 	#
-	def _scale(self, what):
+	def _scale(self, what, when):
 		if self.volume_inherent is None or self.volume_scaled is None:
 			return what
 
@@ -145,11 +145,35 @@ class Recipe:
 		scale = self.volume_scaled / self.volume_inherent
 		return what.__class__(scale * what, what.defaultunit)
 
-	def _xvol2x(self, x):
+	def _xvol2x_fromvol(self, x, vol):
 		assert(istupletype(x, (Mass, Volume))
 		    or istupletype(x, (Volume, Volume)))
-		return x[0].__class__(x[0]/x[1] * self._final_volume(),
-		    x[0].defaultunit)
+		return x[0].__class__(x[0]/x[1] * vol, x[0].defaultunit)
+
+	def _xvol2x(self, x, when):
+		return self._xvol2x_fromvol(x, self._final_volume())
+
+	# scale to volume, but instead of final volume use amount of
+	# water "at" the current stage.  The definition of "at" is
+	# slightly complicated, so rather than trying to come up with
+	# a general rule, we enumerate the options:
+	#
+	#   * mash @ mashin: mashstep water (= total mash water - sparge)
+	#   * mash @ sparge: sparge water
+	#   * boil         : amount of water in the wort
+	#
+	#   Not implemented yet:
+	#   * fermentor    : amount of water in the wort/beer
+	#   * package      : amount of water in the beer
+	def _xvol2x_withwater(self, x, when):
+		if isinstance(when, timespec.MashSpecial):
+			vol = self.results['mash']['sparge_water'].water()
+		elif isinstance(when, timespec.Mash):
+			vol = self.results['mash']['mashstep_water'].water()
+		else:
+			assert(isinstance(when, timespec.Boil))
+			vol = self.worter[Worter.POSTBOIL].water()
+		return self._xvol2x_fromvol(x, vol)
 
 	#
 	# other helpers
@@ -164,13 +188,17 @@ class Recipe:
 		self._oncelst.append(caller)
 		callme(*args)
 
-	def _addunit(self, checkfuns, unit, fname):
+	def _addunit(self, checkfuns, unit, fname, iswater = False):
 		rv = ([x for x in checkfuns if x(unit)] + [None])[0]
 		if rv is None:
 			raise PilotError('invalid input type for: ' + fname)
 
+		# XXX: ugly
 		if isinstance(unit, tuple):
-			scale = self._xvol2x
+			if iswater:
+				scale = self._xvol2x_withwater
+			else:
+				scale = self._xvol2x
 		else:
 			scale = self._scale
 			self._needinherentvol(fname)
@@ -187,13 +215,6 @@ class Recipe:
 	def set_volume(self, volume):
 		checktype(volume, Volume)
 		self.volume_set = volume
-
-	# set opaque water notes to be printed with recipe
-	def set_waternotes(self, waternotes):
-		checktype(waternotes, str)
-		if self.input['notes']['water'] is not None:
-			warn('water notes already set')
-		self.input['notes']['water'] = waternotes
 
 	def add_brewdaynote(self, note):
 		checktype(note, str)
@@ -258,8 +279,11 @@ class Recipe:
 			    + str(BUGU) + ")\n")
 		self._setIBUBUGU(hop, time, BUGU, 'BUGU')
 
-	# opaque additions.  not used for in-recipe calculations,
-	# just printed out in timed additions.
+	#
+	# Opaques.
+	#
+	# not used for in-recipe calculations, printed out in timed additions.
+	#
 
 	def _opaquestore(self, cls, opaque, amount, resolver, time):
 		checktype(time, Timespec)
@@ -276,6 +300,10 @@ class Recipe:
 		if ospec.__class__ != str:
 			raise PilotError('opaque spec must be a string')
 		self._opaquestore(Opaque, opaque, ospec, None, time)
+
+	#
+	# Fermentables.
+	#
 
 	def anchor_bystrength(self, strength):
 		checktype(strength, Strength)
@@ -315,6 +343,29 @@ class Recipe:
 
 		self._fermstore(name, percent, None, time,
 		    'p' if percent != self.THEREST else 'r')
+
+	#
+	# Water.
+	#
+
+	# Addition by mass and volume is easy.  m/v and v/v additions
+	# are trickier, and do not work like other m/v and v/v additions,
+	# because, for example, you don't want the salts in the mash
+	# scaled to the final volume but rather the water in the mash.
+	#
+	# see comment above xvol2x_withwater for more info.
+	def water_byunit(self, what, unit, when):
+		checktype(when, Timespec)
+		# XXX: bad check
+		if not (isinstance(when, timespec.Mash)
+		    or isinstance(when, timespec.MashSpecial)
+		    or isinstance(when, timespec.Boil)):
+			raise PilotError('invalid timespec for water_byunit')
+
+		resolver = self._addunit([_ismass, _ismassvolume, _isvolume,
+		    _isvolumevolume], unit, __name__, iswater = True)
+		a = Addition(Water(what), unit, resolver, when)
+		self.water.append(a)
 
 	# indicate that we want to "borrow" some wort at the preboil stage
 	# for e.g. building starters.
@@ -837,7 +888,7 @@ class Recipe:
 
 	def _dotimers(self):
 		# sort the timerable additions
-		timers = self.results['hops'] + self.opaques
+		timers = self.results['hops'] + self.opaques + self.water
 
 		# include boiltime fermentables under timers.
 		# XXX: should be user-configurable
@@ -934,7 +985,7 @@ class Recipe:
 
 		self._checkinputs()
 
-		s = self._scale(_Mass(1))
+		s = self._scale(_Mass(1), None)
 		if abs(s - 1.0) > .0001:
 			notice('Scaling recipe ingredients by a factor of '
 			    + '{:.4f}'.format(s) + '\n')

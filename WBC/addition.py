@@ -44,7 +44,7 @@ class Addition:
 
 	def get_amount(self):
 		if self._resolver is not None:
-			return self._resolver(self._amount)
+			return self._resolver(self._amount, self.time)
 		return self._amount
 
 	def namestr(self, maxlen):
@@ -66,6 +66,10 @@ class Opaque:
 
 	def infostr(self, _, info):
 		return ''
+
+# TODO
+class Water(Opaque):
+	pass
 
 # the following is a way to differentiate between user-specified
 # opaque additions and WBC-specified opaque additions

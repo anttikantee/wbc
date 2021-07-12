@@ -189,6 +189,7 @@ def _printtimers(input, results):
 			'Hop':		'-',
 			'Opaque':	'o',
 			'Fermentable':	'X',
+			'Water':	'|',
 			'Internal':	' ',
 		}.get(type(t.obj).__name__, '?')
 
@@ -261,12 +262,7 @@ def _keystats(input, results, miniprint):
 
 	print()
 
-	if input['notes']['water'] is not None \
-	    or len(input['notes']['recipe'] + input['notes']['brewday']) > 0:
-		if input['notes']['water'] is not None:
-			prettyprint_withsugarontop('Water notes:',
-			    cols[0], input['notes']['water'],
-			    sum(cols) - cols[0])
+	if len(input['notes']['recipe'] + input['notes']['brewday']) > 0:
 		for n in input['notes']['recipe']:
 			prettyprint_withsugarontop('Recipe notes:',
 			    cols[0], n, sum(cols) - cols[0])
