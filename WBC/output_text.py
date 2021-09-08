@@ -14,7 +14,6 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-from WBC.utils import prtsep, prettyprint_withsugarontop
 from WBC.getparam import getparam
 
 from WBC import constants, sysparams
@@ -25,6 +24,26 @@ from WBC.units import Strength, _Volume, _Mass, _Strength
 
 from WBC.worter import Worter
 
+# print first line with prefix and rest indented at prefixlen,
+# split at whitespaces
+def _prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
+	res = []
+	while len(thestr) > strmaxlen:
+		# this produces off-by-one lengths in a number of
+		# pathological corner cases.  not going to worry about it.
+		v = thestr[:strmaxlen+1].rsplit(sep, 1)
+		res.append(v[0])
+		thestr = thestr[len(v[0]):].lstrip()
+	res.append(thestr)
+
+	fmtstr = '{:' + str(prefixlen) + '}{:}'
+	for s in res:
+		print(fmtstr.format(prefix, s))
+		prefix = ''
+
+def _prtsep(char='='):
+	print(char * 79)
+
 def __reference_temp():
 	return getparam('ambient_temp')
 
@@ -32,7 +51,7 @@ def _printfermentables(input, results):
 	fmtstr = '{:34}{:>20}{:>12}{:>12}'
 	print(fmtstr.format("Fermentables",
 	    "amount", "ext (100%)", "ext (pkg)"))
-	prtsep()
+	_prtsep()
 
 	def handleonestage(stage, needsep):
 		lst = [x for x in results['fermentables']
@@ -41,7 +60,7 @@ def _printfermentables(input, results):
 			return needsep
 
 		if needsep:
-			prtsep('-')
+			_prtsep('-')
 		print(stage.title())
 
 		for f in lst:
@@ -64,7 +83,7 @@ def _printfermentables(input, results):
 	needsep = False
 	for stage in timespec.Timespec.stages:
 		needsep = handleonestage(stage, needsep)
-	prtsep()
+	_prtsep()
 
 	allstats = results['fermentable_stats_all']
 	print(fmtstr.format('', \
@@ -86,7 +105,7 @@ def _printmash(input, results):
 
 	print(stepfmt.format('Mashstep', 'Time', 'Adjustment',
 	    'Ratio', 'Volume'))
-	prtsep()
+	_prtsep()
 
 	for i, x in enumerate(results['mash']['steps']):
 		ms = x['step']
@@ -125,7 +144,7 @@ def _printmash(input, results):
 		    ratiostr, str(x['mashvol'])))
 	finaltemp = ms.temperature
 
-	prtsep('-')
+	_prtsep('-')
 
 	print('{:20}{:}'.format('Mashstep water:',
 	    str(results['mash']['mashstep_water'].volume(__reference_temp()))
@@ -162,7 +181,7 @@ def _printmash(input, results):
 			print('(NOTE: strength < ' \
 			    + str(stolen.strength())+')', end=' ')
 		print()
-	prtsep()
+	_prtsep()
 	print()
 
 def _printtimers(input, results):
@@ -175,13 +194,13 @@ def _printtimers(input, results):
 	    + '}{:>12}{:>12}{:>10}')
 	print(onefmt.format("T", "Additions & Hops", "IBUs",
 	    "amount", "timespec", "timer"))
-	prtsep()
+	_prtsep()
 
 	prevstage = None
 	for t in results['timer_additions']:
 		stage = t.time.__class__
 		if prevstage is not None and prevstage is not stage:
-			prtsep('-')
+			_prtsep('-')
 		prevstage = stage
 
 		# try to pick visually different characters for the types
@@ -195,7 +214,7 @@ def _printtimers(input, results):
 
 		v = (c, t.namestr(nlen), t.infostr(ilen), str(t.get_amount()))
 		print(onefmt.format(*v, t.time.timespecstr(), t.timerstr(None)))
-	prtsep()
+	_prtsep()
 	print()
 
 def _keystats(input, results, miniprint):
@@ -203,7 +222,7 @@ def _keystats(input, results, miniprint):
 	cols = [20, 19, 22, 19]
 	cols_tight = [20, 19, 16, 25]
 
-	prtsep()
+	_prtsep()
 	onefmt = '{:' + str(cols[0]) + '}{:}'
 
 	def maketwofmt(c):
@@ -264,10 +283,10 @@ def _keystats(input, results, miniprint):
 
 	if len(input['notes']['recipe'] + input['notes']['brewday']) > 0:
 		for n in input['notes']['recipe']:
-			prettyprint_withsugarontop('Recipe notes:',
+			_prettyprint_withsugarontop('Recipe notes:',
 			    cols[0], n, sum(cols) - cols[0])
 		for n in input['notes']['brewday']:
-			prettyprint_withsugarontop('Brewday notes:',
+			_prettyprint_withsugarontop('Brewday notes:',
 			    cols[0], n, sum(cols) - cols[0])
 		print()
 
@@ -310,11 +329,11 @@ def _keystats(input, results, miniprint):
 			    + str(rwort[Worter.PACKAGE].volume()
 			      + hd['volume']))
 
-	prtsep()
+	_prtsep()
 
 def _printattenuate(results):
 	print('Speculative apparent attenuation and resulting ABV')
-	prtsep()
+	_prtsep()
 	onefmt = '{:^8}{:^8}{:10}'
 	title = ''
 	for x in range(3):
@@ -332,14 +351,14 @@ def _printattenuate(results):
 		line += onefmt.format(*reslst[i + int(len(reslst)/3)])
 		line += onefmt.format(*reslst[i + int(2*len(reslst)/3)])
 		print(line)
-	prtsep()
+	_prtsep()
 	print()
 
 def printit(input, results, miniprint):
 	_keystats(input, results, miniprint)
 	ps = sysparams.getparamshorts()
-	prettyprint_withsugarontop('', '', ps, 78, sep='|')
-	prtsep()
+	_prettyprint_withsugarontop('', '', ps, 78, sep='|')
+	_prtsep()
 	print()
 
 	_printfermentables(input, results)

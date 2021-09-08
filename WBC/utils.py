@@ -49,26 +49,6 @@ def warn(msg, prepend=''):
 def notice(msg, prepend=''):
 	sys.stderr.write(prepend + '>> ' + msg)
 
-# print first line with prefix and rest indented at prefixlen,
-# split at whitespaces
-def prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
-	res = []
-	while len(thestr) > strmaxlen:
-		# this produces off-by-one lengths in a number of
-		# pathological corner cases.  not going to worry about it.
-		v = thestr[:strmaxlen+1].rsplit(sep, 1)
-		res.append(v[0])
-		thestr = thestr[len(v[0]):].lstrip()
-	res.append(thestr)
-
-	fmtstr = '{:' + str(prefixlen) + '}{:}'
-	for s in res:
-		print(fmtstr.format(prefix, s))
-		prefix = ''
-
-def prtsep(char='='):
-	print(char * 79)
-
 # used to avoid "-0" prints
 def pluszero(v):
 	if abs(v) < 0.000001: v = 0.000001
