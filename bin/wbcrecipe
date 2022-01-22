@@ -212,7 +212,7 @@ def processcsv(clist, odict, data):
 
 		elif row[0] == "fermentable":
 			when = parse.timespec(row[3])
-			r.fermentable_bymass(row[1],
+			r.fermentable_byunit(row[1],
 			    Mass(float(row[2]), Mass.KG), when)
 
 		elif row[0] == "hop":
