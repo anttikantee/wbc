@@ -10,11 +10,11 @@ wbckegp -v 5gal 8g/l 60degF
 
 wbccolor 10EBC
 
-wbcadjust -f 4degP,50% 15degP 20l 100g
-wbcadjust 1.050 20l -500g
-wbcadjust -f 4degP 15degP 5gal 1qt@10degP
-wbcadjust 15degP 20l 3.3lb@75%
-wbcadjust 8degP 9l 2l 4.0kg 6.5l 500g
+wbcadjust -f 4degP,50% 20l 15degP 100g
+wbcadjust 20l 1.050 -500g
+wbcadjust -f 4degP 5gal 15degP 1qt@10degP
+wbcadjust 20l 15degP 3.3lb@75%
+wbcadjust 9l 8degP 2l 4.0kg 6.5l 500g
 
 wbccool 18degC 21l 7degC
 wbccool 18degC 21l 7degC 50%
@@ -27,8 +27,8 @@ wbcfermfind notfound
 
 wbcparamdecode me=88%|uo=metric
 
-wbcadjust 1.000 10l 10000mg 100g 1kg 100ml 10dl 0.1hl
-wbcadjust 1.000 10qt 100oz 1lb 1gal 0.1bbl -1.1cup
+wbcadjust 10l 1.000 10000mg 100g 1kg 100ml 10dl 0.1hl
+wbcadjust 10qt 1.000 100oz 1lb 1gal 0.1bbl -1.1cup
 
 wbcsolve -e 82% 1gal 1.038
 wbcsolve 1gal 1lb@91%

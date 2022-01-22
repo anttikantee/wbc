@@ -29,7 +29,7 @@ import sys
 def usage():
 	sys.stderr.write('usage: ' + os.path.basename(sys.argv[0])
 	    + ' [-f final_strength[,adjustment_RA%]]\n'
-	    + '\tstrength vol mass[@extract%]|vol@strength [...]\n')
+	    + '\tvol strength mass[@extract%]|vol@strength [...]\n')
 	sys.exit(1)
 
 def printline2(fname, value1, value2):
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 			usage()
 
 	w_orig = Worter()
-	w_orig.set_volstrength(parse.volume(args[1]), parse.strength(args[0]))
+	w_orig.set_volstrength(parse.volume(args[0]), parse.strength(args[1]))
 
 	args = args[2:]
 	w = w_orig
