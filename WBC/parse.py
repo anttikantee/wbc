@@ -199,7 +199,10 @@ def split(input, splitter, i1, i2):
 	return (res1, res2)
 
 def ratio(input, r1, r2):
-	return split(input, '/', r1, r2)
+	return twotuple(input, r1, r2, '/')
+
+def twotuple(input, r1, r2, delim):
+	return split(input, delim, r1, r2)
 
 def timedtemperature(input):
 	return split(input, '@', duration, temperature)
