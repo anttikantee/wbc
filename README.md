@@ -8,14 +8,14 @@ discussed below.  The other utilties are:
 
   * `wbcabv`: calculate ABV, ABW and residual extract (w/v) from
     original and final strength
-  * `wbccool`: calculate cooling efficiency, water usage or ice usage
+  * `wbcchill`: calculate cooling efficiency, water usage or ice usage
     required to cool wort of given strength from a starting temperature
     to a desired temperature
   * `wbcadjust`: calculate the aggregate solution [and optionally a predicted
     final strength] when adjusting extract/water in a given wort/must/wash,
     e.g. adding priming sugar to already fermented beer, or boiling off
     a certain volume
-  * `wbckegp`: takes two of {pressure, temperature, dissolved CO2} and
+  * `wbcco2`: takes two of {pressure, temperature, dissolved CO2} and
     calculates the missing value, along with headspace CO2 required to
     push the beer out
   * `wbcsolve`: takes two of {volume, extract, strength} and
