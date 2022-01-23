@@ -46,6 +46,12 @@ def _unit(cls, sfxmap, input, name = None):
 	else:
 		return cls(float(numstr), sfx)
 
+def uint(input):
+	v = _unit(int, {'': None}, input)
+	if v < 0:
+		raise ValueError('integer is negative')
+	return v
+
 masssfx = {
 	'mg'	: units.Mass.MG,
 	'g'	: units.Mass.G,
