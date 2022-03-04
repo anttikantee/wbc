@@ -30,7 +30,7 @@ import os, sys
 
 def usage():
 	sys.stderr.write('usage: ' + os.path.basename(sys.argv[0])
-	    + ' [-e extract %]\n'
+	    + ' [-e extract %] [-s volume @ strength]\n'
 	    + '\tvolume|extract[@%]|strength volume|extract[@%]|strength\n')
 	sys.exit(1)
 
@@ -40,7 +40,7 @@ def printline2_system(fname, o):
 	printline2(fname, o.stras_system('metric'), o.stras_system('us'))
 
 def main(argv):
-	opts, args = getopt.getopt(argv[1:], 'e:')
+	opts, args = getopt.getopt(argv[1:], 'e:s:')
 
 	wegot = {}
 
@@ -49,30 +49,55 @@ def main(argv):
 			return wegot['ep']
 		return 1.0
 
+	w_start = False
+	ws = Worter(_Mass(0), _Mass(0))
 	for o, a in opts:
 		if o == '-e':
 			wegot['ep'] = parse.percent(a)/100.0
+		if o == '-s':
+			r = parse.twotuple(a, parse.volume, parse.strength, '@')
+			ws = Worter()
+			ws.set_volstrength(r[0], r[1])
+			w_start = True
 
 	if len(args) != 2:
 		usage()
 
+	# Volume with "minvol" overlay.  Could use -1L,
+	# but that would probably bite us some day.
+	class MyVolume:
+		MINVOL=	"minvol"
+		def __init__(self, v):
+			self.v = v
+
 	def attempt(what):
 		def extparse(arg):
+			# e% is specified either earlier with -e
+			# or latest here, so we can use ep()
 			if '@' in arg:
 				if 'ep' in wegot:
-					# XXX (can't throw piloterror)
-					sys.stderr.write('Extract percentage '
-					    + 'given more than once\n')
+					raise PilotError('extract percentage '
+					    + 'given more than once')
 					usage()
 				v = arg.split('@')
 				pers = parse.percent(v[1])/100.0
 				wegot['ep'] = pers
-				return _Mass(parse.mass(v[0]))
-			return parse.mass(arg)
+				arg = v[0]
+			return _Mass(ep() * parse.mass(arg))
 
-		for m in [ extparse, parse.volume, parse.strength ]:
+		def volparse(arg):
+			if arg == MyVolume.MINVOL:
+				return MyVolume(MyVolume.MINVOL)
+			else:
+				return MyVolume(parse.volume(arg))
+
+		for m in [ extparse, volparse, parse.strength ]:
 			try:
 				v = m(what)
+				if v.__class__ in wegot:
+					sys.stderr.write('ERROR: need two '
+					    + 'different types\n')
+					usage()
 				wegot[v.__class__] = v
 				return
 			except ValueError: pass
@@ -80,47 +105,117 @@ def main(argv):
 	attempt(args[0])
 	attempt(args[1])
 
+	# m() = mass of *dry* extract
 	def m(): return wegot[Mass]
 	def v(): return wegot[Volume]
 	def s(): return wegot[Strength]
-	def e(): return _Mass(m() * ep())
+
+	# The semantics of -s + Mass are a bit weird for extract with moisture.
+	# For example, if the starting sauce contains 1kg extract,
+	# and we want a total 3kg mass of 50% extract, should be count
+	# the starting extract as 1kg or 2kg?  If 1kg, it's not 50%,
+	# and if 2kg is that really what the user meant?  Using the
+	# mass as an *additional* mass would maybe make use-case sense,
+	# but then it's incompatible with every other parameter both in
+	# the -s and non-s cases.
+	#
+	# We could also make the volume mean an additional
+	# value and in non-s it'd also be the total.  It would
+	# even get rid of "minvol".  However, for strength it doesn't
+	# make sense from a user perspective, especially since you can't
+	# add SG to anything; would have to use "gravity points" or plato.
+	# I doubt anyone thinks "I want to make this 3 degrees plato stronger".
+	#
+	# So, with all that in mind,
+	# disallow -s+Mass and direct users to wbcadjust instead.
+	# That's what they probably want in any case.
+	#
+	if w_start and Mass in wegot:
+		raise PilotError('mass not supported w/ -s. Use wbcadjust.')
+
+	if MyVolume in wegot:
+		if wegot[MyVolume].v != MyVolume.MINVOL:
+			wegot[Volume] = wegot[MyVolume].v
+		else:
+			# if "minvol" is given, we know the water mass
+			# and strength and can calculate the total extract.
+			# So, treat minvol like a Mass+Strength case.
+			if not w_start:
+				raise PilotError('need start sauce for "'
+				    + MyVolume.MINVOL + '" (use -s)')
+
+			assert(Strength in wegot)
+
+			# Calculate the additional extract needed.
+			# Notably, we need to separate the starting
+			# constant and the new addition, because the
+			# new addition may contain moisture.  With
+			# e = existing extract, w = existing water,
+			# a = addition and ep = extract percentage:
+			#
+			# p = (e+ep*a) / (e+w+a)
+			#  ==>
+			# a = (e - p(e+w)) / (p - ep)
+
+			top = ws.extract() - (s()/100.0)*(ws.mass())
+			bottom = s()/100.0 - ep()
+			ext = top/bottom
+
+			# do we need to add extract (boost strength)
+			# or add water (dilute)?
+			wegot[Mass] = ws.extract()
+			if ext > 0:
+				wegot[Mass] += _Mass(ext * ep())
 
 	if Mass in wegot and Volume in wegot:
-		wegot[Strength] = brewutils.solve_strength(e(), v())
+		wegot[Strength] = brewutils.solve_strength(m(), v())
 		# "FALLTHROUGH"
-
 	if Mass in wegot and Strength in wegot:
-		w_mass = _Mass(e() / (s()/100.0) - e())
-		w = Worter(e(), w_mass)
+		# calculate total water, p = e/(e+w) => w = e/p - e
+		w_mass = _Mass(m() / (s()/100.0) - m())
+		w = Worter(m(), w_mass)
 	elif Volume in wegot and Strength in wegot:
 		w = Worter()
 		w.set_volstrength(v(), s())
 	else:
-		sys.stderr.write('ERROR: need two different types\n')
-		usage()
+		assert(False)
 
-	ext = w.extract()
-	ferm = _Mass(ext / ep())
-	fermwater = _Mass(ferm * (1-ep()))
+	if w.volume() < ws.volume():
+		raise PilotError('new volume is smaller than original')
 
-	waterreq = w.water() - fermwater
-	if waterreq < 0:
-		raise PilotError('fermentable strength below target strength')
+	# Now we know the *total* extract and water in every input case.
+	# Calculate what we need to *add*.
+	add_extract = w.extract() - ws.extract()
+	assert(add_extract+0.0001 >= 0)
+
+	fermwater = _Mass(add_extract/ep() * (1-ep()))
+	add_water = (w.water() - ws.water()) - fermwater
+
+	if add_water+.0001 < 0:
+		raise PilotError('too much water. increase strength or volume.')
+
+	if w_start:
+		printline2_system('Starting water', _Volume(ws.water()))
+		printline2_system('Starting extract', ws.extract())
+		print()
 
 	printline2_system('Fermentable (' + str(int(ep()*100)) + '%) addition',
-	    ferm)
-	printline2_system('    of which extract', ext)
+	    add_extract + fermwater)
+	printline2_system('    of which extract', add_extract)
 	printline2_system('    of which water', fermwater)
-	printline2_system('Water addition', _Volume(waterreq))
+	printline2_system('Water addition', _Volume(add_water))
 
-	ws = w.strength()
+	strn = w.strength()
+	print()
 	printline2_system('=> Volume', w.volume())
-	printline2('=> Strength', ws.stras(ws.PLATO), ws.stras(ws.SG))
+	printline2_system('    of which extract', w.extract())
+	printline2_system('    of which water', _Volume(w.water()))
+	printline2('=> Strength', strn.stras(strn.PLATO), strn.stras(strn.SG))
 
 if __name__ == '__main__':
 	try:
 		main(sys.argv)
 	except PilotError as e:
-		print(e)
+		sys.stderr.write('Pilot Error: ' + str(e) + '\n')
 		sys.exit(1)
 	sys.exit(0)
