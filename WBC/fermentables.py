@@ -198,6 +198,13 @@ Add('Avangard', 'Wheat',
 	Color(4.5, EBC))
 
 #
+# Bilgram
+#
+Add('Bilgram', 'Pilsner',
+	Extract(82.80, FGDB, 1.5, 3.9),
+	Color(4, EBC))
+
+#
 # Brewferm
 #
 
@@ -339,6 +346,23 @@ Add('Muntons', 'Maris Otter Pale Blend',
 	Extract(HWE2ext(308), CGDB, FCD_UNKNOWN, 4.0),
 	Color(5, EBC))
 
+# Muntons DME ("spraymalt") apparently has the specs only on the
+# bag.  "yay".  I'll add more as I find more.
+#
+# This one says "protein 7-5% maximum", probably in the spirit of
+# US timestamps.  Ummmm, ok.  Anyway, assume that everything that
+# was in the dry malt is soluble extract or moisture.
+Add('Muntons', 'Spraymalt Light',
+	Extract(100, CGDB, FCD_UNKNOWN, 5.0),
+	Color(12, EBC))
+
+#
+# Rhoenmalz
+#
+Add('Rhoenmalz', 'Pilsner',
+	Extract(80.5, FGDB, 1.5, 4.25),
+	Color(3.3, EBC))
+
 Add('Simpsons', 'Golden Promise',
 	Extract(81, FGDB, FCD_UNKNOWN, 3.7),
 	Color(6.5, EBC))
@@ -454,6 +478,16 @@ Add('Goldswaen', 'Red',
 	Extract(78, FGDB, FCD_UNKNOWN, 7.0),
 	Color(50, EBC))
 
+Add('Viking', 'Oat Malt',
+	Extract(58, FGDB, FCD_UNKNOWN, 7.0), # double-checked 58
+	Color(4.5, EBC))
+Add('Viking', 'Rye Malt',
+	Extract(81, FGDB, FCD_UNKNOWN, 6.0),
+	Color(7.0, EBC))
+Add('Viking', 'Wheat Malt',
+	Extract(82, FGDB, FCD_UNKNOWN, 6.0),
+	Color(4.2, EBC))
+
 # XXX: Weyermann doesn't list acidulated malt extract, but since it's
 # supposed just regular pale malt with lactic acid, we'll go with 75%.
 # it's not used in such high amounts that it should matter if we're off
@@ -492,6 +526,9 @@ Add('Weyermann', 'Melanoidin',
 Add('Weyermann', 'Pale',
 	Extract(78.2, FGAI, FCD_UNKNOWN, 4.5),
 	Color(7.5, EBC))
+Add('Weyermann', 'Vienna',
+	Extract(78.4, FGAI, FCD_UNKNOWN, 4.5),
+	Color(8, EBC))
 Add('Weyermann', 'Munich I',
 	Extract(77.4, FGAI, FCD_UNKNOWN, 4.1),
 	Color(16, EBC))
@@ -554,6 +591,14 @@ Add(None, 'raw rye',
 Add(None, 'raw oats',
 	Extract(70, CGDB, FCD_UNKNOWN, 12.0),
 	Color(8, LOVIBOND))
+
+# extract on the biostore package (FCD and color [obviously] guessed)
+Add(None, 'raw pearl barley',
+	Extract(71, CGAI, FCD_UNKNOWN, 12.0),
+	Color(8, LOVIBOND))
+Add(None, 'flaked barley',
+	Extract(75, FGDB, FCD_UNKNOWN, 8.0),
+	Color(2, LOVIBOND))
 
 # The rice packet I looked at contained 36g starch per 45g.  Of course,
 # they don't report moisture content or fine/coarse difference, so we'll
