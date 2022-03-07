@@ -79,6 +79,13 @@ def __density_at_temp(temp):
 	if temp < 0 or temp > 100:
 		raise PilotError('invalid water temperature: ' + str(temp))
 
+	# Continous formula for low temps:
+	#
+	# ln rho = -0.589581 + 326.785/T - 45284.1/T^2
+	#
+	# Results off by some decimals at high temps.  maybe use up to a
+	# certain temperature?
+
 	# water density values from:
 	# www.engineeringtoolbox.com/water-density-specific-weight-d_595.html
 	#
