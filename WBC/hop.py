@@ -22,10 +22,11 @@ from WBC import timespec
 class Hop:
 	LEAF	= 'leaf'
 	PLUG	= 'plug'
+	WET	= 'wet'
 	T90	= 'T90'
 	T45	= 'T45'
 
-	types = [ T90, T45, LEAF, PLUG ]
+	types = [ T90, T45, LEAF, PLUG, WET ]
 	_lctypes = [x.lower() for x in types]
 
 	def __init__(self, name, aapers, type = T90):
@@ -145,10 +146,17 @@ class Hop:
 
 	def absorption(self, mass):
 		checktype(mass, Mass)
+
+		# use pellethop absorption also for wet hops.  they
+		# don't technically absorb anything, but they adsorb
+		# more wort than pellets, so maybe(?) it evens out.
+		# seems to get me pretty close to sensible results,
+		# at least.  can be refined later
 		if self.type != self.LEAF:
 			abs_c = constants.pellethop_absorption_mlg
 		else:
 			abs_c = constants.leafhop_absorption_mlg
+
 		# l/kg == ml/g
 		v = _Volume(mass * abs_c)
 		return v

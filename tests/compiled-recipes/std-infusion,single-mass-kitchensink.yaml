@@ -17,6 +17,7 @@ defs:
 hops:
     - [ [ Testhop2,     10.0%, T45 ],   20g,        mash @ firstwort ]
     - [ [ Testhop_leaf,  4.5%, leaf ],  2g/l,       boiltime         ]
+    - [ [ Testhop_wet,   2.1%, wet  ],  3g/l,       5min             ]
 
     - [ *th1,                           10 IBU,     12min            ]
 
