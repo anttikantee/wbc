@@ -101,6 +101,14 @@ doprep ()
 	    test-recipes/proto-bymass-nomash.yaml
 
 	resetcount
+	prepcmd pagelen wbcrecipe -p params-std -P oP=10 \
+	    test-recipes/proto-bymass.yaml
+	prepcmd pagelen wbcrecipe -p params-std -P oP=40 \
+	    test-recipes/proto-bymass.yaml
+	prepcmd pagelen wbcrecipe -p params-std -P oP=400 \
+	    test-recipes/proto-bymass.yaml
+
+	resetcount
 	while read line; do
 		set -- ${line}
 		[ $# -ne 0 ] || continue

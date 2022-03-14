@@ -24,6 +24,14 @@ from WBC.units import Strength, _Volume, _Mass, _Strength
 
 from WBC.worter import Worter
 
+global _prtsects
+_prtsects = ['']
+_oldprt = print
+def _newsect():
+	_prtsects.append('')
+def print(x = '', end = '\n'):
+	_prtsects[-1] += x + end
+
 # print first line with prefix and rest indented at prefixlen,
 # split at whitespaces
 def _prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
@@ -90,11 +98,10 @@ def _printfermentables(input, results):
 	    str(allstats['amount']) + ' (100.0%)',
 	    str(allstats['extract_theoretical']),
 	    str(allstats['extract_predicted'])))
-	print()
 
 def _printmash(input, results):
 	if 'mash' not in results:
-		return
+		return False
 
 	spargewater = results['mash']['sparge_water']
 	yesnosparge = ")"
@@ -182,11 +189,12 @@ def _printmash(input, results):
 			    + str(stolen.strength())+')', end=' ')
 		print()
 	_prtsep()
-	print()
+
+	return True
 
 def _printtimers(input, results):
 	if len(results['timer_additions']) == 0:
-		return
+		return False
 
 	nlen = 36
 	ilen = 6
@@ -215,7 +223,8 @@ def _printtimers(input, results):
 		v = (c, t.namestr(nlen), t.infostr(ilen), str(t.get_amount()))
 		print(onefmt.format(*v, t.time.timespecstr(), t.timerstr(None)))
 	_prtsep()
-	print()
+
+	return True
 
 def _keystats(input, results, miniprint):
 	# column widths (
@@ -329,8 +338,6 @@ def _keystats(input, results, miniprint):
 			    + str(rwort[Worter.PACKAGE].volume()
 			      + hd['volume']))
 
-	_prtsep()
-
 def _printattenuate(results):
 	print('Speculative apparent attenuation and resulting ABV')
 	_prtsep()
@@ -352,17 +359,45 @@ def _printattenuate(results):
 		line += onefmt.format(*reslst[i + int(2*len(reslst)/3)])
 		print(line)
 	_prtsep()
-	print()
 
 def printit(input, results, miniprint):
 	_keystats(input, results, miniprint)
+	_prtsep()
 	ps = sysparams.getparamshorts()
 	_prettyprint_withsugarontop('', '', ps, 78, sep='|')
 	_prtsep()
-	print()
+	_newsect()
 
 	_printfermentables(input, results)
-	_printmash(input, results)
-	_printtimers(input, results)
+	_newsect()
+
+	if _printmash(input, results):
+		_newsect()
+
+	if _printtimers(input, results):
+		_newsect()
+
 	if not miniprint:
 		_printattenuate(results)
+		_newsect()
+
+	def curlines(str):
+		# XXX: assert that no line is over 80 chars
+		return str.count('\n')
+
+	def doprt(str):
+		nonlocal pagelines
+		_oldprt(str, end='')
+		pagelines += curlines(str)
+
+	pagelen = getparam('output_text-pagelen')
+	if pagelen is None: pagelen = 0
+	pagelines = 0
+	doprt(_prtsects[0])
+	for x in _prtsects[1:]:
+		if pagelen > 0 and pagelines + curlines(x) > pagelen:
+			pagelines = 0
+			_oldprt(end='')
+		else:
+			_oldprt()
+		doprt(x)

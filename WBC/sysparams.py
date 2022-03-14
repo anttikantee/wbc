@@ -252,6 +252,17 @@ _addoptparam('boilvol_max',	'bM',	parse.volume,
 					'a fermentor-stage ingredient.'
 					'Acceptable values: volume')
 
+_addoptparam('output_text-pagelen', 'oP',	parse.uint,
+					'Page length used by text output. '
+					'Sections are started on a new '
+					'page if they do not fit the current '
+					'one. '
+					'Acceptable values: unsigned integer '
+					'(0 = disabled). '
+					'Typical values: 0 (tty), '
+					'65/69 (A4/letter)')
+
+
 _defaults = {
 	# water absortion for 1kg of grain, gross (*true* absorption)
 	'grain_absorption'	: '1.50L/kg',
