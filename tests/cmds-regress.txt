@@ -33,6 +33,6 @@ wbcadjust 10qt 1.000 100oz 1lb 1gal 0.1bbl -1.1cup
 wbcsolve -e 82% 1gal 1.038
 wbcsolve 1gal 1lb@91%
 wbcsolve 10degP 1l
-wbcsolve -e 80% -s '10L @ 1.050' 1.090 minvol
-wbcsolve -s '10L @ 1.050' 1.020 minvol
-wbcsolve -e 60% -s '10L @ 1.050' 1.080 50L
+wbcsolve -e 80% -s 10L@1.050 1.090 minvol
+wbcsolve -s 10L@1.050 1.020 minvol
+wbcsolve -e 60% -s 10L@1.050 1.080 50L
