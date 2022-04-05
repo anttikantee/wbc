@@ -202,7 +202,6 @@ def processcsv(clist, odict, data):
 		if row[0] == "recipe":
 			r = Recipe(row[1], row[2], _Volume(float(row[4])),
 			    parse.duration(row[3]))
-			applyparams(r, clist, odict)
 
 		elif row[0] == "sysparams":
 			for x in row[1:]: sysparams.processparam(x)
@@ -219,6 +218,7 @@ def processcsv(clist, odict, data):
 		elif row[0] == "hop":
 			dohop(r, [row[1], row[3] + '%',
 			    row[2]], row[4] + 'kg', row[6])
+	applyparams(r, clist, odict)
 	return r
 
 
