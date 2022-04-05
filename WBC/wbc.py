@@ -96,6 +96,7 @@ class Recipe:
 
 		self._oncelst = []
 
+	def paramdefaults(self):
 		sysparams.processdefaults()
 
 	def paramfile(self, filename):

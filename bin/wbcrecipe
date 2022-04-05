@@ -163,6 +163,7 @@ def processyaml(clist, odict, data):
 		boiltime = parse.duration(getdef('boil'))
 
 	r = Recipe(name, yeast, volume, boiltime)
+	r.paramdefaults()
 
 	applyparams(r, clist, odict)
 
