@@ -32,6 +32,10 @@ def _newsect():
 def print(x = '', end = '\n'):
 	_prtsects[-1] += x + end
 
+def stras_unsystem(obj):
+	uo = getparam('units_output')
+	return obj.stras_system({'metric':'us','us':'metric'}[uo])
+
 # print first line with prefix and rest indented at prefixlen,
 # split at whitespaces
 def _prettyprint_withsugarontop(prefix, prefixlen, thestr, strmaxlen, sep=None):
@@ -153,19 +157,23 @@ def _printmash(input, results):
 
 	_prtsep('-')
 
+	mw = results['mash']['mashstep_water'].volume(__reference_temp())
 	print('{:20}{:}'.format('Mashstep water:',
-	    str(results['mash']['mashstep_water'].volume(__reference_temp()))
+	    str(mw) + ' / ' + stras_unsystem(mw)
 	    + ' @ ' + str(__reference_temp())), end=' ')
-	print('(1st runnings: ~{:} @ {:}'
-	    .format(results['mash_first_runnings'].volume(finaltemp), finaltemp)
+	mrun = results['mash_first_runnings'].volume(finaltemp)
+	print('({:} @ {:} ~run'
+	    .format(str(mrun) + ' / ' + stras_unsystem(mrun), finaltemp)
 	      + yesnosparge)
 
 	if spargewater.water() > .001:
 		at = getparam('ambient_temp')
 		st = getparam('sparge_temp')
-		print('{:20}{:} ({:} @ {:})'.format('Sparge water:',
-		    str(spargewater.volume(st)) + ' @ ' + str(st),
-		    str(spargewater.volume(at)), str(at)))
+		print('{:20}{:} ({:} @ {:} amb.)'.format('Sparge water:',
+		    str(spargewater.volume(st)) + ' / '
+		    + stras_unsystem(spargewater.volume(st)) + ' @ ' + str(st),
+		    str(spargewater.volume(at)) + ' / '
+		    + stras_unsystem(spargewater.volume(at)), str(at)))
 
 	fw = results['mash_conversion']
 	fwstrs = []
@@ -249,9 +257,11 @@ def _keystats(input, results, miniprint):
 
 	totibus = results['hop_stats']['ibu']
 	print(onefmt.format('Name:', input['name']))
+	pwort = rwort[Worter.PACKAGE]
 	print(twofmt_tight.format('Aggregate strength:',
-	    str(rwort[Worter.PACKAGE].strength()),
-	    'Package volume:', str(rwort[Worter.PACKAGE].volume())))
+	    str(pwort.strength()),
+	    'Package volume:',
+	      str(pwort.volume()) + ' / ' + stras_unsystem(pwort.volume())))
 	print(twofmt_tight.format('Total fermentables:',
 	    str(results['fermentable_stats_all']['amount']),
 	    'Total hops:',
@@ -284,7 +294,8 @@ def _keystats(input, results, miniprint):
 	    'Yeast:', input['yeast']))
 	print(twofmt_tight.format(
 	    'Water (' + str(getparam('ambient_temp')) + '):',
-	    str(total_water.volume()),
+	    str(total_water.volume())
+	      + ' / ' + stras_unsystem(total_water.volume()),
 	    'Brewhouse eff:',
 	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
 
