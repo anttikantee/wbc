@@ -411,4 +411,5 @@ def printit(input, results, miniprint):
 			_oldprt(end='')
 		else:
 			_oldprt()
+			pagelines += 1
 		doprt(x)
