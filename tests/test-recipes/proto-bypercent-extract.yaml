@@ -1,0 +1,16 @@
+name:   proto
+yeast:  yeastieboys
+volume: 20l
+boil:   60min
+
+fermentables:
+    strength: 10.4degP
+
+    boiltime:
+        Muntons Spraymalt Light:      33.4%
+
+    10min:
+        Muntons Spraymalt Light:      66.6%
+
+hops:
+    - [ [ Testhop_leaf,  4.5%, leaf ],  1.1g/L, boiltime         ]

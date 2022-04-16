@@ -1,0 +1,19 @@
+name:   proto
+yeast:  yeastieboys
+volume: 20l
+boil:   60min
+
+fermentables:
+    strength: 15degP
+
+    mash @ steep:
+        # ridiculous on purpose
+        Crisp Black Malt:             40%
+
+    10min:
+        Muntons Spraymalt Light:      60%
+
+hops:
+    - [ [ Testhop_leaf,  4.5%, leaf ],  15g,    mash @ firstwort ]
+    - [ [ Testhop_leaf,  4.5%, leaf ],  1.1g/L, boiltime         ]
+    - [ [ Testhop1,      8.8% ],        10g,    fermentor        ]

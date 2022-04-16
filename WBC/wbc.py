@@ -27,7 +27,7 @@ from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
 from WBC.hop import Hop
 from WBC.mash import Mash
-from WBC.worter import Worter
+from WBC.worter import Worter, laterworter
 
 from WBC import brewutils, timespec
 from WBC.timespec import Timespec, Boil
@@ -586,15 +586,14 @@ class Recipe:
 		# ("unknown" = not solved analytically)
 		for _ in range(10):
 			self._dofermentables_bypercent(ferms_bymass)
-			res = self._doworters_bystrength()
-			extoff = res[Worter.MASH].extract()
+			extoff, res = self._doworters_bystrength()
 			if abs(extoff.valueas(Mass.G)) < 1:
 				break
 			self.fermentable_extadj += extoff
 		else:
 			raise Exception('unable to calculate fermentables')
 
-		self.waterguess = res[Worter.MASH].water() + self._boiladj
+		self.waterguess = res[self.firstworter].water() + self._boiladj
 		self.worter = res
 
 	def _dofermentablestats(self):
@@ -716,11 +715,22 @@ class Recipe:
 		f = self._fermentables_bytimespec(Timespec.MASH) \
 		    + self._fermentables_bytimespec(Timespec.POSTMASH)
 		m = self._fermentables_massof(f)
-		l[Worter.MASH] = _Volume(m*self._grain_absorption()
-		    + getparam('mlt_loss'))
+
+		if (laterworter(self.firstworter, Worter.MASH)
+		    or isinstance(self.earlyferm, timespec.MashSpecial)):
+			# steep doesn't get mashtun loss
+			ml = _Volume(0)
+		else:
+			ml = getparam('mlt_loss')
+		l[Worter.MASH] = _Volume(m*self._grain_absorption()) + ml
 
 		hd = self.hopsdrunk
-		l[Worter.POSTBOIL] = hd['kettle'] + getparam('kettle_loss')
+		if laterworter(self.firstworter, Worter.POSTBOIL):
+			assert(hd['kettle'] < 0.0001)
+			kl = _Volume(0)
+		else:
+			kl = getparam('kettle_loss')
+		l[Worter.POSTBOIL] = hd['kettle'] + kl
 		l[Worter.FERMENTOR] = hd['fermentor'] \
 		    + getparam('fermentor_loss')
 		self.vol_losses = l
@@ -733,35 +743,50 @@ class Recipe:
 		res = {}
 		l = self.vol_losses
 
+		# Add empty worters so that if early stages are skipped,
+		# the results show a zero worter.
+		for s in Worter.stages:
+			res[s] = Worter()
+
 		w = Worter(water = self.waterguess - self._boiladj)
-		res[Worter.MASH] = copy.deepcopy(w)
+		res[self.firstworter] = copy.deepcopy(w)
 
-		# worter at PREBOIL is mash plus extract minus
-		# evaporation minus volume loss
-		w.adjust_extract(self._extract_bytimespec(Timespec.MASH))
-		w.adjust_extract(self._extract_bytimespec(Timespec.POSTMASH))
+		#
+		# pre-and-postboil, pre-and-postboil
+		# they go together like hops and turmoil
+		# this, I tell you breeeewer
+		# you can't have one without the other
+		#
+		if not laterworter(self.firstworter, Worter.PREBOIL):
+			# worter at PREBOIL is mash plus extract minus
+			# evaporation minus volume loss
+			tees = [Timespec.MASH, Timespec.POSTMASH]
+			for t in tees:
+				w.adjust_extract(self._extract_bytimespec(t))
 
-		w -= self.mash.evaporation()
+			w -= self.mash.evaporation()
 
-		# We account for the extract loss already in the mash
-		# efficiency (configured).  Therefore, coupled with the
-		# loss volume we can calculate the amount of water lost,
-		# and just subtract the water.
+			# We account for the extract loss already in the mash
+			# efficiency (configured).  Therefore, coupled with the
+			# lost volume we can calculate the amount of water lost,
+			# and just subtract the water.
+			maxext = sum([self._extract_bytimespec(x,
+			    theoretical=True) for x in tees], _Mass(0))
+			if maxext > 0.0001:
+				extdiff = _Mass(maxext - w.extract())
+				stren = brewutils.solve_strength(extdiff,
+				    l[Worter.MASH])
 
-		maxext = sum([ self._extract_bytimespec(x, theoretical=True)
-		    for x in [Timespec.MASH, Timespec.POSTMASH]], _Mass(0))
-		extdiff = _Mass(maxext - w.extract())
-		stren = brewutils.solve_strength(extdiff, l[Worter.MASH])
+				w_mashloss = Worter()
+				w_mashloss.set_volstrength(l[Worter.MASH],
+				    stren)
+				w.adjust_water(-w_mashloss.water())
+			res[Worter.PREBOIL] = copy.deepcopy(w)
 
-		w_mashloss = Worter()
-		w_mashloss.set_volstrength(l[Worter.MASH], stren)
-		w.adjust_water(-w_mashloss.water())
-
-		res[Worter.PREBOIL] = copy.deepcopy(w)
-
-		w.adjust_water(_Mass(-self._boiloff()))
-		w.adjust_extract(self._extract_bytimespec(Timespec.KETTLE))
-		res[Worter.POSTBOIL] = copy.deepcopy(w)
+			w.adjust_water(_Mass(-self._boiloff()))
+			ext = self._extract_bytimespec(Timespec.KETTLE)
+			w.adjust_extract(ext)
+			res[Worter.POSTBOIL] = copy.deepcopy(w)
 
 		w.adjust_volume(-l[Worter.POSTBOIL])
 		w.adjust_extract(self._extract_bytimespec(Timespec.FERMENTOR))
@@ -780,6 +805,10 @@ class Recipe:
 		res = {}
 		l = self.vol_losses
 
+		# add empty worters (in case early stages are unnecessary)
+		for s in Worter.stages:
+			res[s] = Worter()
+
 		w = Worter()
 		w.set_volstrength(self._final_volume(), self.final_strength)
 		res[Worter.PACKAGE] = copy.deepcopy(w)
@@ -787,8 +816,11 @@ class Recipe:
 		w.adjust_extract(-self._extract_bytimespec(Timespec.PACKAGE))
 		w.adjust_volume(l[Worter.FERMENTOR])
 		res[Worter.FERMENTOR] = copy.deepcopy(w)
-
 		w.adjust_extract(-self._extract_bytimespec(Timespec.FERMENTOR))
+
+		if laterworter(self.firstworter, Worter.POSTBOIL):
+			return w.extract(), res
+
 		w.adjust_volume(l[Worter.POSTBOIL])
 		w.adjust_water(-self._boiladj)
 		res[Worter.POSTBOIL] = copy.deepcopy(w)
@@ -800,6 +832,10 @@ class Recipe:
 		actext = (self._extract_bytimespec(Timespec.MASH)
 		    + self._extract_bytimespec(Timespec.POSTMASH))
 		w.adjust_extract(-actext)
+
+		if laterworter(self.firstworter, Worter.MASH):
+			return w.extract(), res
+
 		w += self.mash.evaporation()
 
 		# We account for the extract loss already in the mash
@@ -816,7 +852,7 @@ class Recipe:
 
 		res[Worter.MASH] = copy.deepcopy(w)
 
-		return res
+		return w.extract(), res
 
 	def _dohops(self):
 		allhop = []
@@ -898,6 +934,10 @@ class Recipe:
 
 		timers = sorted(timers, key=lambda x: x.time, reverse=True)
 
+		if (len(timers) > 0
+		    and timers[0].time.stagecmp(self.earlyferm) == -1):
+			warn('Additions before fermentables.  Check recipe.\n')
+
 		# calculate "timer" field values
 		prevtype = None
 		timer = 0
@@ -972,6 +1012,9 @@ class Recipe:
 		if self._final_volume() is None:
 			raise PilotError("final volume is not set")
 
+		if len(self.ferms_in) == 0:
+			raise PilotError("no fermentables => no brew")
+
 		if len(self.needinherent) > 0 and self.volume_inherent is None:
 			raise PilotError("recipe has absolute amounts but "
 			    + "no inherent volume: "
@@ -990,6 +1033,22 @@ class Recipe:
 		if abs(s - 1.0) > .0001:
 			notice('Scaling recipe ingredients by a factor of '
 			    + '{:.4f}'.format(s) + '\n')
+
+		# check the earlier stage we are calculating for
+		s = sorted(self.ferms_in,
+		    key=lambda x: x.time, reverse=True)
+		assert(len(s) > 0)
+		self.earlyferm = s[0].time
+
+		# map the stage from above to a worter
+		if isinstance(self.earlyferm, timespec.Package):
+			raise PilotError("no fermentation. fix recipe.")
+		self.firstworter = {
+			Timespec.MASH:		Worter.MASH,
+			Timespec.POSTMASH:	Worter.MASH,
+			Timespec.KETTLE:	Worter.PREBOIL,
+			Timespec.FERMENTOR:	Worter.FERMENTOR,
+		}[timespec.timespec2stage[self.earlyferm.__class__]]
 
 		self._dofermentables_preprocess()
 
@@ -1093,7 +1152,8 @@ class Recipe:
 		self.results['hopsdrunk'] = self.hopsdrunk
 		self.results['fermentables'] = self.fermentables
 
-		self.results['total_water'] = self.worter[Worter.MASH] \
+		firstwater = self.worter[self.firstworter].water()
+		self.results['total_water'] = Worter(water = firstwater) \
 		    + Worter(water = self._boiladj)
 
 		self._sanity_check()

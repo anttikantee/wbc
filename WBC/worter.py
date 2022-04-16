@@ -157,3 +157,9 @@ class Worter:
 		    str(self.strength()),
 		    str(_Mass(self._extract)),
 		    str(_Mass(self._water)))
+
+# return True if "this" is a later worter than "that".
+# for example, this = MASH, that = PREBOIL returns False,
+# as does MASH / MASH
+def laterworter(this, that):
+	return Worter.stages.index(this) > Worter.stages.index(that)

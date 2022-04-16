@@ -97,8 +97,18 @@ doprep ()
 	    test-recipes/proto-bymass-0boil.yaml
 
 	resetcount
-	prepcmd nomash wbcrecipe -p params-std \
+	prepcmd nomash-mass wbcrecipe -p params-std \
 	    test-recipes/proto-bymass-nomash.yaml
+	prepcmd nomash-mass wbcrecipe -p params-std \
+	    test-recipes/proto-bymass-extract.yaml
+	prepcmd nomash-mass wbcrecipe -p params-std \
+	    test-recipes/proto-bymass-steepextract.yaml
+
+	resetcount
+	prepcmd nomash-percent wbcrecipe -p params-std \
+	    test-recipes/proto-bypercent-extract.yaml
+	prepcmd nomash-percent wbcrecipe -p params-std \
+	    test-recipes/proto-bypercent-steepextract.yaml
 
 	resetcount
 	prepcmd pagelen wbcrecipe -p params-std -P oP=10 \

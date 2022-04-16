@@ -32,6 +32,16 @@ class Timespec:
 
 	stages=		[ MASH, POSTMASH, KETTLE, FERMENTOR, PACKAGE ]
 
+	# return -1 if other is earlier, 0 is same, 1 if later
+	def stagecmp(self, other):
+		scls = self.__class__
+		ocls = other.__class__
+		if _order.index(scls) > _order.index(ocls):
+			return -1
+		elif _order.index(scls) == _order.index(ocls):
+			return 0
+		return 1
+
 	def __lt__(self, other):
 		scls = self.__class__
 		ocls = other.__class__
