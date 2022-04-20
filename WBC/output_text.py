@@ -302,20 +302,26 @@ def _keystats(input, results, miniprint):
 			    cols[0], n, sum(cols) - cols[0])
 		print()
 
-	boil_pretemp = getparam('preboil_temp')
-	boil_posttemp = getparam('postboil_temp')
-	print(twofmt.format('Preboil  volume  :',
-	    str(rwort[Worter.PREBOIL].volume(boil_pretemp)) \
-	      + ' (' + str(boil_pretemp) + ')',
-	    'Measured:', ''))
-	print(twofmt.format('Preboil  strength:',
-	    str(rwort[Worter.PREBOIL].strength()), 'Measured:', ''))
-	print(twofmt.format('Postboil volume  :',
-	    str(rwort[Worter.POSTBOIL].volume(boil_posttemp)) \
-	      + ' (' + str(boil_posttemp) + ')',
-	    'Measured:', ''))
-	print(twofmt.format('Postboil strength:',
-	    str(rwort[Worter.POSTBOIL].strength()), 'Measured:', ''))
+	if rwort[Worter.PREBOIL].volume() > 0.01:
+		boil_pretemp = getparam('preboil_temp')
+		boil_posttemp = getparam('postboil_temp')
+		print(twofmt.format('Preboil  volume  :',
+		    str(rwort[Worter.PREBOIL].volume(boil_pretemp)) \
+		      + ' (' + str(boil_pretemp) + ')',
+		    'Measured:', ''))
+		print(twofmt.format('Preboil  strength:',
+		    str(rwort[Worter.PREBOIL].strength()), 'Measured:', ''))
+		print(twofmt.format('Postboil volume  :',
+		    str(rwort[Worter.POSTBOIL].volume(boil_posttemp)) \
+		      + ' (' + str(boil_posttemp) + ')',
+		    'Measured:', ''))
+		print(twofmt.format('Postboil strength:',
+		    str(rwort[Worter.POSTBOIL].strength()), 'Measured:', ''))
+	else:
+		print(twofmt.format('Fermentor volume  :',
+		    str(rwort[Worter.FERMENTOR].volume()),
+		    'Fermentor Strength:',
+		    str(rwort[Worter.FERMENTOR].strength())))
 
 	if not miniprint:
 		print()
