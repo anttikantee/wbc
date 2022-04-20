@@ -508,9 +508,9 @@ class Strength(WBCUnit):
 			return self.stras(self.SG)
 
 class Color(float):
-	EBC		= object()
-	SRM		= object()
-	LOVIBOND	= object()
+	EBC		= 'EBC'
+	SRM		= 'SRM'
+	LOVIBOND	= chr(0x00b0) + 'L'
 
 	def __new__(cls, value, unit):
 		if unit is Color.SRM:
@@ -546,6 +546,15 @@ class Color(float):
 	@staticmethod
 	def EBCtoL(v):
 		return (Color.EBCtoSRM(v) + 0.76) / 1.3546
+
+	def stras(self, unit):
+		v = self.valueas(unit)
+		if v > 10:
+			prec = '0'
+		else:
+			prec = '1'
+		fmt = '{:.' + prec + 'f} {:}'
+		return fmt.format(v, unit)
 
 class Pressure(WBCUnit):
 	PASCAL		= object()
