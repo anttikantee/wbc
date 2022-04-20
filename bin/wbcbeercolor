@@ -40,6 +40,6 @@ if __name__ == '__main__':
 		print(e)
 		sys.exit(1)
 
-	print('{:.1f} EBC {:10.1f} SRM {:10.1f} L'.format(c.valueas(Color.EBC),
-	    c.valueas(Color.SRM), c.valueas(Color.LOVIBOND)))
+	print('{:10} {:10} {:10}'.format(c.stras(c.EBC),
+	    c.stras(c.SRM), c.stras(c.LOVIBOND)))
 	sys.exit(0)
