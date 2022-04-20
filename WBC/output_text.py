@@ -270,18 +270,10 @@ def _keystats(input, results, miniprint):
 	bugu = totibus \
 	    / rwort[Worter.PACKAGE].strength().valueas(Strength.SG_PTS)
 	color = results['color']
-	srm = color.valueas(color.SRM)
-	ebc = color.valueas(color.EBC)
-	if srm >= 10:
-		prec = '0'
-	else:
-		prec = '1'
-	ebcprec = '{:.' + prec + 'f}'
-	srmprec = '{:.' + prec + 'f}'
 	print(twofmt_tight.format('Tinseth IBU / BUGU:',
 	    '{:<3d} / {:.2f}'.format(int(round(totibus)), bugu),
-	    'Color (Morey):', ebcprec.format(ebc) + ' EBC, '
-	    + srmprec.format(srm) + ' SRM'))
+	    'Color (Morey):',
+	    color.stras(color.EBC) + ', ' + color.stras(color.SRM)))
 
 	kl = results['losses'][Worter.POSTBOIL]
 	fl = results['losses'][Worter.FERMENTOR]
