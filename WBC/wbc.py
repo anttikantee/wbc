@@ -1132,15 +1132,18 @@ class Recipe:
 		self.results['pitch']['ale']   = mldegp * 0.75*mil / bil
 		self.results['pitch']['lager'] = mldegp * 1.50*mil / bil
 
-		# calculate color, via MCU & Morey equation
-		t = sum(f.get_amount().valueas(Mass.LB) \
-		    * f.obj.color.valueas(Color.LOVIBOND) \
-		        for f in self.fermentables)
-		v = (self.worter[Worter.POSTBOIL].volume()
-		    + _Volume(self._boiladj)).valueas(Volume.GALLON)
-		mcu = t / v
-		self.results['color'] = \
-		    Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
+		if not laterworter(self.firstworter, Worter.PREBOIL):
+			# calculate color, via MCU & Morey equation
+			t = sum(f.get_amount().valueas(Mass.LB) \
+			    * f.obj.color.valueas(Color.LOVIBOND) \
+				for f in self.fermentables)
+			v = (self.worter[Worter.POSTBOIL].volume()
+			    + _Volume(self._boiladj)).valueas(Volume.GALLON)
+			mcu = t / v
+			self.results['color'] = \
+			    Color(1.4922 * pow(mcu, 0.6859), Color.SRM)
+		else:
+			self.results['color'] = None
 
 		# calculate brewhouse estimated afficiency ... NO, efficiency
 		maxext = sum([self._extract_bytimespec(x, theoretical=True)
