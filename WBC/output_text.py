@@ -255,7 +255,6 @@ def _keystats(input, results, miniprint):
 		total_water = _Volume(total_water
 		    + results['steal']['missing'])
 
-	totibus = results['hop_stats']['ibu']
 	print(onefmt.format('Name:', input['name']))
 	pwort = rwort[Worter.PACKAGE]
 	print(twofmt_tight.format('Aggregate strength:',
@@ -267,17 +266,21 @@ def _keystats(input, results, miniprint):
 	    'Total hops:',
 	    str(results['hop_stats']['mass'])))
 
-	bugu = totibus \
-	    / rwort[Worter.PACKAGE].strength().valueas(Strength.SG_PTS)
+	totibus = results['hop_stats']['ibu']
 	color = results['color']
-	if color is not None:
-		cstr = color.stras(color.EBC) + ', ' + color.stras(color.SRM)
-	else:
-		cstr = 'n/a'
 
-	print(twofmt_tight.format('Tinseth IBU / BUGU:',
-	    '{:<3d} / {:.2f}'.format(int(round(totibus)), bugu),
-	    'Color (Morey):', cstr))
+	if totibus > 0.001 or color is not None:
+		bugu = totibus \
+		    / rwort[Worter.PACKAGE].strength().valueas(Strength.SG_PTS)
+		if color is not None:
+			cstr = (color.stras(color.EBC)
+			    + ', ' + color.stras(color.SRM))
+		else:
+			cstr = 'n/a'
+
+		print(twofmt_tight.format('Tinseth IBU / BUGU:',
+		    '{:<3d} / {:.2f}'.format(int(round(totibus)), bugu),
+		    'Color (Morey):', cstr))
 
 	kl = results['losses'][Worter.POSTBOIL]
 	fl = results['losses'][Worter.FERMENTOR]
