@@ -927,10 +927,14 @@ class Recipe:
 		# sort the timerable additions
 		timers = self.results['hops'] + self.opaques + self.water
 
-		# include boiltime fermentables under timers.
+		# include boiltime fermentables under timers if there's a boil,
+		# else include all (think e.g. step-fed meads).
 		# XXX: should be user-configurable
-		timers += [x for x in self.fermentables
-		    if isinstance(x.time, timespec.Boil)]
+		if laterworter(self.firstworter, Worter.POSTBOIL):
+			timers += self.fermentables
+		else:
+			timers += [x for x in self.fermentables
+			    if isinstance(x.time, timespec.Boil)]
 
 		timers = sorted(timers, key=lambda x: x.time, reverse=True)
 
