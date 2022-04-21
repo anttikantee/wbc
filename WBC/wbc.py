@@ -1200,7 +1200,8 @@ class Recipe:
 			    .format(g.obj.name,
 			      float(g.get_amount()), g.time))
 
-		print('# hop|name|type|aa%|mass|timeclass|timespec')
+		if len(self.results['hops']) > 0:
+			print('# hop|name|type|aa%|mass|timeclass|timespec')
 		for h in self.results['hops']:
 			hop = h.obj
 			time = h.time

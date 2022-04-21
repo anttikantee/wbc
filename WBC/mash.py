@@ -204,6 +204,8 @@ class Mash:
 			return self.hts['water']['capa']
 
 	def __init__(self):
+		self.didmash = False
+
 		self.fermentables = []
 		self.giant_steps = None
 		self.method = self.INFUSION	# default to infusion
@@ -306,6 +308,7 @@ class Mash:
 		res['sparge_water'] = Worter(water = w - mashwater)
 		res['method'] = self.method
 
+		self.didmash = True
 		return res
 
 	def __grainvol(self, fmass):
@@ -429,6 +432,8 @@ class Mash:
 		return Worter(water = _Mass(m))
 
 	def printcsv(self):
+		if not self.didmash: return
+
 		print('# mash|method|mashtemp1|mashtemp2...')
 		steps = ''
 		for t in self.giant_steps:
