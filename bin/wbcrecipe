@@ -200,8 +200,12 @@ def processcsv(clist, odict, data):
 			dataver = int(row[1])
 
 		if row[0] == "recipe":
+			if row[3] != 'None':
+				duration = parse.duration(row[3])
+			else:
+				duration = None
 			r = Recipe(row[1], row[2], _Volume(float(row[4])),
-			    parse.duration(row[3]))
+			    duration)
 
 		elif row[0] == "sysparams":
 			for x in row[1:]: sysparams.processparam(x)
