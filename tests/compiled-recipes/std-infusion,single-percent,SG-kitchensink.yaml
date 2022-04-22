@@ -30,8 +30,8 @@ hops:
     - [ *th1,                           10 IBU,     12min            ]
 
     - [ *th1,                           3g/l,       20min @ 75degC   ]
-    - [ [ H 1g/l F 3->7, 8.8%, T90],    1g/l,       3 day -> 7 days  ]
-    - [ [ H 1g/l F 3,    8.8%, T90],    1g/l,       3 d              ]
+    - [ [ H 1g/l F 3->7, 8.8%, T90],    1g/l,       day 3 -> day 7   ]
+    - [ [ H 1g/l F 3,    8.8%, T90],    1g/l,       day 3            ]
     - [ [ H 2g/l F+P,    8.8%, T90],    2g/l,       [ fermentor, package ] ]
 
     - [ [ AA 5g, 11% ],                 AA 5g,      30min            ]

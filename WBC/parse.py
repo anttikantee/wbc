@@ -24,10 +24,14 @@ from WBC import mash
 import re
 import string
 
-def _unit(cls, sfxmap, input, name = None):
+def _unit(cls, sfxmap, input, name = None, prefix = False):
 	inputstr = str(input).strip()
-	alphastr = inputstr.lstrip(string.digits + '.' + '-')
-	numstr = inputstr[0:len(inputstr) - len(alphastr)]
+	if prefix:
+		alphastr = inputstr.rstrip(string.digits + '.' + '-')
+		numstr = inputstr[len(alphastr):]
+	else:
+		alphastr = inputstr.lstrip(string.digits + '.' + '-')
+		numstr = inputstr[0:len(inputstr) - len(alphastr)]
 	alphastr = alphastr.strip()
 
 	# if unit is missing, default to 1
@@ -138,11 +142,11 @@ def timespec(input):
 		fspec = WBC.timespec.Fermentor
 		if input == 'fermentor' or '->' in input:
 			if '->' in input:
-				d1, d2 = split(input, '->', days, days)
+				d1, d2 = split(input, '->', day, day)
 				return fspec(d1, d2)
 			else:
 				return fspec(fspec.UNDEF, fspec.UNDEF)
-		inday = days(input)
+		inday = day(input)
 		return fspec(inday, fspec.UNDEF)
 	except ValueError:
 		pass
@@ -164,13 +168,11 @@ def timespec(input):
 
 	raise PilotError('could not parse timespec: ' + str(input))
 
-def days(input):
-	suffixes = {
-		'days'	: None,
+def day(input):
+	prefixes = {
 		'day'	: None,
-		'd'	: None,
 	}
-	return _unit(int, suffixes, input, name = 'days')
+	return _unit(int, prefixes, input, name = 'day', prefix = True)
 
 def color(input):
 	suffixes = {
