@@ -180,26 +180,46 @@ class Whirlpool(Timespec):
 class Fermentor(Timespec):
 	# in case you don't want to care about the days,
 	# don't have to invent any that mean nothing
-	UNDEF=	'undef'
+	UNDEF=		object()
+	D_MAX=		999
+	_undef_in=	-1
+	_undef_out=	D_MAX+1
 
 	def __init__(self, indays, outdays):
-		if indays == self.UNDEF or outdays == self.UNDEF:
-			if indays != outdays:
-				raise PilotError('Timespec Fermentor: if one '
-				    + ' day is undef, both must be')
-		elif indays <= outdays:
+		if indays == self.UNDEF:
+			if outdays != self.UNDEF:
+				raise PilotError('Timespec Fermentor: if inday '
+				    + ' is undef, outday must be')
+			indays = self._undef_in
+		elif indays < 0:
+			raise PilotError('indays needs to be positive')
+
+		if outdays != self.UNDEF and indays >= outdays:
 			raise PilotError('trying to take ' \
-			    'fermentor addition out before putting ' \
-			    'it in')
-		self.indays = indays
-		self.outdays = outdays
+			    'fermentor addition out before putting it in')
+
+		if (indays > self.D_MAX
+		    or (outdays != self.UNDEF and outdays > self.D_MAX)):
+			raise PilotError('daycount value max '
+			    + str(self.DM_MAX))
+
+		if outdays == self.UNDEF:
+			outdays = self._undef_out
+		elif outdays < 0:
+			raise PilotError('outdays needs to be positive')
+
+		self._indays = indays
+		self._outdays = outdays
 		self.time = 0
 		self.spec = None
 
 	def __str__(self):
-		if self.indays == self.UNDEF:
+		if self._indays == self._undef_in:
+			assert(self._outdays == self._undef_out)
 			return 'undef'
-		return str(self.indays) + 'd -> ' + str(self.outdays) + 'd'
+		elif self._outdays == self._undef_out:
+			return 'day {:3d}'.format(self._indays)
+		return '{:3d} ->{:3d}'.format(self._indays, self._outdays)
 
 	def timespecstr(self):
 		return 'fermentor'
@@ -208,24 +228,14 @@ class Fermentor(Timespec):
 		return 'Timespec fermentor: ' + str(self)
 
 	def _tslt(self, other):
-		# undef compares less than defined days (i.e.
-		# "earlier" addition)
-		if self.indays == self.UNDEF:
-			if other.indays != self.UNDEF:
-				return True
-			else:
-				return False
+		if self._indays < other._indays: return False
+		if self._indays > other._indays: return True
 
-		if self.indays < other.indays:
-			return True
-		elif self.indays == other.indays:
-			if self.outdays < other.outdays:
-				return True
-		return False
+		return self._outdays > other._outdays
 
 	def _tseq(self, other):
-		return self.indays == other.indays and \
-		    self.outdays == other.outdays
+		return self._indays == other._indays and \
+		    self._outdays == other._outdays
 
 class Package(Timespec):
 	def __init__(self):

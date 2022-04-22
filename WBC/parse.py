@@ -116,7 +116,8 @@ def timespec(input):
 	mspec = WBC.timespec.MashSpecial
 	if input == 'package':
 		return WBC.timespec.Package()
-	elif 'mash' in input:
+
+	if 'mash' in input:
 		if '@' in input:
 			r = input.split('@')
 			s = r[1].strip()
@@ -132,25 +133,36 @@ def timespec(input):
 			ts = WBC.timespec.Mash
 			tv = WBC.timespec.Mash.MASHIN
 		return ts(tv)
-	elif input == 'fermentor' or '->' in input:
+
+	try:
 		fspec = WBC.timespec.Fermentor
-		if '->' in input:
-			d1, d2 = split(input, '->', days, days)
-			return fspec(d1, d2)
-		else:
-			return fspec(fspec.UNDEF, fspec.UNDEF)
-	elif '@' in input:
+		if input == 'fermentor' or '->' in input:
+			if '->' in input:
+				d1, d2 = split(input, '->', days, days)
+				return fspec(d1, d2)
+			else:
+				return fspec(fspec.UNDEF, fspec.UNDEF)
+		inday = days(input)
+		return fspec(inday, fspec.UNDEF)
+	except ValueError:
+		pass
+
+	if '@' in input:
+
 		time, temp = timedtemperature(input)
 		return WBC.timespec.Whirlpool(time, temp)
-	elif input == 'FWH':
+
+	if input == 'FWH':
 		warn('using deprecated "FWH" timespec. use "firstwort"\n')
 		return mspec(mspec.FIRSTWORT)
-	elif input == WBC.timespec.Boil.BOILTIME:
+
+	if input == WBC.timespec.Boil.BOILTIME:
 		return WBC.timespec.Boil(input)
-	elif WBC.units.Duration.MINUTE in input:
+
+	if WBC.units.Duration.MINUTE in input:
 		return WBC.timespec.Boil(duration(input))
-	else:
-		raise PilotError('could not parse timespec: ' + str(input))
+
+	raise PilotError('could not parse timespec: ' + str(input))
 
 def days(input):
 	suffixes = {
