@@ -161,19 +161,25 @@ class Recipe:
 	#
 	#   * mash @ mashin: mashstep water (= total mash water - sparge)
 	#   * mash @ sparge: sparge water
-	#   * boil         : amount of water in the wort
 	#
-	#   Not implemented yet:
-	#   * fermentor    : amount of water in the wort/beer
-	#   * package      : amount of water in the beer
+	#   * boil         : amount of water in the wort
+	#   * fermentor    : amount of water in the sauce/product
+	#   * package      : amount of water in the product
+	#
+	# Maybe it would make more sense to just use the actual volume
+	# for the post-mash stages?
 	def _xvol2x_withwater(self, x, when):
 		if isinstance(when, timespec.MashSpecial):
 			vol = self.results['mash']['sparge_water'].water()
 		elif isinstance(when, timespec.Mash):
 			vol = self.results['mash']['mashstep_water'].water()
-		else:
-			assert(isinstance(when, timespec.Boil))
+		elif isinstance(when, timespec.Boil):
 			vol = self.worter[Worter.POSTBOIL].water()
+		elif isinstance(when, timespec.Fermentor):
+			vol = self.worter[Worter.FERMENTOR].water()
+		else:
+			assert(isinstance(when, timespec.Package))
+			vol = self.worter[Worter.PACKAGE].water()
 		return self._xvol2x_fromvol(x, vol)
 
 	#
@@ -357,11 +363,6 @@ class Recipe:
 	# see comment above xvol2x_withwater for more info.
 	def water_byunit(self, what, unit, when):
 		checktype(when, Timespec)
-		# XXX: bad check
-		if not (isinstance(when, timespec.Mash)
-		    or isinstance(when, timespec.MashSpecial)
-		    or isinstance(when, timespec.Boil)):
-			raise PilotError('invalid timespec for water_byunit')
 
 		resolver = self._addunit([_ismass, _ismassvolume, _isvolume,
 		    _isvolumevolume], unit, __name__, iswater = True)
