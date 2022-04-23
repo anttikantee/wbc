@@ -284,12 +284,13 @@ def _keystats(input, results, miniprint):
 
 	kl = results['losses'][Worter.POSTBOIL]
 	fl = results['losses'][Worter.FERMENTOR]
-	print(twofmt_tight.format('Loss (v/e) Kettle:',
-	    str(kl.volume()) + ' / ' + str(kl.extract()),
-	    'Fermentor:',
-	    str(fl.volume()) + ' / ' + str(fl.extract())))
+	if not (input['boiltime'] is None and kl.volume() < 0.001):
+		print(twofmt_tight.format('Kettle loss (v/e):',
+		    str(kl.volume()) + ' / ' + str(kl.extract()),
+		    'Boil:', str(input['boiltime'])))
 
-	print(twofmt_tight.format('Boil:', str(input['boiltime']),
+	print(twofmt_tight.format("F'tor loss (v/e):",
+	    str(fl.volume()) + ' / ' + str(fl.extract()),
 	    'Yeast:', input['yeast']))
 	print(twofmt_tight.format(
 	    'Water (' + str(getparam('ambient_temp')) + '):',
