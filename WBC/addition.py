@@ -19,6 +19,8 @@
 # stage during the process, e.g. hops or acids.
 #
 
+from WBC.utils import PilotError
+
 class Addition:
 	def __init__(self, obj, amount, resolver, time, cookie = None):
 		self.obj = obj
