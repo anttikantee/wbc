@@ -573,7 +573,7 @@ class Recipe:
 				res = self._doworters_bymass()
 				diff = (res[Worter.PACKAGE].volume()
 				    - self._final_volume())
-				if diff < 0.1:
+				if abs(diff) < 0.1:
 					break
 				self.waterguess = _Mass(self.waterguess - diff)
 			self.worter = res
@@ -1097,7 +1097,7 @@ class Recipe:
 				    - self.worter[Worter.PACKAGE].extract()
 			else:
 				extdiff = _Mass(0)
-			if abs(voldiff < 0.1 and extdiff < 0.1):
+			if abs(voldiff) < 0.1 and abs(extdiff) < 0.1:
 				break
 			self.waterguess += _Mass(voldiff)
 			self.fermentable_extadj += extdiff
