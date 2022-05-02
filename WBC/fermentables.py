@@ -666,3 +666,8 @@ Add(None, 'candi syrup D-240',
 	Extract(70, CGAI, FCD_UNKNOWN, 30),
 	Color(240, LOVIBOND),
 	conversion = False)
+
+Add(None, 'honey',
+	Extract(83, CGAI, FCD_UNKNOWN, 17),
+	Color(10, LOVIBOND),
+	conversion = False)
