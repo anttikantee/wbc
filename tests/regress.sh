@@ -39,8 +39,11 @@ usage ()
 	die usage: $0 prep\|test\|reset
 }
 
-prepcmd ()
+_prep ()
 {
+
+	isrecipe=$1
+	shift
 
 	descr=$1
 	shift
@@ -51,7 +54,21 @@ prepcmd ()
 	${@} > testdata/${tn}.out
 	echo "${@}" > testdata/${tn}.cmd
 	[ $? -eq 0 ] || die Failed: $(cat testdata/${tn}).out
+
+	! ${isrecipe} || echo $(eval echo \${$#}) > testdata/${tn}.recipe
 	num=$((${num} + 1))
+}
+
+prepcmd ()
+{
+
+	_prep false "$@"
+}
+
+preprecipe ()
+{
+
+	_prep true "$@"
 }
 
 resetcount ()
@@ -67,55 +84,55 @@ doprep ()
 
 	resetcount
 	# hack: make sure at least one recipe is tested first
-	prepcmd 0basicrecipe wbcrecipe -p params-std \
+	preprecipe 0basicrecipe wbcrecipe -p params-std \
 	    test-recipes/proto-bymass.yaml
 
 	resetcount
 	for x in compiled-recipes/*.yaml; do
 		[ -f ${x} ] || die internal error: ${x}
-		prepcmd recipe-std wbcrecipe -p params-std ${x}
+		preprecipe recipe-std wbcrecipe -p params-std ${x}
 	done
 
 	resetcount
 	for x in compiled-recipes/*infusion,step*.yaml; do
 		[ -f ${x} ] || die internal error: ${x}
-		prepcmd recipe-alt wbcrecipe -p params-mltdirect+sg+us ${x}
+		preprecipe recipe-alt wbcrecipe -p params-mltdirect+sg+us ${x}
 	done
 
 	resetcount
-	prepcmd vol wbcrecipe -v 30l -p params-std \
+	preprecipe vol wbcrecipe -v 30l -p params-std \
 	    test-recipes/proto-bymass.yaml
-	prepcmd vol wbcrecipe -V 30l -p params-std \
+	preprecipe vol wbcrecipe -V 30l -p params-std \
 	    test-recipes/proto-bymass.yaml
-	prepcmd vol wbcrecipe -v 40l -P bM=35L -p params-std \
+	preprecipe vol wbcrecipe -v 40l -P bM=35L -p params-std \
 	    test-recipes/proto-bymass.yaml
 
 	resetcount
-	prepcmd noboil wbcrecipe -p params-std \
+	preprecipe noboil wbcrecipe -p params-std \
 	    test-recipes/proto-bymass-noboil.yaml
-	prepcmd noboil wbcrecipe -p params-std \
+	preprecipe noboil wbcrecipe -p params-std \
 	    test-recipes/proto-bymass-0boil.yaml
 
 	resetcount
-	prepcmd nomash-mass wbcrecipe -p params-std \
+	preprecipe nomash-mass wbcrecipe -p params-std \
 	    test-recipes/proto-bymass-nomash.yaml
-	prepcmd nomash-mass wbcrecipe -p params-std \
+	preprecipe nomash-mass wbcrecipe -p params-std \
 	    test-recipes/proto-bymass-extract.yaml
-	prepcmd nomash-mass wbcrecipe -p params-std \
+	preprecipe nomash-mass wbcrecipe -p params-std \
 	    test-recipes/proto-bymass-steepextract.yaml
 
 	resetcount
-	prepcmd nomash-percent wbcrecipe -p params-std \
+	preprecipe nomash-percent wbcrecipe -p params-std \
 	    test-recipes/proto-bypercent-extract.yaml
-	prepcmd nomash-percent wbcrecipe -p params-std \
+	preprecipe nomash-percent wbcrecipe -p params-std \
 	    test-recipes/proto-bypercent-steepextract.yaml
 
 	resetcount
-	prepcmd pagelen wbcrecipe -p params-std -P oP=10 \
+	preprecipe pagelen wbcrecipe -p params-std -P oP=10 \
 	    test-recipes/proto-bymass.yaml
-	prepcmd pagelen wbcrecipe -p params-std -P oP=40 \
+	preprecipe pagelen wbcrecipe -p params-std -P oP=40 \
 	    test-recipes/proto-bymass.yaml
-	prepcmd pagelen wbcrecipe -p params-std -P oP=400 \
+	preprecipe pagelen wbcrecipe -p params-std -P oP=400 \
 	    test-recipes/proto-bymass.yaml
 
 	resetcount
@@ -156,11 +173,20 @@ dotest ()
 		echo "==== ${cmd}"
 		set -- ${cmd}
 		${@} > testdata/${bn}.cmp
+		passed=false
 		if [ $? -ne 0 ]; then
 			echo ${bn} >> ${ft}
-			${FATAL}
 		elif ! diff -u testdata/${bn}.out testdata/${bn}.cmp; then
 			echo ${bn} >> ${fc}
+		else
+			passed=true
+		fi
+		if ! ${passed}; then
+			if [ -f testdata/${bn}.recipe ]; then
+				echo '------ BEGIN RECIPE ------'
+				cat $(cat testdata/${bn}.recipe)
+				echo '------  END  RECIPE ------'
+			fi
 			${FATAL}
 		fi
 	done
