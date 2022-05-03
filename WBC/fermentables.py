@@ -637,19 +637,19 @@ Add(None, 'raw sugar',
 # loss from cooking to obtain the color.  shouldn't matter too much if
 # they're a %-point off in one direction or another.
 Add(None, 'invert No1',
-	Extract(86, CGDB, FCD_UNKNOWN, 0),
+	Extract(100, CGDB, FCD_UNKNOWN, 14),
 	Color(30, EBC),
 	conversion = False)
 Add(None, 'invert No2',
-	Extract(87, CGDB, FCD_UNKNOWN, 0),
+	Extract(100, CGDB, FCD_UNKNOWN, 13),
 	Color(60, EBC),
 	conversion = False)
 Add(None, 'invert No3',
-	Extract(88, CGDB, FCD_UNKNOWN, 0),
+	Extract(100, CGDB, FCD_UNKNOWN, 12),
 	Color(130, EBC),
 	conversion = False)
 Add(None, 'invert No4',
-	Extract(89, CGDB, FCD_UNKNOWN, 0),
+	Extract(100, CGDB, FCD_UNKNOWN, 11),
 	Color(600, EBC),
 	conversion = False)
 
