@@ -23,6 +23,7 @@ from WBC import timespec
 from WBC.units import Strength, _Volume, _Mass, _Strength
 
 from WBC.worter import Worter
+from WBC.timespec import Timespec
 
 global _prtsects
 _prtsects = ['']
@@ -282,8 +283,8 @@ def _keystats(input, results, miniprint):
 		    '{:<3d} / {:.2f}'.format(int(round(totibus)), bugu),
 		    'Color (Morey):', cstr))
 
-	kl = results['losses'][Worter.POSTBOIL]
-	fl = results['losses'][Worter.FERMENTOR]
+	kl = results['losses'][Timespec.KETTLE]
+	fl = results['losses'][Timespec.FERMENTOR]
 	if not (input['boiltime'] is None and kl.volume() < 0.001):
 		print(twofmt_tight.format('Kettle loss (v/e):',
 		    str(kl.volume()) + ' / ' + str(kl.extract()),

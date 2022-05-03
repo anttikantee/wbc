@@ -25,6 +25,7 @@ import math
 # figure out wort strength for given mass of extract and volume
 def solve_strength(extract, volume):
 	checktypes([(extract, Mass), (volume, Volume)])
+	assert(volume > 0.0001)
 	# first, calculate the starting point, approximate mass = volume
 	# we will undershoot (because extract is heavier than water)
 	mass = volume

@@ -14,6 +14,13 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
+#
+# Timespecs define the time when an "operation" is to be performed
+# on the brew/fermentation.  For example, "15min boil left" would
+# be described by a timespec.  Timespecs are not to be confused
+# with Worter stages, even though they are superficially similar.
+#
+
 from WBC.utils import PilotError, checktype
 from WBC.units import Temperature, _Temperature, Duration
 

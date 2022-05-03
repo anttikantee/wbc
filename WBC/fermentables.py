@@ -74,13 +74,17 @@ class Extract:
 		self.percent = percent
 		self.type = type
 
+		if ((type == self.FGDB or type == self.FGAI)
+		    and moisture + percent > 100):
+			raise PilotError('fermentable contains > 100%')
+
 		if fcd is self.FCD_UNKNOWN:
 			fcd = constants.fine_coarse_diff
 		if fcd < 0 or fcd > 10:
 			raise PilotError('invalid fine-coarse difference')
 
 		self.fcd = fcd
-		self.moisture = moisture
+		self._moisture = moisture
 
 	# returns extract potential in "coarse grind as-is"
 	def cgai(self):
@@ -88,13 +92,17 @@ class Extract:
 
 		# factor out moisture
 		if self.type == self.CGDB or self.type == self.FGDB:
-			v *= (1 - self.moisture/100.0)
+			v *= (1 - self._moisture/100.0)
 
 		# account for fine-coarse difference
 		if self.type == self.FGDB or self.type == self.FGAI:
 			v -= self.fcd
 
 		return v
+
+	# XXX: not extract.  big revamp coming soon to a repo near you
+	def moisture(self):
+		return self._moisture
 
 	def __str__(self):
 		return '{:.1f}%'.format(self.cgai())
