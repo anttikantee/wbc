@@ -293,10 +293,11 @@ def _keystats(input, results, miniprint):
 	print(twofmt_tight.format("F'tor loss (v/e):",
 	    str(fl.volume()) + ' / ' + str(fl.extract()),
 	    'Yeast:', input['yeast']))
+	Ta = getparam('ambient_temp')
 	print(twofmt_tight.format(
-	    'Water (' + str(getparam('ambient_temp')) + '):',
-	    str(total_water.volume())
-	      + ' / ' + stras_unsystem(total_water.volume()),
+	    'Water (' + str(Ta) + '):',
+	    str(total_water.volume(Ta))
+	      + ' / ' + stras_unsystem(total_water.volume(Ta)),
 	    'Brewhouse eff:',
 	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
 
