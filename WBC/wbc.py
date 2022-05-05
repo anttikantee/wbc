@@ -1145,7 +1145,6 @@ class Recipe:
 		# volume
 		#
 		for x in range(10):
-			self.results = {}
 
 			# Calculate initial guess for worters, and
 			# especially resolve possible percentages into
@@ -1165,12 +1164,6 @@ class Recipe:
 			    wrt[Worter.PACKAGE]):
 				wrt = self._doworters_bymass()
 
-			# the mash needs to be calculated, but we have
-			# already accounted for the absorption, so it
-			# does not change anything
-			if self._extract_bytimespec(Timespec.MASH) > 0.001:
-				self._domash(wrt[Worter.MASH])
-
 			# We need to have hit *at least* the final volume.
 			# Additionally, if final strength was specified,
 			# we need to hit that too.
@@ -1186,6 +1179,11 @@ class Recipe:
 			self.waterguess += _Mass(voldiff)
 		else:
 			raise Exception('recipe failed to converge ... panic?')
+
+		self.results = {}
+
+		if self._extract_bytimespec(Timespec.MASH) > 0.001:
+			self._domash(wrt[Worter.MASH])
 
 		#
 		# We are committed to the calculated worters.  Set them.
