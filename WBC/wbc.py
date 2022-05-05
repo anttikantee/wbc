@@ -66,7 +66,7 @@ class Recipe:
 		self.volume_set = self.volume_scaled = None
 		self.needinherent = []
 
-		self.hops = []
+		self.hops_in = []
 		self.hops_recipeIBUBUGU = None
 
 		self.ferms_in = []
@@ -88,7 +88,6 @@ class Recipe:
 
 		self.hopsdrunk = {'kettle':_Volume(0), 'fermentor':_Volume(0),
 		    'package':_Volume(0)}
-		self.fermentables = []
 
 		self._calculatestatus = 0
 
@@ -237,7 +236,7 @@ class Recipe:
 	def _hopstore(self, hop, amount, resolver, time, cookie):
 		checktypes([(hop, Hop), (time, Timespec)])
 		a = Addition(hop, amount, resolver, time, cookie = cookie)
-		self.hops.append(a)
+		self.hops_in.append(a)
 		return a
 
 	def hop_byunit(self, name, unit, time):
@@ -569,10 +568,18 @@ class Recipe:
 	# for each worter stage
 	def _dofermentables_and_worters(self):
 		ferms_bymass = self._fermfilter('m')
+
+		#
+		# Do we have only bymass-fermentables?
+		#
+
 		if len(self._fermfilter(('r', 'p'))) == 0:
 			self._set_calcguess(ferms_bymass, None)
 			vl = self.vol_losses
 
+			# With bymass, we have to guess water first,
+			# because calculation goes from start to finish.
+			# We guess once and refine it later.
 			if self.waterguess is None:
 				vol_loss = _Volume(sum(vl.values())
 				    + self._boiloff()
@@ -582,15 +589,21 @@ class Recipe:
 				self.waterguess = _Mass(self._final_volume()
 				    + vol_loss - fermwater)
 
-			while True:
+			for i in range(10):
 				res = self._doworters_bymass()
-				diff = (res[Worter.PACKAGE].volume()
+				voldiff = _Mass(res[Worter.PACKAGE].volume()
 				    - self._final_volume())
-				if abs(diff) < 0.1:
+				if abs(voldiff) < 0.1:
 					break
-				self.waterguess = _Mass(self.waterguess - diff)
-			self.worter = res
-			return
+				self.waterguess = self.waterguess - voldiff
+			else:
+				raise Exception('PANIC: recipe failed to '
+				    'converge')
+			return res
+
+		#
+		# We have by-percent fermentables.
+		#
 
 		if self.final_strength is None:
 			raise PilotError('final strength must be set for '
@@ -600,18 +613,25 @@ class Recipe:
 		# ("unknown" = not solved analytically)
 		for _ in range(10):
 			self._dofermentables_bypercent(ferms_bymass)
-			extoff, res = self._doworters_bystrength()
+			extoff, water = self._doworters_bystrength()
 			if abs(extoff.valueas(Mass.G)) < 1:
 				break
+
+			# adjust value used in dofermentables_bypercent
+			# and try again
 			self.fermentable_extadj += extoff
 		else:
 			raise Exception('unable to calculate fermentables')
 
+		# With by-percent we guess water last, because calculation
+		# goes from finish-to-start, and we can guess only once
+		# we're at the start.  Notably, the waterguess is used for
+		# the final calculation with masses.
 		if self.waterguess is None:
-			self.waterguess = (res[self.firstworter].water()
-			    + self._boiladj)
+			self.waterguess = water + self._boiladj
 
-		self.worter = res
+		# calculate now-filled masses using bymass and return
+		return self._doworters_bymass()
 
 	def _dofermentablestats(self):
 		assert('losses' in self.results)
@@ -693,13 +713,13 @@ class Recipe:
 		f = sorted(f, key=lambda x: x.get_amount())
 		self.fermentables = f[::-1]
 
-	def _domash(self):
+	def _domash(self, mashwort):
 		mf = self._fermentables_bytimespec(Timespec.MASH)
 		self.mash.set_fermentables(mf)
 
 		self.results['mash'] \
 		    = self.mash.do_mash(getparam('ambient_temp'),
-			self._reference_temp(), self.worter[Worter.MASH],
+			self._reference_temp(), mashwort,
 			self._grain_absorption())
 
 		self.results['mash_conversion'] = {}
@@ -856,56 +876,50 @@ class Recipe:
 		res = {}
 		vl = self.vol_losses
 
-		# add empty worters (in case early stages are unnecessary)
-		for s in Worter.stages:
-			res[s] = Worter()
-
 		w = Worter()
 		w.set_volstrength(self._final_volume(), self.final_strength)
-		res[Worter.PACKAGE] = copy.deepcopy(w)
-
 		w.adjust_extract(-self._extract_bytimespec(Timespec.PACKAGE))
 		w.adjust_water(-self._fermwater_bytimespec(Timespec.PACKAGE))
 		w.adjust_volume(vl[Timespec.FERMENTOR])
-		res[Worter.FERMENTOR] = copy.deepcopy(w)
 		w.adjust_extract(-self._extract_bytimespec(Timespec.FERMENTOR))
 		w.adjust_water(-self._fermwater_bytimespec(Timespec.FERMENTOR))
 
 		if laterworter(self.firstworter, Worter.POSTBOIL):
-			return w.extract(), res
+			return w.extract(), w.water()
 
 		w.adjust_volume(vl[Timespec.KETTLE])
 		w.adjust_water(-self._boiladj)
-		res[Worter.POSTBOIL] = copy.deepcopy(w)
 
 		w.adjust_extract(-self._extract_bytimespec(Timespec.KETTLE))
 		w.adjust_water(-self._fermwater_bytimespec(Timespec.KETTLE))
 		w.adjust_water(_Mass(self._boiloff()))
-		res[Worter.PREBOIL] = copy.deepcopy(w)
 
 		self._mashgrainadj_backward(w, Timespec.POSTMASH)
 
 		if laterworter(self.firstworter, Worter.MASH):
-			return w.extract(), res
+			return w.extract(), w.water()
 
 		w += self.mash.evaporation()
 		self._mashgrainadj_backward(w, Timespec.MASH)
 
-		# XXX: wrong, but other code depends on this lossage for now
-		res[Worter.MASH] = w
+		return w.extract(), w.water()
 
-		return w.extract(), res
-
-	def _dohops(self):
+	def _dohops(self, w_preboil, w_postboil, w_pkg):
+		hin = self.hops_in
 		allhop = []
 
 		# ok, um, so the Tinseth formula uses postboil volume ...
-		wrt = self.worter
-		v_post = wrt[Worter.POSTBOIL].volume()
+		v_post = w_postboil.volume()
 
 		# ... and average gravity during the boil.  *whee*
-		t = (wrt[Worter.PREBOIL].strength().valueas(Strength.SG)
-		    + wrt[Worter.POSTBOIL].strength().valueas(Strength.SG))
+		# (XXX: this isn't the average gravity in case there
+		# are kettle additions.  while we could calculate the
+		# average by "integrating" minute-per-minute, call this
+		# good enough, especially since I'm not sure if
+		# things like simple sugars have a similar effect on
+		# IBU, compared to malt sugars)
+		t = (w_preboil.strength().valueas(Strength.SG)
+		    + w_postboil.strength().valueas(Strength.SG))
 		sg = Strength(t/2, Strength.SG)
 
 		#
@@ -914,24 +928,23 @@ class Recipe:
 		# all iterations.  Saves a big deepcopy.
 		#
 		# calculate IBU produced by "bymass" hops
-		for hs, h in [(x, x.obj) for x in self.hops if x.cookie == 'm']:
+		for hs, h in [(x, x.obj) for x in hin if x.cookie == 'm']:
 			ibu = h.mass2IBU(sg, v_post, hs.time, hs.get_amount())
 			hs.info = ibu
 
 		# calculate mass of "byIBU" hops
-		for hs, h in [(x, x.obj) for x in self.hops if x.cookie == 'i']:
+		for hs, h in [(x, x.obj) for x in hin if x.cookie == 'i']:
 			mass = h.IBU2mass(sg, v_post, hs.time, hs.info)
 			hs.set_amount(mass)
 
-		allhop = self.hops[:]
+		allhop = hin[:]
 		totibus = sum([x.info for x in allhop])
 		if self.hops_recipeIBUBUGU is not None:
 			x = self.hops_recipeIBUBUGU
 			h, t, v = x['hop'], x['time'], x['value']
 
 			if x['type'] == 'BUGU':
-				stren = self.worter[Worter.PACKAGE].strength()
-				v *= stren.valueas(stren.SG_PTS)
+				v *= w_pkg.strength().valueas(Strength.SG_PTS)
 			missibus = v - totibus
 			if missibus <= 0:
 				raise PilotError('recipe IBU/BUGU exceeded')
@@ -958,16 +971,29 @@ class Recipe:
 
 		hopsdrunk = {x: _Volume(hd[x]) for x in hd}
 		hopsdrunk['volume'] = _Volume(packagedryhopvol)
+
+		hdold = self.hopsdrunk
 		self._set_calcguess(None, hopsdrunk)
 
-		self.results['hops'] = allhop
+		for x in hopsdrunk:
+			v1 = hdold.get(x, 0)
+			v2 = hopsdrunk[x]
 
+			if abs(v1-v2) > 0.01:
+				# not stable, try again
+				return True
+
+		# we might not be re-called, so store calculated info
+		self.hops = allhop
 		totmass = _Mass(sum(x.get_amount() for x in allhop))
-		self.results['hop_stats'] = {'mass': totmass, 'ibu' : totibus}
+		self.hopstats = {'mass': totmass, 'ibu' : totibus}
+
+		# result is stable
+		return False
 
 	def _dotimers(self):
 		# sort the timerable additions
-		timers = self.results['hops'] + self.opaques + self.water
+		timers = self.hops + self.opaques + self.water
 
 		# include boiltime fermentables under timers if there's a boil,
 		# else include all (think e.g. step-fed meads).
@@ -1041,18 +1067,19 @@ class Recipe:
 			res.append((x, t['ae'], t['abv']))
 		self.results['attenuation'] = res
 
-	def _doboiladj(self):
+	def _doboiladj(self, pbwort):
 		bvmax = getparam('boilvol_max')
 		if bvmax is None:
-			return
+			return False
 
 		boiltemp = _Temperature(100)
-		pbwort = self.worter[Worter.PREBOIL]
 		pbvol = pbwort.volume(boiltemp)
 		diff = pbvol - bvmax
 		if diff > 0:
 			adj = brewutils.water_voltemp_to_mass(diff, boiltemp)
 			self._boiladj += adj
+			return True
+		return False
 
 	def _checkinputs(self):
 		if self._final_volume() is None:
@@ -1120,32 +1147,50 @@ class Recipe:
 		for x in range(10):
 			self.results = {}
 
-			self._dofermentables_and_worters()
-			if not laterworter(self.firstworter, Worter.PREBOIL):
-				self._doboiladj()
+			# Calculate initial guess for worters, and
+			# especially resolve possible percentages into
+			# masses.  We use "bymass" in this loop
+			# after this call.
+			wrt = self._dofermentables_and_worters()
 
+			# if we need to adjust the boil volume, do so
+			# until we reach a steady state
+			if not laterworter(self.firstworter, Worter.PREBOIL):
+				while self._doboiladj(wrt[Worter.PREBOIL]):
+					wrt = self._doworters_bymass()
+
+			# hops affect worters due to absorption
+			while self._dohops(wrt[Worter.PREBOIL],
+			    wrt[Worter.POSTBOIL],
+			    wrt[Worter.PACKAGE]):
+				wrt = self._doworters_bymass()
+
+			# the mash needs to be calculated, but we have
+			# already accounted for the absorption, so it
+			# does not change anything
 			if self._extract_bytimespec(Timespec.MASH) > 0.001:
-				self._domash()
-			self._dohops()
+				self._domash(wrt[Worter.MASH])
 
 			# We need to have hit *at least* the final volume.
 			# Additionally, if final strength was specified,
 			# we need to hit that too.
-			self.worter = self._doworters_bymass()
 			voldiff = self._final_volume() \
-			    - self.worter[Worter.PACKAGE].volume()
+			    - wrt[Worter.PACKAGE].volume()
 			if self._final_extract() is not None:
 				extdiff = self._final_extract() \
-				    - self.worter[Worter.PACKAGE].extract()
+				    - wrt[Worter.PACKAGE].extract()
 			else:
 				extdiff = _Mass(0)
 			if abs(voldiff) < 0.1 and abs(extdiff) < 0.1:
 				break
 			self.waterguess += _Mass(voldiff)
-			self.fermentable_extadj += extdiff
 		else:
 			raise Exception('recipe failed to converge ... panic?')
 
+		#
+		# We are committed to the calculated worters.  Set them.
+		#
+		self.worter = wrt
 		self.results['worter'] = self.worter
 
 		if self._boiladj > 0.001:
@@ -1202,7 +1247,10 @@ class Recipe:
 		    self.worter[Worter.PACKAGE].extract() / maxext
 
 		# these are easy
+		self.results['hops'] = self.hops
+		self.results['hop_stats'] = self.hopstats
 		self.results['hopsdrunk'] = self.hopsdrunk
+
 		self.results['fermentables'] = self.fermentables
 
 		self.results['total_water'] = Worter(water = self.waterguess)
