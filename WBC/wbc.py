@@ -717,9 +717,16 @@ class Recipe:
 		mf = self._fermentables_bytimespec(Timespec.MASH)
 		self.mash.set_fermentables(mf)
 
+		# The mash worter includes the moisture from the grains,
+		# so we need to subtract it from the amount of water
+		# that gets added into the mash
+		mashwater = Worter(water = mashwort.water())
+		fermwater = self._fermwater_bytimespec(Timespec.MASH)
+		mashwater.adjust_water(-fermwater)
+
 		self.results['mash'] \
 		    = self.mash.do_mash(getparam('ambient_temp'),
-			self._reference_temp(), mashwort,
+			self._reference_temp(), mashwater,
 			self._grain_absorption())
 
 		self.results['mash_conversion'] = {}
