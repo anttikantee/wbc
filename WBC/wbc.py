@@ -726,8 +726,7 @@ class Recipe:
 
 		self.results['mash'] \
 		    = self.mash.do_mash(getparam('ambient_temp'),
-			self._reference_temp(), mashwater,
-			self._grain_absorption())
+			mashwater, self._grain_absorption())
 
 		self.results['mash_conversion'] = {}
 		theor_extract = self._extract_bytimespec(Worter.MASH,

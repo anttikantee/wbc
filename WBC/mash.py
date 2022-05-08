@@ -42,7 +42,7 @@ class Mash:
 	INFUSION=	'infusion'
 	DECOCTION=	'decoction'
 
-	# infusion mash step state and calculator for the next.
+	# mash state and advancement calculator.
 	#
 	# In the context of this class, we use the following terminology:
 	#	capa: specific heat times mass (or equivalent thereof)
@@ -53,7 +53,7 @@ class Mash:
 	# the new temperature is the existing heat plus the new heat,
 	# divided by the total heat capacity.  The calculations used
 	# below derive from that equation.
-	class __Step:
+	class __MashState:
 		# relative to capa of equivalent mass of water
 		# NOTE: includes "average" moisture in grains
 		__grain_relativecapa = 0.38
@@ -63,16 +63,13 @@ class Mash:
 		# Used to calculate the heat capacity of the decoction
 		__decoctionsplit = 0.7
 
-		def _setvalues(self, nwater_capa, nwater_temp, newtemp):
+		def _setvalues(self, nwater_capa, newtemp):
 			hts = self.hts
 
 			hts['water']['capa'] += nwater_capa
 			hts['mlt']['temp'] = newtemp
 			hts['grain']['temp'] = newtemp
 			hts['water']['temp'] = newtemp
-
-			self.step_watermass = nwater_capa
-			self.step_watertemp = nwater_temp
 
 		def _heat(self, what):
 			ho = self.hts[what]
@@ -92,8 +89,7 @@ class Mash:
 			    + self._capa('grain')
 			    + self._capa('water'))
 
-		def __init__(self, grain_mass, ambient_temp, target_temp,
-		     water_capa):
+		def __init__(self, grain_mass, grain_temp, ambient_temp):
 			self.hts = {}
 			hts = self.hts
 
@@ -103,15 +99,21 @@ class Mash:
 			hts['grain'] = {}
 			hts['grain']['capa'] = self.__grain_relativecapa \
 			    * grain_mass
-			hts['grain']['temp'] = ambient_temp
+			hts['grain']['temp'] = grain_temp
 
 			hts['water'] = {}
 			hts['water']['capa'] = 0
 			hts['water']['temp'] = 0
 
-			_c = self._capa
-			_h = self._heat
+			self.ambient_temp = ambient_temp
 
+		#
+		# Calculate what temperature the given water mass must
+		# be to reach the given system temperature.  Notably,
+		# water_capa may also be negative for calculating
+		# backwards (tip: it can't be negative in reality)
+		#
+		def strike(self, target_temp, water_capa):
 			# if we're using a transfer MLT, assume it's
 			# at ambient temp.  else, for direct heated
 			# ones, assume that the water is in there which
@@ -121,12 +123,17 @@ class Mash:
 			# in other words, in the transfer model (e.g. cooler),
 			# the MLT will consume heat.  in the direct heat
 			# model, it will contribute heat (well, assuming
-			# you're not brewing in an oven or something weird ...
+			# you're not brewing in an oven ...
 			# the math holds nonetheless, just not the
 			# clarification in the above comment)
+
+			hts = self.hts
+			_c = self._capa
+			_h = self._heat
+
 			p = getparam('mlt_heat')
 			if p == 'transfer':
-				hts['mlt']['temp'] = ambient_temp
+				hts['mlt']['temp'] = self.ambient_temp
 				heatsource_capa = water_capa
 				heatsink = _h('mlt') + _h('grain')
 			elif p == 'direct':
@@ -148,26 +155,30 @@ class Mash:
 				    + 'temperarture with available water. '
 				    + 'check mash parameters.')
 
-			self._setvalues(water_capa, water_temp, target_temp)
+			self._setvalues(water_capa, target_temp)
+			return _Temperature(water_temp)
 
-		# figure how much boiling water we need to add (or remove)
+		# calculate how much water we need to add (or remove)
 		# to get the system up to the new target temperature
-		def next_infusion(self, target_temp):
+		def infusion1(self, target_temp, water_temp):
 			assert(getparam('mlt_heat') == 'transfer')
 			_c = self._capa
 			_h = self._heat
 
-			# assume slight loss while water is transferred
-			watertemp = _Temperature(98)
-			boiltemp = _Temperature(100)
+			# assume losing 2% of the temperature of the water
+			water_actual = 0.98 * water_temp
 
 			nw = (target_temp * self._allc() \
 			    - (_h('mlt') + _h('grain') + _h('water')))\
-			  / (watertemp - target_temp)
-			self._setvalues(nw, boiltemp, target_temp)
+			  / (water_actual - target_temp)
+			self._setvalues(nw, target_temp)
+			return _Mass(nw)
+
+		def infusion(self, target_temp):
+			return self.infusion1(target_temp, _Temperature(100))
 
 		# figure out how much decoction to pull to reach temp
-		def next_decoction(self, target_temp, evap):
+		def decoction(self, target_temp, evap):
 			_c = self._capa
 			_h = self._heat
 			_t = self._temp
@@ -195,15 +206,8 @@ class Mash:
 			dm = (target_temp*self._allc()
 			     - (_h('mlt')+_h('grain')+_h('water'))) \
 			    / ((ds * grc + 1 - ds) * (dt - _t()))
-			self._setvalues(-evap, 0, target_temp)
+			self._setvalues(-evap, target_temp)
 			return (_Mass(ds*dm), _Mass((1-ds)*dm))
-
-		def waterstep(self):
-			return (_Mass(self.step_watermass),
-			    _Temperature(self.step_watertemp))
-
-		def watermass(self):
-			return self.hts['water']['capa']
 
 	def __init__(self):
 		self.didmash = False
@@ -216,7 +220,7 @@ class Mash:
 	#  * mashstep_water
 	#  * sparge_water
 	#  * [steps]:
-	def do_mash(self, ambient_temp, water_temp, water, grains_absorb):
+	def do_mash(self, ambient_temp, water, grains_absorb):
 		assert(self.method is Mash.INFUSION
 		    or self.method is Mash.DECOCTION)
 
@@ -230,15 +234,24 @@ class Mash:
 		fmass = _Mass(sum(x.get_amount() for x in self.fermentables))
 		grainvol = self.__grainvol(fmass)
 
+		# Calculate the amount of water required to reach
+		# "totemp" when starting with "fromwater" and "fromtemp".
+		# Notably, the calculation may also be performed backwards.
 		def origwater(fromtemp, totemp, fromwater):
+			assert((fromtemp == steps[0].temperature or
+			    fromtemp == steps[-1].temperature) and
+			    (totemp == steps[0].temperature or
+			    totemp == steps[-1].temperature))
+
 			if getparam('mlt_heat') == 'direct' \
 			    or self.method is self.DECOCTION:
 				return fromwater
 
-			step = self.__Step(fmass, _Temperature(20),
-			    fromtemp, fromwater)
-			step.next_infusion(totemp)
-			return step.watermass()
+			ms = self.__MashState(fmass,
+			    _Temperature(20), _Temperature(20))
+			ms.strike(fromtemp, fromwater)
+			rv = ms.infusion(totemp)
+			return rv + fromwater
 
 		mashin_ratio = getparam('mashin_ratio')
 		if mashin_ratio[0] == '%':
@@ -293,15 +306,14 @@ class Mash:
 				    'max volumes, check params/recipe')
 			wmass += dl
 
-		res = {}
-		first_step = self.__Step(fmass, ambient_temp,
-		    steps[0].temperature, wmass)
-
-		rv = self._do_steps(first_step, water_temp, water, fmass)
-		res['steps'] = rv
+		stepres = self._do_steps(_Mass(wmass), fmass,
+		    water.water(), ambient_temp)
 
 		w = water.water()
-		mashwater = sum(map(lambda x: x['water'].water(), rv), _Mass(0))
+		mashwater = sum([x['water'].water() for x in stepres], _Mass(0))
+
+		res = {}
+		res['steps'] = stepres
 		res['mashstep_water'] = Worter(water = mashwater)
 		res['sparge_water'] = Worter(water = w - mashwater)
 		res['method'] = self.method
@@ -309,9 +321,8 @@ class Mash:
 		self.didmash = True
 		return res
 
-	def _do_steps(self, step, water_temp, water, fmass):
-		steps = self.giant_steps
-
+	def _do_steps(self, infusion_wmass, fmass, water_available,
+	    ambient_temp):
 		def _decoction(step):
 			return self.method is Mash.DECOCTION
 		def _infusion(step):
@@ -319,68 +330,68 @@ class Mash:
 			    and getparam('mlt_heat') == 'transfer')
 
 		stepres = []
-		decoctionvol = 0
 
-		water_available = water.water()
-		m, temp = step.waterstep()
-		water_available -= m
+		mashstate = self.__MashState(fmass, ambient_temp, ambient_temp)
+		infusion_wtemp = mashstate.strike(
+		    self.giant_steps[0].temperature, infusion_wmass)
 
-		evap = self.__decoction_evaporation()
-		curevap = _Mass(0)
+		water_available -= infusion_wmass
+		inmash = Worter(water = infusion_wmass)
+
+		evap = _Mass(0)
+		decoctionvol = _Volume(0)
 
 		grainvol = self.__grainvol(fmass)
 
-		inmash = Worter(water = m)
-		for i, s in enumerate(steps):
-			mashtemp = s.temperature
-
-			if _decoction(s):
-				inmash.adjust_water(-curevap)
-				mashvol = inmash.volume(mashtemp) + grainvol
-				ratio = inmash.water() / fmass
-			else:
-				mashvol = inmash.volume(mashtemp) + grainvol
-				ratio = inmash.water() / fmass
-
+		steps = iter(self.giant_steps)
+		s = next(steps)
+		while True:
 			if water_available < -0.0001:
-				raise PilotError('cannot satisfy mash '
+				raise PilotError('could not satisfy mash '
 				    + 'with given parameters (not enough H2O)')
 
+			mashtemp = s.temperature
+			mashvol = inmash.volume(mashtemp) + grainvol
+			ratio = inmash.water() / fmass
+
 			stepres.append({
-				'step'		:	s,
-				'water'		:	Worter(water = m),
-				'decoction'	:	_Volume(decoctionvol),
-				'temp'		:	temp,
-				'ratio'		:	ratio,
-				'mashvol'	:	mashvol,
+				'step'		: s,
+				'water'		: Worter(water=infusion_wmass),
+				'decoction'	: decoctionvol,
+				'temp'		: infusion_wtemp,
+				'ratio'		: ratio,
+				'mashvol'	: mashvol,
 			})
 
-			if i+1 < len(steps):
-				nxt = steps[i+1]
-				if _infusion(nxt):
-					step.next_infusion(nxt.temperature)
-					(m, temp) = step.waterstep()
-					water_available -= m
-					inmash.adjust_water(m)
-				else:
-					m = _Mass(0)
-					_, temp = step.waterstep()
+			s = next(steps, None)
+			if s is None:
+				break
 
-				if _decoction(nxt):
-					curevap = evap
-					nt = steps[i+1].temperature
-					gm, wm = step.next_decoction(nt, evap)
+			step_temp = s.temperature
+			if _infusion(s):
+				infusion_wmass = mashstate.infusion(step_temp)
+				infusion_wtemp = _Temperature(100)
+				water_available -= infusion_wmass
+				inmash.adjust_water(infusion_wmass)
+			else:
+				# direct-fire or decoction
+				infusion_wmass = _Mass(0)
 
-					w = Worter(water = wm)
-					decoctionvol = (w.volume(mashtemp)
-					    + self.__grainvol(gm))
+			if _decoction(s):
+				evap = self.__decoction_evaporation(s)
+				gm, wm = mashstate.decoction(step_temp, evap)
+				inmash.adjust_water(-evap)
+
+				w = Worter(water = wm)
+				decoctionvol = _Volume(w.volume(mashtemp)
+				    + self.__grainvol(gm))
 
 		return stepres
 
 	def __grainvol(self, fmass):
 		return _Volume(fmass * constants.grain_specificvolume)
 
-	def __decoction_evaporation(self):
+	def __decoction_evaporation(self, step):
 		# assume a 15min boil per decoction, with the same
 		# boiloff rate as in the main boil.
 		#
@@ -390,8 +401,8 @@ class Mash:
 	def evaporation(self):
 		m = 0
 		if self.method is Mash.DECOCTION:
-			evap = self.__decoction_evaporation()
-			m = evap * (len(self.giant_steps)-1)
+			m = sum([self.__decoction_evaporation(s)
+			    for s in self.giant_steps[1:]])
 		return Worter(water = _Mass(m))
 
 	def printcsv(self):
