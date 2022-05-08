@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Antti Kantee <pooka@iki.fi>
+# Copyright (c) 2018-2022 Antti Kantee <pooka@iki.fi>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -55,10 +55,12 @@ class Mash:
 	# below derive from that equation.
 	class __Step:
 		# relative to capa of equivalent mass of water
+		# NOTE: includes "average" moisture in grains
 		__grain_relativecapa = 0.38
 
 		# thick decoction composition (by mass)
 		# 1 = all grain, 0 = all water
+		# Used to calculate the heat capacity of the decoction
 		__decoctionsplit = 0.7
 
 		def _setvalues(self, nwater_capa, nwater_temp, newtemp):
@@ -226,7 +228,7 @@ class Mash:
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
 		fmass = _Mass(sum(x.get_amount() for x in self.fermentables))
-		grainvol = fmass * constants.grain_specificvolume
+		grainvol = self.__grainvol(fmass)
 
 		def origwater(fromtemp, totemp, fromwater):
 			if getparam('mlt_heat') == 'direct' \
@@ -295,11 +297,7 @@ class Mash:
 		first_step = self.__Step(fmass, ambient_temp,
 		    steps[0].temperature, wmass)
 
-		cmap = {
-			self.INFUSION: self.infusion_mash,
-			self.DECOCTION: self.decoction_mash,
-		}
-		rv = cmap[self.method](first_step, water_temp, water, fmass)
+		rv = self._do_steps(first_step, water_temp, water, fmass)
 		res['steps'] = rv
 
 		w = water.water()
@@ -311,63 +309,76 @@ class Mash:
 		self.didmash = True
 		return res
 
-	def __grainvol(self, fmass):
-		return _Volume(fmass * constants.grain_specificvolume)
-
-	def infusion_mash(self, first_step, water_temp, water, fmass):
+	def _do_steps(self, step, water_temp, water, fmass):
 		steps = self.giant_steps
 
-		watermass = water.water()
+		def _decoction(step):
+			return self.method is Mash.DECOCTION
+		def _infusion(step):
+			return (self.method is Mash.INFUSION
+			    and getparam('mlt_heat') == 'transfer')
+
 		stepres = []
+		decoctionvol = 0
 
-		if getparam('mlt_heat') == 'transfer':
-			step = first_step
-			inmash = Worter()
+		water_available = water.water()
+		m, temp = step.waterstep()
+		water_available -= m
 
-			for i, s in enumerate(steps):
-				(m, temp) = step.waterstep()
-				watermass -= m
+		evap = self.__decoction_evaporation()
+		curevap = _Mass(0)
 
-				if watermass < -0.0001:
-					raise PilotError('cannot satisfy '
-					    + 'transfer infusion steps '
-					    + 'with given parameters '
-					    + '(ran out of water)')
+		grainvol = self.__grainvol(fmass)
 
-				inmash.adjust_water(m)
-				mashvol = inmash.volume(temp) \
-				    + self.__grainvol(fmass)
+		inmash = Worter(water = m)
+		for i, s in enumerate(steps):
+			mashtemp = s.temperature
+
+			if _decoction(s):
+				inmash.adjust_water(-curevap)
+				mashvol = inmash.volume(mashtemp) + grainvol
+				ratio = inmash.water() / fmass
+			else:
+				mashvol = inmash.volume(temp) + grainvol
 				ratio = inmash.water() / fmass
 
-				stepres.append({
-					'step': s,
-					'water': Worter(water = m),
-					'temp': temp,
-					'ratio': ratio,
-					'mashvol': mashvol,
-				})
-				if i+1 < len(steps):
-					step.next_infusion(steps[i+1].temperature)
-		else:
-			assert(getparam('mlt_heat') == 'direct')
-			(m, temp) = first_step.waterstep()
-			watermass -= m
-			strikewater = Worter(water = m)
-			ratio = strikewater.water() / fmass
-			inmash = strikewater
-			for i, s in enumerate(steps):
-				mashvol = inmash.volume(temp) \
-				    + self.__grainvol(fmass)
-				stepres.append({
-					'step': s,
-					'water': strikewater,
-					'temp': temp,
-					'ratio': ratio,
-					'mashvol': mashvol,
-				})
-				strikewater = Worter()
+			if water_available < -0.0001:
+				raise PilotError('cannot satisfy mash '
+				    + 'with given parameters (not enough H2O)')
+
+			stepres.append({
+				'step'		:	s,
+				'water'		:	Worter(water = m),
+				'decoction'	:	_Volume(decoctionvol),
+				'temp'		:	temp,
+				'ratio'		:	ratio,
+				'mashvol'	:	mashvol,
+			})
+
+			if i+1 < len(steps):
+				nxt = steps[i+1]
+				if _infusion(nxt):
+					step.next_infusion(nxt.temperature)
+					(m, temp) = step.waterstep()
+					water_available -= m
+					inmash.adjust_water(m)
+				else:
+					m = _Mass(0)
+					_, temp = step.waterstep()
+
+				if _decoction(nxt):
+					curevap = evap
+					nt = steps[i+1].temperature
+					gm, wm = step.next_decoction(nt, evap)
+
+					w = Worter(water = wm)
+					decoctionvol = (w.volume(water_temp)
+					    + self.__grainvol(gm))
 
 		return stepres
+
+	def __grainvol(self, fmass):
+		return _Volume(fmass * constants.grain_specificvolume)
 
 	def __decoction_evaporation(self):
 		# assume a 15min boil per decoction, with the same
@@ -375,54 +386,6 @@ class Mash:
 		#
 		# XXX: make configurable
 		return _Mass(getparam('boiloff_perhour') * .25)
-
-	def decoction_mash(self, first_step, water_temp, water, fmass):
-		steps = self.giant_steps
-		stepres = []
-
-		step = first_step
-		(m, temp) = first_step.waterstep()
-		inmash = Worter(water = m)
-
-		def calcvols(inmash, fmass, temp, evaporation):
-			inmash.adjust_water(-evaporation)
-			ratio = inmash.water() / fmass
-			mvol = inmash.volume(temp) + self.__grainvol(fmass)
-			return ratio, mvol
-
-		ratio, mashvol = calcvols(inmash,
-		    fmass, steps[0].temperature, _Mass(0))
-		stepres.append({
-			'step': steps[0],
-			'water': copy.deepcopy(inmash),
-			'temp': temp,
-			'ratio': ratio,
-			'mashvol': mashvol
-		})
-		evap = self.__decoction_evaporation()
-
-		for i, s in enumerate(steps):
-			if not i+1 < len(steps):
-				break
-
-			curtemp = s.temperature
-			nxttemp = steps[i+1].temperature
-			(gm, wm) = step.next_decoction(nxttemp, evap)
-
-			w = Worter(water = wm)
-			decoctionvol = _Volume(w.volume(water_temp)
-			    + self.__grainvol(gm))
-
-			ratio, mashvol = calcvols(inmash, fmass, nxttemp, evap)
-			stepres.append({
-				'step': steps[i+1],
-				'decoction': decoctionvol,
-				'water': Worter(),
-				'temp': nxttemp,
-				'ratio': ratio,
-				'mashvol': mashvol
-			})
-		return stepres
 
 	def evaporation(self):
 		m = 0
