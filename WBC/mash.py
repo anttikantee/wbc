@@ -339,7 +339,7 @@ class Mash:
 				mashvol = inmash.volume(mashtemp) + grainvol
 				ratio = inmash.water() / fmass
 			else:
-				mashvol = inmash.volume(temp) + grainvol
+				mashvol = inmash.volume(mashtemp) + grainvol
 				ratio = inmash.water() / fmass
 
 			if water_available < -0.0001:
@@ -372,7 +372,7 @@ class Mash:
 					gm, wm = step.next_decoction(nt, evap)
 
 					w = Worter(water = wm)
-					decoctionvol = (w.volume(water_temp)
+					decoctionvol = (w.volume(mashtemp)
 					    + self.__grainvol(gm))
 
 		return stepres
