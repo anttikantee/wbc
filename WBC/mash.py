@@ -243,9 +243,12 @@ class Mash:
 			    (totemp == steps[0].temperature or
 			    totemp == steps[-1].temperature))
 
-			if getparam('mlt_heat') == 'direct' \
-			    or self.method is self.DECOCTION:
+			evap = self.evaporation()
+			if getparam('mlt_heat') == 'direct':
 				return fromwater
+			if self.method is self.DECOCTION:
+				if fromtemp > totemp: evap = -evap
+				return fromwater - evap.water()
 
 			ms = self.__MashState(fmass,
 			    _Temperature(20), _Temperature(20))
