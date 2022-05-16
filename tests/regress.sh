@@ -182,7 +182,7 @@ dotest ()
 			passed=true
 		fi
 		if ! ${passed}; then
-			if [ -f testdata/${bn}.recipe ]; then
+			if ${VERBOSE} && [ -f testdata/${bn}.recipe ]; then
 				echo '------ BEGIN RECIPE ------'
 				cat $(cat testdata/${bn}.recipe)
 				echo '------  END  RECIPE ------'
@@ -209,9 +209,11 @@ doreset ()
 #
 
 FATAL=:
-while getopts 'f' opt; do
+VERBOSE=false
+while getopts 'fv' opt; do
 	case "$opt" in
 		f) FATAL='exit 1';;
+		v) VERBOSE=true;;
 	esac
 done
 shift $((${OPTIND} - 1))
