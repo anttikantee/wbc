@@ -261,7 +261,14 @@ _addoptparam('output_text-pagelen', 'oP',	parse.uint,
 					'(0 = disabled). '
 					'Typical values: 0 (tty), '
 					'65/69 (A4/letter)')
-
+_addoptparam('recipe_datestr',	'dt',	str,
+					'Recipe date as a string opaque to '
+					'WBC. The string is printed as part '
+					'of the output. '
+					'If a string is not supplied, '
+					'the current date is used and printed '
+					'using the format which may be queried '
+					'with `wbc_datefmt`.')
 
 _defaults = {
 	# water absortion for 1kg of grain, gross (*true* absorption)

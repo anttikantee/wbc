@@ -25,6 +25,8 @@ from WBC.units import Strength, _Volume, _Mass, _Strength
 from WBC.worter import Worter
 from WBC.timespec import Timespec
 
+from datetime import date
+
 global _prtsects
 _prtsects = ['']
 _oldprt = print
@@ -240,6 +242,16 @@ def _keystats(input, results, miniprint):
 	cols = [20, 19, 22, 19]
 	cols_tight = [20, 19, 16, 25]
 
+	dt = getparam('recipe_datestr')
+	if dt is None:
+		# apparently setting the locale to nothing is required to
+		# make strftime() use the set locale
+		import locale
+		locale.setlocale(locale.LC_ALL, '')
+		dt = date.today().strftime(constants.datefmt)
+
+	print(' {:^46} :: {:^28} '.format(input['name'], dt))
+
 	_prtsep()
 	onefmt = '{:' + str(cols[0]) + '}{:}'
 
@@ -256,7 +268,6 @@ def _keystats(input, results, miniprint):
 		total_water = _Volume(total_water
 		    + results['steal']['missing'])
 
-	print(onefmt.format('Name:', input['name']))
 	pwort = rwort[Worter.PACKAGE]
 	print(twofmt_tight.format('Aggregate strength:',
 	    str(pwort.strength()),

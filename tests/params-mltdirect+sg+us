@@ -8,3 +8,5 @@ fermentor_loss	=	5qt
 
 strength_output =       sg
 units_output    =       us
+
+recipe_datestr	=	let's not and say we did

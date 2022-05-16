@@ -20,7 +20,7 @@ from WBC.wbc import Recipe, WBC
 from WBC.hop import Hop
 from WBC.units import Mass, Temperature, Volume, Strength
 from WBC.units import _Mass, _Temperature, _Volume
-from WBC.utils import PilotError, notice
+from WBC.utils import PilotError, diagnosticflush
 from WBC import sysparams
 from WBC import parse
 from WBC import brewutils
@@ -295,6 +295,7 @@ if __name__ == '__main__':
 		if '-c' in flags:
 			r.printcsv()
 		else:
+			diagnosticflush()
 			from WBC import output_text
 			output_text.printit(r.input, r.results,
 			    odict.get('miniprint', False))

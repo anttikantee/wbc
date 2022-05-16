@@ -8,3 +8,5 @@ fermentor_loss	=	1.0l
 
 strength_output =       plato
 units_output    =       metric
+
+recipe_datestr  =       C'est ne pas une datestr

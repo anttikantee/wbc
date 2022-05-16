@@ -64,3 +64,5 @@ grain_specificvolume = 0.7
 # in kg/m3 (or g/l)
 pellethop_density_gl = 500
 leafhop_density_gl = 135
+
+datefmt="%a %d %b %Y"
