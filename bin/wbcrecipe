@@ -20,7 +20,7 @@ from WBC.wbc import Recipe, WBC
 from WBC.hop import Hop
 from WBC.units import Mass, Temperature, Volume, Strength
 from WBC.units import _Mass, _Temperature, _Volume
-from WBC.utils import PilotError
+from WBC.utils import PilotError, notice
 from WBC import sysparams
 from WBC import parse
 from WBC import brewutils

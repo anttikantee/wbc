@@ -43,11 +43,14 @@ def istupletype(type, clss):
 	except PilotError:
 		return False
 
-def warn(msg, prepend=''):
-	sys.stderr.write(prepend + 'WARNING: ' + msg)
+def warn(msg):
+	sys.stderr.write('WARNING: ' + msg)
 
-def notice(msg, prepend=''):
-	sys.stderr.write(prepend + '>> ' + msg)
+def notice(msg):
+	sys.stderr.write('>> ' + msg)
+
+def diagnosticflush():
+	sys.stderr.write('\n')
 
 # used to avoid "-0" prints
 def pluszero(v):
