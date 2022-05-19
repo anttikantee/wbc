@@ -1,0 +1,14 @@
+name:   vino-omena
+yeast:  apple-yeastieboys
+volume: 20l
+
+fermentables:
+    strength: maximum
+
+    day 0:
+        apple juice: rest
+        table sugar: 100g/L
+
+opaques:
+    byunit:
+        - [ yeast,        11.0g,     day 0 ]

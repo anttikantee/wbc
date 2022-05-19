@@ -1,0 +1,18 @@
+name:   cider
+yeast:  apple-yeastieboys
+volume: 20l
+
+fermentables:
+    strength: maximum
+
+    day 0:
+        apple juice: rest
+
+    package:
+        table sugar:  11g/L
+
+opaques:
+    byunit:
+        - [ yeast,        11.0g,     day 0 ]
+        - [ tannin,        4.2g,     day 0 ]
+        - [ mynutrient,   5g/10L,    day 1 ]

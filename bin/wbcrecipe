@@ -67,10 +67,13 @@ def doopaques(r, opaques):
 def dofermentables(r, ferms):
 	fermtype = None
 
-	# strength is either SG / plato, OR ABV% @ attenuation%
+	# strength is either "maximum"
+	# OR SG / plato OR ABV% @ attenuation%
 	s = ferms.pop('strength', None)
 	if s is not None:
-		if isinstance(s, str) and '@' in s:
+		if s == 'maximum':
+			stren = Recipe.STRENGTH_MAX
+		elif isinstance(s, str) and '@' in s:
 			v = s.split('@')
 			abv = parse.percent(v[0])
 			attenpers = parse.percent(v[1])

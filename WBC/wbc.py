@@ -21,7 +21,7 @@ from WBC import constants
 from WBC import fermentables
 from WBC.getparam import getparam
 
-from WBC.addition import Addition, Opaque, Water, Internal
+from WBC.addition import Addition, Opaque, Water, Internal, Fermadd
 from WBC.utils import *
 from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
@@ -44,6 +44,8 @@ class WBC:
 	pass
 
 class Recipe:
+	STRENGTH_MAX=	"maximum"
+
 	def __init__(self, name, yeast, volume, boiltime = None):
 		# volume may be None if the recipe contains only relative units
 		if volume is not None:
@@ -74,6 +76,11 @@ class Recipe:
 		# the current "best guess" for additional extract needed
 		# to reach final-strength target (for applicable recipes)
 		self.fermentable_extadj = _Mass(0)
+
+		# current guess for the strength, for STRENGHT_MAX recipes
+		self._strengthguess = None
+
+		# user-settable final strength
 		self.final_strength = None
 
 		# cached educated guess of the water
@@ -108,12 +115,21 @@ class Recipe:
 		v = [self.volume_scaled, self.volume_set, self.volume_inherent ]
 		return ([x for x in v if x is not None] + [None])[0]
 
+	def _final_strength(self):
+		if self._strengthguess is not None:
+			return self._strengthguess
+		return self.final_strength
+
 	def _final_extract(self):
 		if self.final_strength is None:
 			return None
+
 		w = Worter()
-		w.set_volstrength(self._final_volume(), self.final_strength)
+		w.set_volstrength(self._final_volume(), self._final_strength())
 		return w.extract()
+
+	def _strength_max_p(self):
+		return self.final_strength is self.STRENGTH_MAX
 
 	def _grain_absorption(self):
 		rv = getparam('grain_absorption')
@@ -312,7 +328,7 @@ class Recipe:
 	#
 
 	def anchor_bystrength(self, strength):
-		checktype(strength, Strength)
+		strength == self.STRENGTH_MAX or checktype(strength, Strength)
 
 		if self.final_strength is not None:
 			raise PilotError('final strength already set')
@@ -328,12 +344,19 @@ class Recipe:
 			    + 'once per stage')
 
 		checktypes([(ferm, fermentables.Fermentable), (time, Timespec)])
-		a = Addition(ferm, amount, resolver, time, cookie = cookie)
+		a = Fermadd(ferm, amount, resolver, time, cookie = cookie)
 		self.ferms_in.append(a)
 		return a
 
+	# Fermentables specified by unit may be specified either as
+	# mass (solid ingredients) or volume (liquid ingredients).
 	def fermentable_byunit(self, name, unit, time):
-		scale = self._addunit([_ismass, _ismassvolume], unit, __name__)
+		ferm = fermentables.Get(name)
+		if ferm.type() == ferm.LIQUID:
+			accepted = [_isvolume, _isvolumevolume]
+		else:
+			accepted = [_ismass, _ismassvolume]
+		scale = self._addunit(accepted, unit, __name__)
 		self._fermstore(name, unit, scale, time, 'm')
 
 	# percent of fermentable's mass, not extract's mass
@@ -421,10 +444,30 @@ class Recipe:
 
 	# set initial guesses for fermentables
 	def _dofermentables_preprocess(self):
+		# have by-percent?  no?  we're done
 		rlst, plst = self._fermfilter('r'), self._fermfilter('p')
 		if len(rlst + plst) == 0:
+			if self.final_strength is not None:
+				raise PilotError("cannot satisfy strength "
+				    "spec without percent-fermentables")
 			return
 
+		# Set an initial guess for the final strength in the
+		# case of maxstrength.
+		#
+		# We don't have much calculated yet, so use the
+		# amount of extract from by-mass fermentables as the
+		# initial guess.  However, set it to a minimum of 11 plato
+		# to get a more realistic first guess for cases where the
+		# by-mass fermentables are just priming sugar.
+		if self._strength_max_p():
+			massfermext = _Mass(sum([self._fermentable_extract(x)
+			    for x in self._fermfilter('m')]))
+			stren = brewutils.solve_strength(massfermext,
+			    self._final_volume())
+			self._strengthguess = max(stren, _Strength(11))
+
+		# check that we have 100% fermentables in the recipe
 		ptot = sum([x.get_amount() for x in plst])
 		if len(rlst) == 0:
 			if abs(ptot - 100.) > .00001:
@@ -432,6 +475,7 @@ class Recipe:
 				    + 'literally forgot "rest"?')
 			return
 
+		# evenly divide missing portion among "rest" fermentables
 		missing = 100. - ptot
 		if missing > .000001:
 			for f in rlst:
@@ -459,6 +503,7 @@ class Recipe:
 		# Guess extract we get from "bymass" fermentables.
 		mext = _Mass(sum([self._fermentable_extract(x) for x in ferms]))
 
+		assert(self._final_strength() is not None)
 		extract = self._final_extract() + self.fermentable_extadj
 
 		# set the amount of extract we need from by-percent
@@ -564,57 +609,76 @@ class Recipe:
 
 		self._set_calcguess(f_guess, None)
 
-	# turn percentages into masses, calculate expected worters
-	# for each worter stage
-	def _dofermentables_and_worters(self):
-		ferms_bymass = self._fermfilter('m')
 
-		#
-		# Do we have only bymass-fermentables?
-		#
+	def _dofermentables_and_worters_bymass(self):
+		self._set_calcguess(self._fermfilter('m'), None)
+		vl = self.vol_losses
 
-		if len(self._fermfilter(('r', 'p'))) == 0:
-			self._set_calcguess(ferms_bymass, None)
-			vl = self.vol_losses
+		# With bymass, we have to guess water first,
+		# because calculation goes from start to finish.
+		# We guess once and refine it later.
+		if self.waterguess is None:
+			vol_loss = _Volume(sum(vl.values())
+			    + self._boiloff()
+			    + self.mash.evaporation().water())
+			fermwater = sum([self._fermentable_water(x)
+			    for x in self.fermentables], _Mass(0))
+			self._set_waterguess(_Mass(self._final_volume()
+			    + vol_loss - fermwater))
 
-			# With bymass, we have to guess water first,
-			# because calculation goes from start to finish.
-			# We guess once and refine it later.
-			if self.waterguess is None:
-				vol_loss = _Volume(sum(vl.values())
-				    + self._boiloff()
-				    + self.mash.evaporation().water())
-				fermwater = sum([self._fermentable_water(x)
-				    for x in self.fermentables], _Mass(0))
-				self.waterguess = _Mass(self._final_volume()
-				    + vol_loss - fermwater)
+		for i in range(10):
+			res = self._doworters_bymass()
+			voldiff = _Mass(res[Worter.PACKAGE].volume()
+			    - self._final_volume())
+			if abs(voldiff) < 0.1:
+				break
+			self._set_waterguess(self.waterguess - voldiff)
+		else:
+			raise Exception('PANIC: recipe failed to converge')
+		return res
 
-			for i in range(10):
-				res = self._doworters_bymass()
-				voldiff = _Mass(res[Worter.PACKAGE].volume()
-				    - self._final_volume())
-				if abs(voldiff) < 0.1:
-					break
-				self.waterguess = self.waterguess - voldiff
-			else:
-				raise Exception('PANIC: recipe failed to '
-				    'converge')
-			return res
 
-		#
-		# We have by-percent fermentables.
-		#
-
+	def _dofermentables_and_worters_bypercent(self):
 		if self.final_strength is None:
 			raise PilotError('final strength must be set for '
 			    + 'by-percent fermentables')
 
 		# account for "unknown" extract losses from stage to stage
 		# ("unknown" = not solved analytically)
-		for _ in range(10):
-			self._dofermentables_bypercent(ferms_bymass)
-			extoff, water = self._doworters_bystrength()
-			if abs(extoff.valueas(Mass.G)) < 1:
+		for _ in range(30):
+			self._dofermentables_bypercent(self._fermfilter('m'))
+			extoff, watoff = self._doworters_bystrength()
+
+			canbreak = True
+
+			# adjust guesses.  if were shooting for a volume,
+			# adjust the strength guess until our starting point
+			# volume is 0.  if we're shooting for strength,
+			# adjust the amount of extract we need
+			if self._strength_max_p() and abs(watoff) >= 0.001:
+				# We check for and adjust the water until
+				# it matches.  If we have a positive water
+				# offset (too much water), we need to reduce
+				# the strength to bring the absolute masses
+				# down.  If we have a negative water offset,
+				# we need to increase the strength to
+				# increase the amount of fermentables and
+				# hence water going into the system.
+				#
+				# So how much should we adjust the strength
+				# by if we want to reach "0" water offset?
+				# Create the final strength worter, adjust
+				# the water, and take the reading.  To avoid
+				# overshooting ridiculously, adjust only by
+				# half of the water offset.
+				canbreak = False
+				wfin = Worter()
+				wfin.set_volstrength(self._final_volume(),
+					self._strengthguess)
+				wfin.adjust_water(-_Mass(watoff/2.0))
+				self._strengthguess = wfin.strength()
+
+			if abs(extoff) < 0.001 and canbreak:
 				break
 
 			# adjust value used in dofermentables_bypercent
@@ -628,10 +692,20 @@ class Recipe:
 		# we're at the start.  Notably, the waterguess is used for
 		# the final calculation with masses.
 		if self.waterguess is None:
-			self.waterguess = water + self._boiladj
+			self._set_waterguess(watoff + self._boiladj)
 
 		# calculate now-filled masses using bymass and return
 		return self._doworters_bymass()
+
+
+	# turn percentages into masses, calculate expected worters
+	# for each worter stage
+	def _dofermentables_and_worters(self):
+		if len(self._fermfilter(('r', 'p'))) == 0:
+			return self._dofermentables_and_worters_bymass()
+		else:
+			return self._dofermentables_and_worters_bypercent()
+
 
 	def _dofermentablestats(self):
 		assert('losses' in self.results)
@@ -713,6 +787,7 @@ class Recipe:
 		f = sorted(f, key=lambda x: x.get_amount())
 		self.fermentables = f[::-1]
 
+
 	def _domash(self, mashwort):
 		mf = self._fermentables_bytimespec(Timespec.MASH)
 		self.mash.set_fermentables(mf)
@@ -786,6 +861,16 @@ class Recipe:
 		vl[Timespec.FERMENTOR] = hd['fermentor'] \
 		    + getparam('fermentor_loss')
 		self.vol_losses = vl
+
+
+	# set the guess for the amount of water we need to add
+	def _set_waterguess(self, guess):
+		# "max" strength never gets any implicit water
+		if self._strength_max_p():
+			self.waterguess = _Mass(0)
+		else:
+			self.waterguess = guess
+
 
 	#
 	# Adjust the extract and water contributions from the ingredients
@@ -876,6 +961,7 @@ class Recipe:
 
 		return res
 
+
 	# bystrength: start from final volume / strength, calculate
 	# backwards
 	def _doworters_bystrength(self):
@@ -883,7 +969,7 @@ class Recipe:
 		vl = self.vol_losses
 
 		w = Worter()
-		w.set_volstrength(self._final_volume(), self.final_strength)
+		w.set_volstrength(self._final_volume(), self._final_strength())
 		w.adjust_extract(-self._extract_bytimespec(Timespec.PACKAGE))
 		w.adjust_water(-self._fermwater_bytimespec(Timespec.PACKAGE))
 		w.adjust_volume(vl[Timespec.FERMENTOR])
@@ -1151,7 +1237,6 @@ class Recipe:
 		# volume
 		#
 		for x in range(10):
-
 			# Calculate initial guess for worters, and
 			# especially resolve possible percentages into
 			# masses.  We use "bymass" in this loop
@@ -1175,14 +1260,16 @@ class Recipe:
 			# we need to hit that too.
 			voldiff = self._final_volume() \
 			    - wrt[Worter.PACKAGE].volume()
+
 			if self._final_extract() is not None:
 				extdiff = self._final_extract() \
 				    - wrt[Worter.PACKAGE].extract()
 			else:
 				extdiff = _Mass(0)
+
 			if abs(voldiff) < 0.1 and abs(extdiff) < 0.1:
 				break
-			self.waterguess += _Mass(voldiff)
+			self._set_waterguess(self.waterguess + _Mass(voldiff))
 		else:
 			raise Exception('recipe failed to converge ... panic?')
 

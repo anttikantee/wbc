@@ -136,6 +136,12 @@ doprep ()
 	    test-recipes/proto-bymass.yaml
 
 	resetcount
+	preprecipe liquid-maximum wbcrecipe -p params-std \
+	    test-recipes/applewine.yaml
+	preprecipe liquid-maximum wbcrecipe -p params-std \
+	    test-recipes/cider-fermenter.yaml
+
+	resetcount
 	while read line; do
 		set -- ${line}
 		[ $# -ne 0 ] || continue

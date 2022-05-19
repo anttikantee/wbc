@@ -81,7 +81,7 @@ def _printfermentables(input, results):
 		for f in lst:
 			persstr = ' ({:5.1f}%)'.format(f.info['percent'])
 			print(fmtstr.format(f.obj.name,
-			    str(f.get_amount()) + persstr,
+			    str(f.get_amount(f.TYPE_NATIVE)) + persstr,
 			    str(f.info['extract_theoretical']),
 			    str(f.info['extract_predicted'])))
 
@@ -231,7 +231,8 @@ def _printtimers(input, results):
 			'Internal':	' ',
 		}.get(type(t.obj).__name__, '?')
 
-		v = (c, t.namestr(nlen), t.infostr(ilen), str(t.get_amount()))
+		v = (c, t.namestr(nlen), t.infostr(ilen),
+		    str(t.get_amount(type = t.TYPE_NATIVE)))
 		print(onefmt.format(*v, t.time.timespecstr(), t.timerstr(None)))
 	_prtsep()
 

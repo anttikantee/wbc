@@ -255,8 +255,9 @@ def fermentableunit(input):
 	if input == Recipe.THEREST:
 		return (Recipe.fermentable_bypercent, Recipe.THEREST)
 
-	try: return (Recipe.fermentable_byunit,
-	    _additionunit(input, [mass, (mass, volume)]))
+	try:
+		return (Recipe.fermentable_byunit, _additionunit(input,
+		    [mass, (mass, volume), volume, (volume, volume)]))
 	except ValueError: pass
 
 	raise PilotError('invalid fermentable quantity: ' + str(input))

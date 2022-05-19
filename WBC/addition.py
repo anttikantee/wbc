@@ -20,8 +20,13 @@
 #
 
 from WBC.utils import PilotError
+from WBC.units import *
+from WBC.units import _Mass, _Volume
 
 class Addition:
+	TYPE_NATIVE=	object()
+	TYPE_MASS=	object()
+
 	def __init__(self, obj, amount, resolver, time, cookie = None):
 		self.obj = obj
 		self._amount = amount
@@ -44,7 +49,7 @@ class Addition:
 	def set_amount(self, amount):
 		self._amount = amount
 
-	def get_amount(self):
+	def get_amount(self, type = None):
 		if self._resolver is not None:
 			return self._resolver(self._amount, self.time)
 		return self._amount
@@ -57,6 +62,30 @@ class Addition:
 
 	def timerstr(self, maxlen):
 		return self._strwrap(lambda x,y: str(y), maxlen, (self.timer,))
+
+# fermentables get a wrapper so that we can do the calculation as
+# mass and output as mass or volume depending on the nature of the
+# fermentable
+class Fermadd(Addition):
+
+	def set_amount(self, amount):
+		ferm = self.obj
+		if ferm.type() == ferm.LIQUID and isinstance(amount, Mass):
+			amount = _Volume(amount
+			    / ferm.extract.extract.valueas(Strength.SG))
+		super().set_amount(amount)
+
+	def get_amount(self, type = Addition.TYPE_MASS):
+		ferm = self.obj
+		amount = super().get_amount()
+		if type == self.TYPE_MASS and ferm.type() == ferm.LIQUID and \
+		    isinstance(amount, Volume):
+			amount = _Mass(amount
+			    * ferm.extract.extract.valueas(Strength.SG))
+		return amount
+
+	def native_amount(self):
+		return 0
 
 class Opaque:
 	def __init__(self, name):
