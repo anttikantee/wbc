@@ -80,6 +80,7 @@ resetcount ()
 doprep ()
 {
 
+	[ ! -d testdata ] || die testdata already exists.  \"reset\" first
 	mkdir -p testdata || die cannot create testdata
 
 	resetcount
