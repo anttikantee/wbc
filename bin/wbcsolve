@@ -195,14 +195,16 @@ def main(argv):
 		raise PilotError('too much water. increase strength or volume.')
 
 	if w_start:
-		printline2_system('Starting water', _Volume(ws.water()))
-		printline2_system('Starting extract', ws.extract())
+		printline2_system('Initial', ws.mass())
+		printline2_system('    of which extract', ws.extract())
+		printline2_system('    of which water', _Volume(ws.water()))
 		print()
 
 	printline2_system('Fermentable (' + str(int(ep()*100)) + '%) addition',
 	    add_extract + fermwater)
 	printline2_system('    of which extract', add_extract)
-	printline2_system('    of which water', fermwater)
+	printline2_system('    of which water', _Volume(fermwater))
+	print('+')
 	printline2_system('Water addition', _Volume(add_water))
 
 	strn = w.strength()
@@ -210,6 +212,7 @@ def main(argv):
 	printline2_system('=> Volume', w.volume())
 	printline2_system('    of which extract', w.extract())
 	printline2_system('    of which water', _Volume(w.water()))
+	printline2_system('=> Mass', w.mass())
 	printline2('=> Strength', strn.stras(strn.PLATO), strn.stras(strn.SG))
 
 if __name__ == '__main__':
