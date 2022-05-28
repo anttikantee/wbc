@@ -118,7 +118,8 @@ def dowater(r, d_water):
 			r.water_byunit(what, amount, ts)
 
 def dorecipenotes(r, v):
-	r.add_recipenote(v)
+	for n in _listify(v):
+		r.add_recipenote(n)
 
 def applyparams(r, clist, odict):
 	for f in odict.get('wbcparamfiles', []):
