@@ -286,8 +286,16 @@ def _keystats(input, results, miniprint):
 		bugu = totibus \
 		    / rwort[Worter.PACKAGE].strength().valueas(Strength.SG_PTS)
 		if color is not None:
-			cstr = (color.stras(color.EBC)
-			    + ', ' + color.stras(color.SRM))
+			docolor = getparam('output_text-color')
+			crgb = color.valueas(color.RGB)
+			if docolor == 'yes':
+				actcolor = ('\033[48;2;{};{};{};1m   \033[0m'
+				    .format(*crgb))
+			else:
+				actcolor = ''
+
+			cstr = '{} / {}  '.format(color.stras(color.EBC),
+			    color.stras(color.SRM)) + actcolor
 		else:
 			cstr = 'n/a'
 

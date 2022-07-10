@@ -261,6 +261,24 @@ _addoptparam('output_text-pagelen', 'oP',	parse.uint,
 					'(0 = disabled). '
 					'Typical values: 0 (tty), '
 					'65/69 (A4/letter)')
+_addoptparam('output_text-color', 'oC',	_currystring(['yes', 'no']),
+					'Display colors. '
+					'Try to display an actual color for '
+					'SRM/EBC instead of just a numerical '
+					'value. Your output must support '
+					'24bit colors; if you are on a modern '
+					'windowing system, odds are it does. '
+					'If you are sending the output to a '
+					'printer, odds are it does not. '
+					'If you see gibberish ("033[48;..."), '
+					'your terminal does not, and you '
+					'should leave this option off. '
+					'Note: your perception of the color '
+					'is greatly influenced by the '
+					'background color of your terminal. '
+					'Acceptable values: [ yes, no ]. '
+					'Default: unset (= no)')
+
 _addoptparam('recipe_datestr',	'dt',	str,
 					'Recipe date as a string opaque to '
 					'WBC. The string is printed as part '

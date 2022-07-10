@@ -507,16 +507,51 @@ class Strength(WBCUnit):
 			assert(getparam('strength_output') == 'sg')
 			return self.stras(self.SG)
 
+#
+# translation table from EBC to 24-bit RGB (for some values of path
+# thickness, ambient light, etcetc; we'll call it "good enough")
+# EBC 1 - 110
+#
+# data from https://hobbybrauer.de/forum/viewtopic.php?p=219547
+ebc2rgb = [
+(255,250,198), (255,246,149), (255,241, 94), (255,225, 74), (255,206, 57),
+(255,188, 37), (255,168, 16), (255,154,  0), (251,150,  0), (247,147,  0),
+(243,142,  0), (237,140,  0), (233,136,  0), (229,132,  0), (226,129,  0),
+(221,126,  0), (218,124,  0), (214,119,  0), (211,111,  0), (204,101,  0),
+(203, 89,  0), (199, 79,  0), (194, 70,  0), (192, 62,  0), (186, 49,  0),
+(181, 43,  0), (177, 41,  0), (171, 39,  0), (165, 37,  0), (161, 34,  0),
+(155, 32,  0), (149, 31,  0), (143, 28,  0), (140, 26,  0), (134, 24,  0),
+(130, 21,  0), (124, 18,  0), (119, 16,  0), (114, 14,  0), (107, 11,  0),
+(103, 11,  0), ( 96,  7,  0), ( 92,  4,  0), ( 86,  2,  0), ( 81,  0,  0),
+( 78,  0,  0), ( 75,  0,  0), ( 72,  0,  0), ( 70,  0,  0), ( 68,  0,  0),
+( 68,  0,  0), ( 66,  0,  0), ( 66,  0,  0), ( 66,  0,  0), ( 65,  0,  0),
+( 65,  0,  0), ( 65,  0,  0), ( 64,  0,  0), ( 64,  0,  0), ( 64,  0,  0),
+( 63,  0,  0), ( 63,  0,  0), ( 63,  0,  0), ( 62,  0,  0), ( 62,  0,  0),
+( 62,  0,  0), ( 61,  0,  0), ( 61,  0,  0), ( 61,  0,  0), ( 61,  0,  0),
+( 60,  0,  0), ( 60,  0,  0), ( 59,  0,  0), ( 59,  0,  0), ( 58,  0,  0),
+( 58,  0,  0), ( 57,  0,  0), ( 57,  0,  0), ( 56,  0,  0), ( 56,  0,  0),
+( 56,  0,  0), ( 56,  0,  0), ( 55,  0,  0), ( 55,  0,  0), ( 55,  0,  0),
+( 55,  0,  0), ( 54,  0,  0), ( 54,  0,  0), ( 54,  0,  0), ( 54,  0,  0),
+( 53,  0,  0), ( 53,  0,  0), ( 53,  0,  0), ( 52,  0,  0), ( 52,  0,  0),
+( 52,  0,  0), ( 51,  0,  0), ( 51,  0,  0), ( 51,  0,  0), ( 50,  0,  0),
+( 50,  0,  0), ( 49,  0,  0), ( 49,  0,  0), ( 49,  0,  0), ( 48,  0,  0),
+( 48,  0,  0), ( 48,  0,  0), ( 47,  0,  0), ( 47,  0,  0), ( 46,  0,  0),
+]
+
 class Color(float):
+
 	EBC		= 'EBC'
 	SRM		= 'SRM'
 	LOVIBOND	= chr(0x00b0) + 'L'
+	RGB		= 'RGB'
 
 	def __new__(cls, value, unit):
 		if unit is Color.SRM:
 			value = Color.SRMtoEBC(value)
 		elif unit is Color.LOVIBOND:
 			value = Color.LtoEBC(value)
+		elif unit is not Color.EBC:
+			raise PilotError('color unit must be EBC/SRM/L')
 
 		return super(Color, cls).__new__(cls, value)
 
@@ -527,8 +562,10 @@ class Color(float):
 			return Color.EBCtoSRM(self)
 		elif which is Color.LOVIBOND:
 			return Color.EBCtoL(self)
+		elif which is Color.RGB:
+			return Color.EBCtoRGB(self)
 		else:
-			raise Exception('invalid Color type')
+			raise PilotError('invalid Color type')
 
 	# formulae from https://en.wikipedia.org/wiki/Standard_Reference_Method
 	@staticmethod
@@ -547,7 +584,15 @@ class Color(float):
 	def EBCtoL(v):
 		return (Color.EBCtoSRM(v) + 0.76) / 1.3546
 
+	@staticmethod
+	def EBCtoRGB(v):
+		v = max(int(v), 1)
+		pos = min(v, len(ebc2rgb))-1
+		return ebc2rgb[pos]
+
 	def stras(self, unit):
+		if unit is Color.RGB:
+			raise PilotError('Color RGB not supported as a string')
 		v = self.valueas(unit)
 		if v > 10:
 			prec = '0'
