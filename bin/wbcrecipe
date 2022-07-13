@@ -29,6 +29,8 @@ import getopt
 import io
 import sys
 
+from os import path
+
 def _listify(x): return x if isinstance(x, list) else [x]
 
 def dohop(r, hopspec, unit, timespec):
@@ -231,8 +233,8 @@ def processcsv(clist, odict, data):
 
 
 def usage():
-	sys.stderr.write('usage: ' + sys.argv[0]
-	    + ' [-s volume,strength] [-v final volume] [-c] [-d] [-m]\n'
+	sys.stderr.write('usage: ' + path.basename(sys.argv[0])
+	    + ' [-s volume,strength] [-v final volume] [-cdm]\n'
 	    + '\t[-n brewday note] [-n brewday note ...]\n'
 	    + '\t[-p paramsfile] [-P param=value] recipefile\n')
 	sys.exit(1)
