@@ -140,12 +140,12 @@ def applyparams(r, clist, odict):
 	for n in odict.get('brewday_notes', []):
 		r.add_brewdaynote(n)
 
-def processyaml(clist, odict, data):
+def processyaml(r, data):
 	# importing yaml is unfathomably slow, so do it only if we need it
 	import yaml
 
 	try:
-		d = yaml.safe_load(data.read())
+		d = yaml.safe_load(data)
 	except (yaml.parser.ParserError, e):
 		print('>> failed to parse yaml recipe:')
 		print(e)
@@ -164,8 +164,6 @@ def processyaml(clist, odict, data):
 	setdef('volume', parse.volume, r.set_inherent_volume)
 	setdef('boil', parse.duration, r.set_boiltime)
 
-	applyparams(r, clist, odict)
-
 	handlers = {
 		'mashparams'	: domashparams,
 		'fermentables'	: dofermentables,
@@ -183,11 +181,8 @@ def processyaml(clist, odict, data):
 		else:
 			raise PilotError('invalid recipe field: ' + p)
 
-	return r
-
-def processcsv(clist, odict, data):
+def processcsv(r, data):
 	dataver = -1
-	r = Recipe()
 
 	# don't use csv, because using utf-8+csv on python2 is
 	# just too painful
@@ -221,14 +216,12 @@ def processcsv(clist, odict, data):
 		elif row[0] == "hop":
 			dohop(r, [row[1], row[3] + '%',
 			    row[2]], row[4] + 'kg', row[6])
-	applyparams(r, clist, odict)
-	return r
-
 
 def usage():
 	sys.stderr.write('usage: ' + path.basename(sys.argv[0])
 	    + ' [-s volume,strength] [-v final volume] [-cdm]\n'
 	    + '\t[-n brewday note] [-n brewday note ...]\n'
+	    + '\t[-i include recipefile] [-I inline recipe]\n'
 	    + '\t[-p paramsfile] [-P param=value] recipefile\n')
 	sys.exit(1)
 
@@ -241,6 +234,12 @@ def processopts(opts):
 
 		elif o == '-m':
 			odict['miniprint'] = True
+
+		elif o == '-i':
+			odict.setdefault('includeyaml', []).append(a)
+
+		elif o == '-I':
+			odict.setdefault('inlineyaml', []).append(a)
 
 		elif o == '-n':
 			odict.setdefault('brewday_notes', []).append(a)
@@ -273,9 +272,11 @@ def processopts(opts):
 	return (clist, odict)
 
 if __name__ == '__main__':
-	opts, args = getopt.getopt(sys.argv[1:], 'cdhmn:p:P:s:v:V:')
+	opts, args = getopt.getopt(sys.argv[1:], 'cdhmi:I:n:p:P:s:v:V:')
 	if len(args) > 1:
 		usage()
+
+	r = Recipe()
 
 	try:
 		(clist, odict) = processopts(opts)
@@ -287,9 +288,19 @@ if __name__ == '__main__':
 				sys.stderr.write('>> Reading recipe from '
 				    + 'stdin ...\n')
 			if '-d' in flags:
-				r = processcsv(clist, odict, data)
+				applyparams(r, clist, odict)
+				processcsv(r, data)
 			else:
-				r = processyaml(clist, odict, data)
+				r.paramdefaults()
+				applyparams(r, clist, odict)
+				processyaml(r, data)
+				for y in odict.get('inlineyaml', []):
+					processyaml(r, y)
+				for y in odict.get('includeyaml', []):
+					with io.open(y,
+					    "r", encoding='utf-8') as data:
+						processyaml(r, data)
+
 		r.calculate()
 		if '-c' in flags:
 			r.printcsv()
