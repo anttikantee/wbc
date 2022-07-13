@@ -151,25 +151,18 @@ def processyaml(clist, odict, data):
 		print(e)
 		sys.exit(1)
 
-	def getdef(x):
-		if x not in d:
-			raise PilotError('mandatory element missing: ' + str(x))
-		rv = d[x]
-		del d[x]
-		return rv
+	def setdef(x, parsefun, setfun):
+		v = d.get(x, None)
+		if v:
+			setfun(parsefun(v))
+			del d[x]
 
-	name = getdef('name')
-	yeast = getdef('yeast')
-
-	boiltime = volume = None
-
-	if 'volume' in d:
-		volume = parse.volume(getdef('volume'))
-	if 'boil' in d:
-		boiltime = parse.duration(getdef('boil'))
-
-	r = Recipe(name, yeast, volume, boiltime)
 	r.paramdefaults()
+
+	setdef('name', lambda x: x, r.set_name)
+	setdef('yeast', lambda x: x, r.set_yeast)
+	setdef('volume', parse.volume, r.set_inherent_volume)
+	setdef('boil', parse.duration, r.set_boiltime)
 
 	applyparams(r, clist, odict)
 
@@ -194,7 +187,8 @@ def processyaml(clist, odict, data):
 
 def processcsv(clist, odict, data):
 	dataver = -1
-	r = None
+	r = Recipe()
+
 	# don't use csv, because using utf-8+csv on python2 is
 	# just too painful
 	for line in data.read().splitlines():
@@ -206,12 +200,11 @@ def processcsv(clist, odict, data):
 			dataver = int(row[1])
 
 		if row[0] == "recipe":
+			r.set_name(row[1])
+			r.set_yeast(row[2])
+			r.set_inherent_volume(_Volume(float(row[4])))
 			if row[3] != 'None':
-				duration = parse.duration(row[3])
-			else:
-				duration = None
-			r = Recipe(row[1], row[2], _Volume(float(row[4])),
-			    duration)
+				r.set_boiltime(parse.duration(row[3]))
 
 		elif row[0] == "sysparams":
 			for x in row[1:]: sysparams.processparam(x)

@@ -46,26 +46,17 @@ class WBC:
 class Recipe:
 	STRENGTH_MAX=	"maximum"
 
-	def __init__(self, name, yeast, volume, boiltime = None):
-		# volume may be None if the recipe contains only relative units
-		if volume is not None:
-			checktype(volume, Volume)
-
+	def __init__(self):
 		input = {}
-		input['name' ] = name
-		input['yeast'] = yeast
-
 		input['notes'] = {}
 		input['notes']['brewday'] = []
 		input['notes']['recipe'] = []
 
-		self.boiltime = input['boiltime'] = boiltime
-		timespec.set_boiltime(boiltime)
+		self.boiltime = input['boiltime'] = None
+		self.volume_inherent =self.volume_set =self.volume_scaled =None
 
 		self.input = input
 
-		self.volume_inherent = volume
-		self.volume_set = self.volume_scaled = None
 		self.needinherent = []
 
 		self.hops_in = []
@@ -109,6 +100,12 @@ class Recipe:
 		Sysparams.processfile(filename)
 
 	THEREST=	'rest'
+
+	def _error(self, msg):
+		if self._usetheforce:
+			warn(msg + '\n')
+		else:
+			raise PilotError(msg)
 
 	def _final_volume(self):
 		assert(self._calculatestatus > 0)
@@ -230,6 +227,20 @@ class Recipe:
 	# user interfaces
 	#
 
+	def set_inherent_volume(self, volume):
+		if self.volume_inherent:
+			raise PilotError('inherent volume set multiple times')
+		self.volume_inherent = volume
+
+	def set_boiltime(self, boiltime):
+		if self.boiltime:
+			notice('overriding already-specified boiltime '
+			    + str(self.input['boiltime']) + ' with '
+			    + str(boiltime) + '\n')
+
+		self.boiltime = self.input['boiltime'] = boiltime
+		timespec.set_boiltime(boiltime)
+
 	def set_volume_and_scale(self, volume):
 		checktype(volume, Volume)
 		self.volume_scaled = volume
@@ -237,6 +248,20 @@ class Recipe:
 	def set_volume(self, volume):
 		checktype(volume, Volume)
 		self.volume_set = volume
+
+	def setflag_force(self):
+		self._usetheforce = True
+
+	def _setinputstr(self, what, value):
+		if self.input.get(what, None):
+			self._error(what + ' set multiple times')
+		self.input[what] = value
+
+	def set_name(self, name):
+		self._setinputstr('name', name)
+
+	def set_yeast(self, yeast):
+		self._setinputstr('yeast', yeast)
 
 	def add_brewdaynote(self, note):
 		checktype(note, str)
@@ -1179,6 +1204,10 @@ class Recipe:
 
 		if len(self.ferms_in) == 0:
 			raise PilotError("no fermentables => no brew")
+
+		for x in ['name', 'yeast']:
+			if not self.input.get(x, None):
+				raise PilotError(x + " is not set")
 
 		if len(self.needinherent) > 0 and self.volume_inherent is None:
 			raise PilotError("recipe has absolute amounts but "
