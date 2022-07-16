@@ -1025,6 +1025,24 @@ class Recipe:
 		hin = self.hops_in
 		allhop = []
 
+		# Account for water added post-boil.  We assume
+		# that IBUs scale linearly as a function of volume,
+		# i.e. x IBUs will dilute to x * (postboil/postboil+dilution)
+		#
+		# I am not 100% if it holds for IBUs nearing 120, but
+		# we'll call it good enough for now; a more complex
+		# calculation can be added later if desirable.
+		if laterworter(self.firstworter, Worter.POSTBOIL):
+			scalefact = 1.0
+		else:
+			wrk = copy.deepcopy(w_postboil)
+			wrk.adjust_water(self._boiladj)
+			scalefact = w_postboil.volume() / wrk.volume()
+		def ibu_dilute(ibu):
+			return ibu * scalefact
+		def ibu_concentrate(ibu):
+			return ibu / scalefact
+
 		# ok, um, so the Tinseth formula uses postboil volume ...
 		v_post = w_postboil.volume()
 
@@ -1046,12 +1064,14 @@ class Recipe:
 		#
 		# calculate IBU produced by "bymass" hops
 		for hs, h in [(x, x.obj) for x in hin if x.cookie == 'm']:
-			ibu = h.mass2IBU(sg, v_post, hs.time, hs.get_amount())
+			ibu = ibu_dilute(h.mass2IBU(sg,
+			    v_post, hs.time, hs.get_amount()))
 			hs.info = ibu
 
 		# calculate mass of "byIBU" hops
 		for hs, h in [(x, x.obj) for x in hin if x.cookie == 'i']:
-			mass = h.IBU2mass(sg, v_post, hs.time, hs.info)
+			mass = h.IBU2mass(sg,
+			    v_post, hs.time, ibu_concentrate(hs.info))
 			hs.set_amount(mass)
 
 		allhop = hin[:]
@@ -1066,7 +1086,8 @@ class Recipe:
 			if missibus <= 0:
 				raise PilotError('recipe IBU/BUGU exceeded')
 
-			mass = h.IBU2mass(sg, v_post, t, missibus)
+			mass = h.IBU2mass(sg,
+			    v_post, t, ibu_concentrate(missibus))
 			totibus += missibus
 			hs = Addition(h, mass, None, t, cookie = 'r')
 			hs.info = missibus
