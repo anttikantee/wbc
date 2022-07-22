@@ -286,6 +286,11 @@ Add('Briess', 'apple wood smoked',
 Alias('Briess', 'cherry wood smoked', 'Briess apple wood smoked')
 Alias('Briess', 'mesquite smoked', 'Briess apple wood smoked')
 
+# Castle
+Add('Castle', 'Black',
+	Solid(73.0, FGDB, FCD_UNKNOWN, 4.5),
+	Color(1275, EBC))
+
 # Crisp
 Add('Crisp', 'Maris Otter',
 	Solid(82.0, FGDB, FCD_UNKNOWN, 3.5),
@@ -390,9 +395,12 @@ Add('Simpsons', 'Golden Promise',
 	Solid(81, FGDB, FCD_UNKNOWN, 3.7),
 	Color(6.5, EBC))
 
+Add('Simpsons', 'Amber',
+	Solid(69, FGDB, FCD_UNKNOWN, 5.0),
+	Color(62, EBC))
 Add('Simpsons', 'Brown',
 	Solid(68.7, FGDB, FCD_UNKNOWN, 4.0),
-	Color(515, EBC))
+	Color(450, EBC))
 
 Add('Simpsons', 'Aromatic',
 	Solid(70, FGDB, FCD_UNKNOWN, 5.0),
@@ -427,6 +435,19 @@ Add('Simpsons', 'Heritage Crystal Malt',
 Add('Simpsons', 'Double Roasted Crystal',
 	Solid(69.0, FGDB, FCD_UNKNOWN, 5.0),
 	Color(300, EBC))
+
+Add('Simpsons', 'Pale Chocolate',
+	Solid(68.7, FGDB, FCD_UNKNOWN, 4.0),
+	Color(225, EBC))
+Add('Simpsons', 'Chocolate',
+	Solid(69.0, FGDB, FCD_UNKNOWN, 3.0),
+	Color(1180, EBC))
+Add('Simpsons', 'Roasted Barley',
+	Solid(62.0, FGDB, FCD_UNKNOWN, 3.0),
+	Color(1600, EBC))
+Add('Simpsons', 'Black',
+	Solid(69.0, FGDB, FCD_UNKNOWN, 3.0),
+	Color(1650, EBC))
 
 # Hats off to Thomas Fawcett & Sons for having useful data sheets
 # easily available.  I wish all maltsters were like them.  They even
