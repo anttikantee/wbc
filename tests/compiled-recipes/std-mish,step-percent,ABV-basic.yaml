@@ -3,7 +3,12 @@ yeast:  yeastieboys
 volume: 20l
 boil:   60min
 mashparams:
-    temperature: [ 20min @ 65degC, 70degC, 15min @ 75degC ]
+    temperature:
+        - 10min @ 45degC
+        - 20min @ 62degC ; decoction
+        - 68degC ; heat
+        # infusion or heat, depending on method override
+        - 75degC
 fermentables:
     strength: 5% @ 75%
 

@@ -208,9 +208,10 @@ def split(input, splitter, i1, i2):
 	if len(marr) != 2:
 		raise ValueError('input must contain exactly one "' + splitter
 		    + '", you gave: ' + istr)
-	res1 = i1(marr[0])
-	res2 = i2(marr[1])
-	return (res1, res2)
+
+	res1 = None if i1 is None else i1(marr[0].strip())
+	res2 = None if i2 is None else i2(marr[1].strip())
+	return res1, res2
 
 def ratio(input, r1, r2):
 	return twotuple(input, r1, r2, '/')
@@ -223,19 +224,24 @@ def timedtemperature(input):
 
 def mashmethod(input):
 	methods = {
-		'infusion'	: mash.Mash.INFUSION,
-		'decoction'	: mash.Mash.DECOCTION,
+		'infusion'	: mash.MashStep.INFUSION,
+		'heat'		: mash.MashStep.HEAT,
+		'decoction'	: mash.MashStep.DECOCTION,
 	}
-	if input in methods:
-		return methods[input]
-	raise PilotError('unsupported mash method: ' + str(input))
+	if input not in mash.MashStep.valid_methods:
+		raise PilotError('unsupported mash method: ' + str(input))
+	return input
 
 def mashstep(input):
+	method = None
+	if ';' in input:
+		input, method = twotuple(input, str, mashmethod, ';')
+
 	if '@' in input:
 		r = timedtemperature(input)
-		return mash.MashStep(r[1], r[0])
+		return mash.MashStep(r[1], r[0], method = method)
 	else:
-		return mash.MashStep(temperature(input))
+		return mash.MashStep(temperature(input), method = method)
 
 def _additionunit(input, acceptable):
 	ts = [x for x in acceptable if isinstance(x, tuple)]

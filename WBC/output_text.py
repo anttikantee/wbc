@@ -132,15 +132,12 @@ def _printmash(input, results):
 		water = x['water']
 		temp = x['temp']
 
-		# handle direct-heated mashtuns.
-		# XXX: should probably be more rigorously structured
-		# in the computation so that we don't need so much
-		# logic here on the "dumb" output side
-		if results['mash']['method'] == 'decoction' and i != 0:
+		if ms.method == ms.DECOCTION:
 			addition = 'decoct ' + str(x['decoction'])
-		elif getparam('mlt_heat') == 'direct' and i != 0:
+		elif ms.method == ms.HEAT:
 			addition = 'heat'
 		else:
+			assert(ms.method == ms.INFUSION)
 			addition = '{:>8}'.format(str(water.volume(temp)) \
 			    + ' @ {:>7}'.format(str(temp)))
 

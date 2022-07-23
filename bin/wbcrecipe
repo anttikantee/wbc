@@ -97,7 +97,7 @@ def domashparams(r, mashparams):
 
 		if p == 'method':
 			m = parse.mashmethod(value)
-			r.mash.set_method(m)
+			r.mash.set_defaultmethod(m)
 
 		elif p == 'temperature' or p == 'temperatures':
 			if isinstance(value, str):

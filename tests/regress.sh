@@ -98,9 +98,10 @@ doprep ()
 	done
 
 	resetcount
-	for x in compiled-recipes/*infusion,step*.yaml; do
+	for x in compiled-recipes/*mish,step*.yaml; do
 		[ -f ${x} ] || die internal error: ${x}
-		preprecipe recipe-alt wbcrecipe -p params-mltdirect+sg+us ${x}
+		preprecipe recipe-alt wbcrecipe -p params-mltdirect+sg+us \
+		    -i mashheat.yaml ${x}
 	done
 
 	resetcount

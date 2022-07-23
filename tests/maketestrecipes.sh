@@ -45,7 +45,7 @@ TL=legos
 TO=compiled-recipes
 
 HEAD="std"
-MASH="infusion,single infusion,step decoction"
+MASH="infusion,single mish,step decoction"
 FERM="mass percent,ABV percent,SG"
 HOPS="basic kitchensink"
 

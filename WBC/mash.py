@@ -24,13 +24,20 @@ import copy
 class MashStep:
 	TIME_UNSPEC=	object()
 
-	def __init__(self, temperature, time = TIME_UNSPEC):
+	INFUSION=	'infusion'
+	HEAT=		'heat'
+	DECOCTION=	'decoction'
+
+	valid_methods=	[ INFUSION, HEAT, DECOCTION ]
+
+	def __init__(self, temperature, time = TIME_UNSPEC, method = None):
 		checktype(temperature, Temperature)
 		if time is not self.TIME_UNSPEC:
 			checktype(time, Duration)
 
 		self.temperature = temperature
 		self.time = time
+		self.method = method
 
 	def __str__(self):
 		rv = ''
@@ -39,9 +46,6 @@ class MashStep:
 		return rv + str(self.temperature)
 
 class Mash:
-	INFUSION=	'infusion'
-	DECOCTION=	'decoction'
-
 	# mash state and advancement calculator.
 	#
 	# In the context of this class, we use the following terminology:
@@ -161,7 +165,6 @@ class Mash:
 		# calculate how much water we need to add (or remove)
 		# to get the system up to the new target temperature
 		def infusion1(self, target_temp, water_temp):
-			assert(getparam('mlt_heat') == 'transfer')
 			_c = self._capa
 			_h = self._heat
 
@@ -209,60 +212,94 @@ class Mash:
 			self._setvalues(-evap, target_temp)
 			return (_Mass(ds*dm), _Mass((1-ds)*dm))
 
+		# set the mash temperature to the given value
+		# without otherwise affecting the state (= direct fire)
+		def heat(self, target_temp):
+			self._setvalues(0, target_temp)
+
 	def __init__(self):
 		self.didmash = False
 
 		self.fermentables = []
 		self.giant_steps = None
-		self.method = self.INFUSION	# default to infusion
+
+		# keep this as None until we know it's not going to
+		# be user-set (we know that in do_mash()).
+		self.defaultmethod = None
 
 	# mashing returns a dict which contains:
 	#  * mashstep_water
 	#  * sparge_water
 	#  * [steps]:
 	def do_mash(self, ambient_temp, water, grains_absorb):
-		assert(self.method is Mash.INFUSION
-		    or self.method is Mash.DECOCTION)
-
 		if self.giant_steps is None:
 			raise PilotError('trying to mash without temperature')
 		steps = self.giant_steps
-		assert(len(steps) >= 1)
+
+		# if the recipe did not specify a mash method,
+		# default to infusion for all steps
+		if not self.defaultmethod:
+			self.defaultmethod = MashStep.INFUSION
+			self._steps_setdefaults()
 
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
 		fmass = _Mass(sum(x.get_amount() for x in self.fermentables))
 		grainvol = self.__grainvol(fmass)
 
-		# Calculate the amount of water required to reach
-		# "totemp" when starting with "fromwater" and "fromtemp".
-		# Notably, the calculation may also be performed backwards.
-		def origwater(fromtemp, totemp, fromwater):
-			assert((fromtemp == steps[0].temperature or
-			    fromtemp == steps[-1].temperature) and
-			    (totemp == steps[0].temperature or
-			    totemp == steps[-1].temperature))
+		# Calculate the amount of water, going either forwards
+		# or backwards.  See usage examples below to understand
+		# why it's needed.  (forwards means start from mashin
+		# and calculate how much water we have at the end when
+		# all additions are losses are accounted for.  backwards
+		# means starting from the end, and figuring out how
+		# much strike water we need)
+		#
+		# XXX: this routine is very similar to do_steps().  Could
+		# they be merged with reasonably ?
+		MASHDIR_BACK = -1
+		MASHDIR_FWD = 1
+		def water_otherend(dir, startwater):
+			# To get a mashstate, first do the strike,
+			# either using the initial or final temperature.
+			fsnum = min(0, dir)
+			fs = steps[fsnum]
+			ms = self.__MashState(fmass, ambient_temp, ambient_temp)
+			ms.strike(fs.temperature, startwater)
 
-			evap = self.evaporation()
-			if getparam('mlt_heat') == 'direct':
-				return fromwater
-			if self.method is self.DECOCTION:
-				if fromtemp > totemp: evap = -evap
-				return fromwater - evap.water()
-
-			ms = self.__MashState(fmass,
-			    _Temperature(20), _Temperature(20))
-			ms.strike(fromtemp, fromwater)
-			rv = ms.infusion(totemp)
-			return rv + fromwater
+			# Then actually calculate the amount of water at
+			# the other end.
+			#
+			# If we are going forwards, we go from steps
+			# 1 to the last.  If we're going backwards,
+			# we go from the penultimate step (-2) to the
+			# first.  Also, if we're going backwards, we
+			# need to use the method of the *previous*
+			# step.
+			method = fs.method
+			for s in steps[fsnum+dir::dir]:
+				if dir > 0: method = s.method
+				if method == s.HEAT:
+					ms.heat(s.temperature)
+				elif method == s.INFUSION:
+					mw = ms.infusion(s.temperature)
+					startwater -= dir * mw
+				elif method == s.DECOCTION:
+					evap = self.__decoction_evaporation(s)
+					evap *= dir
+					ms.decoction(s.temperature, evap)
+					startwater -= evap
+				else:
+					assert(False)
+				if dir < 0: method = s.method
+			return startwater
 
 		mashin_ratio = getparam('mashin_ratio')
 		if mashin_ratio[0] == '%':
 			absorb = fmass * grains_absorb
 			wmass_end = (mashin_ratio[1] / 100.0) \
 			    * (water.water() + absorb)
-			wmass = origwater(steps[-1].temperature,
-			    steps[0].temperature, wmass_end)
+			wmass = water_otherend(MASHDIR_BACK, wmass_end)
 		else:
 			assert(mashin_ratio[0] == '/')
 			rat = mashin_ratio[1][0] * mashin_ratio[1][1]
@@ -274,14 +311,16 @@ class Mash:
 			if mwatermin > water.water():
 				mwatermin = water.water()
 			if wmass < mwatermin:
-				wmass = origwater(steps[-1].temperature,
-				    steps[0].temperature, mwatermin)
+				wmass = water_otherend(MASHDIR_BACK, mwatermin)
 
 		# if necessary, adjust final mash volume to limit,
 		# or error if we can't
+		#
+		# XXX: we should use the *largest* volume, not final volume;
+		# largest volume may be in the middle due to evaporation
+		#
 		mvolmax = getparam('mashvol_max')
-		wmass_end = origwater(steps[0].temperature,
-		    steps[-1].temperature, wmass)
+		wmass_end = water_otherend(MASHDIR_FWD, wmass)
 		mvol = grainvol + wmass_end
 		if mvolmax is not None and mvol > mvolmax:
 			veryminvol = grainvol + getparam('mlt_loss')
@@ -289,11 +328,9 @@ class Mash:
 				raise PilotError('cannot satisfy maximum '
 				    'mash volume. adjust param or recipe')
 			wendmax = mvolmax - grainvol
-			wmass = origwater(steps[-1].temperature,
-			    steps[0].temperature, wendmax)
+			wmass = water_otherend(MASHDIR_BACK, wendmax)
 
-		wmass_end = origwater(steps[0].temperature,
-		    steps[-1].temperature, wmass)
+		wmass_end = water_otherend(MASHDIR_FWD, wmass)
 
 		# finally, if necessary adjust the lauter volume
 		# or error if either mash or lauter volume is beyond limit
@@ -319,7 +356,6 @@ class Mash:
 		res['steps'] = stepres
 		res['mashstep_water'] = Worter(water = mashwater)
 		res['sparge_water'] = Worter(water = w - mashwater)
-		res['method'] = self.method
 
 		self.didmash = True
 		return res
@@ -327,10 +363,11 @@ class Mash:
 	def _do_steps(self, infusion_wmass, fmass, water_available,
 	    ambient_temp):
 		def _decoction(step):
-			return self.method is Mash.DECOCTION
+			return step.method == MashStep.DECOCTION
 		def _infusion(step):
-			return (self.method is Mash.INFUSION
-			    and getparam('mlt_heat') == 'transfer')
+			return step.method == MashStep.INFUSION
+		def _heat(step):
+			return step.method == MashStep.HEAT
 
 		stepres = []
 
@@ -371,16 +408,15 @@ class Mash:
 				break
 
 			step_temp = s.temperature
+			infusion_wmass = _Mass(0)
 			if _infusion(s):
 				infusion_wmass = mashstate.infusion(step_temp)
 				infusion_wtemp = _Temperature(100)
 				water_available -= infusion_wmass
 				inmash.adjust_water(infusion_wmass)
-			else:
-				# direct-fire or decoction
-				infusion_wmass = _Mass(0)
-
-			if _decoction(s):
+			elif _heat(s):
+				mashstate.heat(step_temp)
+			elif _decoction(s):
 				evap = self.__decoction_evaporation(s)
 				gm, wm = mashstate.decoction(step_temp, evap)
 				inmash.adjust_water(-evap)
@@ -403,9 +439,11 @@ class Mash:
 
 	def evaporation(self):
 		m = 0
-		if self.method is Mash.DECOCTION:
+		if self.giant_steps is not None:
+			evasteps = [s for s in self.giant_steps[1:]
+			    if s.method == s.DECOCTION]
 			m = sum([self.__decoction_evaporation(s)
-			    for s in self.giant_steps[1:]])
+			    for s in evasteps])
 		return Worter(water = _Mass(m))
 
 	def printcsv(self):
@@ -419,6 +457,12 @@ class Mash:
 
 	def set_fermentables(self, fermentables):
 		self.fermentables = fermentables
+
+	def _steps_setdefaults(self):
+		if self.defaultmethod:
+			for s in self.giant_steps[1:]:
+				if s.method is None:
+					s.method = self.defaultmethod
 
 	def set_steps(self, mashsteps):
 		if isinstance(mashsteps, MashStep):
@@ -438,9 +482,21 @@ class Mash:
 			raise PilotError('mash steps must be given as ' \
 			    'MashStep or list of')
 
+		if len(mashsteps) == 0:
+			raise PilotError('mash needs at least one temperature')
+
+		if (mashsteps[0].method is not None
+		   and mashsteps[0].method != MashStep.INFUSION):
+			raise PilotError('first mash step must be infusion')
+
+		# strike is always infusion
+		mashsteps[0].method = MashStep.INFUSION
+		self._steps_setdefaults()
+
 		self.giant_steps = mashsteps
 
-	def set_method(self, m):
-		if m is not Mash.INFUSION and m is not Mash.DECOCTION:
+	def set_defaultmethod(self, m):
+		if m not in MashStep.valid_methods:
 			raise PilotError('unsupported mash method')
-		self.method = m
+		self.defaultmethod = m
+		self._steps_setdefaults()

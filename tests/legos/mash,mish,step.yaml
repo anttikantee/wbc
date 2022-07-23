@@ -1,0 +1,7 @@
+mashparams:
+    temperature:
+        - 10min @ 45degC
+        - 20min @ 62degC ; decoction
+        - 68degC ; heat
+        # infusion or heat, depending on method override
+        - 75degC
