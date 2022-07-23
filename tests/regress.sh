@@ -50,12 +50,14 @@ _prep ()
 	tn="${descr}-${num}"
 
 	echo "=== ${tn} ==="
-	echo "==> ${*}"
-	${@} > testdata/${tn}.out
 	echo "${@}" > testdata/${tn}.cmd
-	[ $? -eq 0 ] || die Failed: $(cat testdata/${tn}).out
+	if ${PREP}; then
+		echo "==> ${*}"
+		${@} > testdata/${tn}.out
+		[ $? -eq 0 ] || die Failed: $(cat testdata/${tn}).out
 
-	! ${isrecipe} || echo $(eval echo \${$#}) > testdata/${tn}.recipe
+		! ${isrecipe}|| echo $(eval echo \${$#}) >testdata/${tn}.recipe
+	fi
 	num=$((${num} + 1))
 }
 
@@ -80,7 +82,8 @@ resetcount ()
 doprep ()
 {
 
-	[ ! -d testdata ] || die testdata already exists.  \"reset\" first
+	! ${PREP} || [ ! -d testdata ] \
+	    || die testdata already exists.  \"reset\" first
 	mkdir -p testdata || die cannot create testdata
 
 	resetcount
@@ -140,7 +143,7 @@ doprep ()
 	preprecipe liquid-maximum wbcrecipe -p params-std \
 	    test-recipes/applewine.yaml
 	preprecipe liquid-maximum wbcrecipe -p params-std \
-	    test-recipes/cider-fermenter.yaml
+	    test-recipes/cidre-fermenter.yaml
 
 	resetcount
 	while read line; do
@@ -227,6 +230,10 @@ shift $((${OPTIND} - 1))
 [ $# -eq 1 ] || usage
 
 if [ "$1" = 'prep' ]; then
+	PREP=true
+	doprep
+elif [ $1 = '_recmd' ]; then
+	PREP=false
 	doprep
 elif [ $1 = 'test' ]; then
 	dotest
