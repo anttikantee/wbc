@@ -702,6 +702,14 @@ class _Strength(Strength):
 	def __init__(self, value):
 		super(_Strength, self).__init__(value, Strength.PLATO)
 
+class _Pressure(Pressure):
+	def __new__(cls, value):
+		rv = super(_Pressure, cls).__new__(cls,value,Pressure.PASCAL)
+		rv.__class__ = Pressure
+		return rv
+	def __init__(self, value):
+		super(_Pressure, self).__init__(value, Pressure.PASCAL)
+
 class _Duration(Duration):
 	def __new__(cls, value):
 		rv = super(_Duration, cls).__new__(cls, value, Duration.MINUTE)
