@@ -157,8 +157,6 @@ def processyaml(r, data):
 			setfun(parsefun(v))
 			del d[x]
 
-	r.paramdefaults()
-
 	setdef('name', lambda x: x, r.set_name)
 	setdef('yeast', lambda x: x, r.set_yeast)
 	setdef('volume', parse.volume, r.set_inherent_volume)
