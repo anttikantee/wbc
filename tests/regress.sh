@@ -168,6 +168,29 @@ checkfails ()
 	    done }
 }
 
+_onetest ()
+{
+
+	tname=$1
+	storeres=$2
+
+	read cmd < testdata/${tname}.cmd
+	echo "==== ${cmd}"
+	set -- ${cmd}
+	rv=1
+	${@} > testdata/${tname}.cmp
+
+	if [ $? -ne 0 ]; then
+		! ${storeres} || echo ${tname} >> ${ft}
+	elif ! diff -u testdata/${tname}.out testdata/${tname}.cmp; then
+		! ${storeres} || echo ${tname} >> ${fc}
+	else
+		rv=0
+	fi
+
+	return ${rv}
+}
+
 dotest ()
 {
 
@@ -180,19 +203,9 @@ dotest ()
 
 	for x in testdata/*.cmd; do
 		bn=$(basename ${x%.cmd})
-		read cmd < ${x}
-		echo "==== ${cmd}"
-		set -- ${cmd}
-		${@} > testdata/${bn}.cmp
-		passed=false
+		_onetest ${bn} true
+
 		if [ $? -ne 0 ]; then
-			echo ${bn} >> ${ft}
-		elif ! diff -u testdata/${bn}.out testdata/${bn}.cmp; then
-			echo ${bn} >> ${fc}
-		else
-			passed=true
-		fi
-		if ! ${passed}; then
 			if ${VERBOSE} && [ -f testdata/${bn}.recipe ]; then
 				echo '------ BEGIN RECIPE ------'
 				cat $(cat testdata/${bn}.recipe)
@@ -228,6 +241,15 @@ while getopts 'fv' opt; do
 	esac
 done
 shift $((${OPTIND} - 1))
+
+# onetest takes two arguments
+if [ "$1" = 'onetest' ]; then
+	[ $# -eq 2 ] || usage
+	_onetest $2 false
+	[ $? -eq 0 ] || { echo 'FAILED' ; exit 1 ; }
+	exit 0
+fi
+
 [ $# -eq 1 ] || usage
 
 if [ "$1" = 'prep' ]; then
