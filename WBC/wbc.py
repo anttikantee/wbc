@@ -655,7 +655,7 @@ class Recipe:
 			res = self._doworters_bymass()
 			voldiff = _Mass(res[Worter.PACKAGE].volume()
 			    - self._final_volume())
-			if abs(voldiff) < 0.1:
+			if abs(voldiff) < 0.01:
 				break
 			self._set_waterguess(self.waterguess - voldiff)
 		else:
@@ -1317,7 +1317,7 @@ class Recipe:
 			else:
 				extdiff = _Mass(0)
 
-			if abs(voldiff) < 0.1 and abs(extdiff) < 0.1:
+			if abs(voldiff) < 0.01 and abs(extdiff) < 0.1:
 				break
 			self._set_waterguess(self.waterguess + _Mass(voldiff))
 		else:
