@@ -19,6 +19,8 @@ from WBC.units import _Mass, _Temperature, _Volume
 
 from WBC.worter import Worter
 
+from WBC import timespec
+
 import copy
 
 class MashStep:
@@ -500,3 +502,9 @@ class Mash:
 			raise PilotError('unsupported mash method')
 		self.defaultmethod = m
 		self._steps_setdefaults()
+
+	def has_stepwithtimespec(self, spec):
+		for x in self.giant_steps:
+			if timespec.Mash(x.temperature) == spec:
+				return True
+		return False

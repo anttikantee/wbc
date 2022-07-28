@@ -814,6 +814,18 @@ class Recipe:
 
 
 	def _domash(self, mashwort):
+		#
+		# Enforce that all mash additions are for a step
+		#
+		adds = self.fermentables + self.water + self.opaques + self.hops
+		mashspecs = [x.time for x in adds
+		    if x.time.__class__ == timespec.Mash
+		      and x.time != timespec.Mash(timespec.Mash.MASHIN)]
+		for ts in mashspecs:
+			if not self.mash.has_stepwithtimespec(ts):
+				raise PilotError('mash step for addition '
+				   + 'does not exist: ' + str(ts))
+
 		mf = self._fermentables_bytimespec(Timespec.MASH)
 		self.mash.set_fermentables(mf)
 
