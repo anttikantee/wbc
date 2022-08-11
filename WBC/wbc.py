@@ -167,31 +167,27 @@ class Recipe:
 		return self._xvol2x_fromvol(x, self._final_volume())
 
 	# scale to volume, but instead of final volume use amount of
-	# water "at" the current stage.  The definition of "at" is
-	# slightly complicated, so rather than trying to come up with
-	# a general rule, we enumerate the options:
+	# water or volume "at" the current stage.  The options:
 	#
 	#   * mash @ mashin: mashstep water (= total mash water - sparge)
 	#   * mash @ sparge: sparge water
 	#
-	#   * boil         : amount of water in the wort
-	#   * fermentor    : amount of water in the sauce/product
-	#   * package      : amount of water in the product
+	#   * boil         : postboil volume @ reference temp
+	#   * fermentor    : final volume (i.e. after sugar additions)
+	#   * package      : final volume (i.e. after sugar additions)
 	#
-	# Maybe it would make more sense to just use the actual volume
-	# for the post-mash stages?
 	def _xvol2x_withwater(self, x, when):
 		if isinstance(when, timespec.MashSpecial):
 			vol = self.results['mash']['sparge_water'].water()
 		elif isinstance(when, timespec.Mash):
 			vol = self.results['mash']['mashstep_water'].water()
 		elif isinstance(when, timespec.Boil):
-			vol = self.worter[Worter.POSTBOIL].water()
+			vol = self.worter[Worter.POSTBOIL].volume()
 		elif isinstance(when, timespec.Fermentor):
-			vol = self.worter[Worter.FERMENTOR].water()
+			vol = self.worter[Worter.FERMENTOR].volume()
 		else:
 			assert(isinstance(when, timespec.Package))
-			vol = self.worter[Worter.PACKAGE].water()
+			vol = self.worter[Worter.PACKAGE].volume()
 		return self._xvol2x_fromvol(x, vol)
 
 	#
