@@ -3,8 +3,8 @@ yeast:  yeastieboys
 volume: 20l
 boil:   60min
 mashparams:
-    temperature: [ 20min @ 40degC, 30min @ 65degC, 75degC ]
     method: decoction
+    temperature: [ 20min @ 40degC, 30min @ 65degC, 75degC ]
 fermentables:
     mash:
         Avangard Pilsner:           3kg
