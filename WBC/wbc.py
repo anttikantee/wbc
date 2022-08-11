@@ -1273,6 +1273,8 @@ class Recipe:
 			Timespec.FERMENTOR:	Worter.FERMENTOR,
 		}[timespec.timespec2stage[self.earlyferm.__class__]]
 
+		self.mash.preprocess()
+
 		self._dofermentables_preprocess()
 
 		# ok, so the problem is that the amount of hops affects the

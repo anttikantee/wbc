@@ -225,9 +225,26 @@ class Mash:
 		self.fermentables = []
 		self.giant_steps = None
 
-		# keep this as None until we know it's not going to
-		# be user-set (we know that in do_mash()).
-		self.defaultmethod = None
+		self.defaultmethod = MashStep.INFUSION
+
+		self._preprocd = False
+
+	def preprocess(self):
+		if self._preprocd:
+			raise PilotError('can preprocess mash only once')
+
+		# no mash steps?  Nothing more to do here
+		if self.giant_steps is None:
+			return
+
+		# set default for all mash steps for which it was not
+		# specifically supplied
+		assert(self.giant_steps[0].method == MashStep.INFUSION)
+		for s in self.giant_steps[1:]:
+			if s.method is None:
+				s.method = self.defaultmethod
+
+		self._preprocd = True
 
 	# mashing returns a dict which contains:
 	#  * mashstep_water
@@ -236,13 +253,11 @@ class Mash:
 	def do_mash(self, ambient_temp, water, grains_absorb):
 		if self.giant_steps is None:
 			raise PilotError('trying to mash without temperature')
-		steps = self.giant_steps
 
-		# if the recipe did not specify a mash method,
-		# default to infusion for all steps
-		if not self.defaultmethod:
-			self.defaultmethod = MashStep.INFUSION
-			self._steps_setdefaults()
+		if not self._preprocd:
+			raise PilotError('mash not preprocessed')
+
+		steps = self.giant_steps
 
 		if len(self.fermentables) == 0:
 			raise PilotError('trying to mash without fermentables')
@@ -460,12 +475,6 @@ class Mash:
 	def set_fermentables(self, fermentables):
 		self.fermentables = fermentables
 
-	def _steps_setdefaults(self):
-		if self.defaultmethod:
-			for s in self.giant_steps[1:]:
-				if s.method is None:
-					s.method = self.defaultmethod
-
 	def set_steps(self, mashsteps):
 		if isinstance(mashsteps, MashStep):
 			mashsteps = [mashsteps]
@@ -487,13 +496,11 @@ class Mash:
 		if len(mashsteps) == 0:
 			raise PilotError('mash needs at least one temperature')
 
+		# strike is always infusion
 		if (mashsteps[0].method is not None
 		   and mashsteps[0].method != MashStep.INFUSION):
 			raise PilotError('first mash step must be infusion')
-
-		# strike is always infusion
 		mashsteps[0].method = MashStep.INFUSION
-		self._steps_setdefaults()
 
 		self.giant_steps = mashsteps
 
@@ -501,7 +508,6 @@ class Mash:
 		if m not in MashStep.valid_methods:
 			raise PilotError('unsupported mash method')
 		self.defaultmethod = m
-		self._steps_setdefaults()
 
 	def has_stepwithtimespec(self, spec):
 		for x in self.giant_steps:
