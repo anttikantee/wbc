@@ -18,6 +18,8 @@ discussed below.  The other utilties are:
   * `wbcco2`: takes two of {pressure, temperature, dissolved CO2} and
     calculates the missing value, along with headspace CO2 required to
     push the beer out
+  * `wbcso2`: calculate the amount of metabisulfite to add,
+    given the desired [molecular] SO2 level and pH
   * `wbcsolve`: takes two of {volume, extract, strength} and
     calculates the missing value, making it for example possible to
     "play with" simple sugar recipes, or calculate "ppg" from

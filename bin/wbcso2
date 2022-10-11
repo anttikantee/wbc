@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (c) 2022 Antti Kantee <pooka@iki.fi>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+
+#
+# TODO: calculate amount of n% metabisulfite solution required
+#
+
+from WBC.wbc import Recipe
+from WBC.utils import warn, PilotError
+from WBC import parse
+from WBC.units import Mass, Volume
+
+import getopt
+import sys
+from os import path
+
+# wikipedia says 1.81, CRC handbook says 1.85, and I saw even
+# 1.90 somewhere.  Maybe different temperatures and ABV?  Most of the
+# internet tables seem to be written against 1.8'ish, so we'll go with
+# 1.81 to minimize confusion.  It's not that life-and-death nanogram
+# necessary anyway, at least unless your product lives at a constant
+# temperature for all eternity
+pKa_SO2 = 1.81
+
+def usage():
+	sys.stderr.write('usage: ' + path.basename(sys.argv[0])
+	    + ' [-f free SO2 target] [-m molecular SO2 target]\n'
+	    + '\t[-c current free SO2] [-v volume] pH\n')
+	sys.exit(1)
+
+def main(argv):
+	opts, args = getopt.getopt(argv[1:], 'hc:f:m:v:')
+
+	if len(args) != 1:
+		usage()
+
+	def parseso2(input):
+		def mv(input):
+			r = parse.ratio(input, parse.mass, parse.volume)
+			return r[0].valueas(Mass.MG)/r[1].valueas(Volume.LITER)
+		for m in [ float, mv ]:
+			try:
+				return m(input)
+			except ValueError:
+				pass
+		else:
+			raise PilotError('cannot parse SO2 concentration')
+
+	volume = None
+	desired_mso2 = desired_fso2 = []
+	curso2 = 0
+	fmerrstr = 'max one of -f/-m per invoke accepted'
+	for o, a in opts:
+		if o == '-c':
+			curso2 = parseso2(a)
+		elif o == '-f':
+			if desired_mso2:
+				raise PilotError(fmerrstr)
+			v = parseso2(a)
+			if v < 1:
+				raise PilotError('free SO2 too small')
+			desired_fso2 = [v]
+		elif o == '-m':
+			if desired_fso2:
+				raise PilotError(fmerrstr)
+			v = parseso2(a)
+			if v < 0.001:
+				raise PilotError('molecular SO2 too small')
+			if v < 0.1 or v > 2.0:
+				warn('unusual molecular SO2 level\n')
+			desired_mso2 = [v]
+		elif o == '-v':
+			volume = parse.volume(a)
+		elif o == '-h':
+			usage()
+
+	try:
+		pH = float(args[0])
+	except ValueError:
+		raise PilotError('pH must be a float')
+	if pH < 1.8 or pH > 4.8:
+		raise PilotError('pH out of range')
+	if pH < 2.9 or pH > 4.1:
+		warn('pH out of typical range\n')
+
+	if not desired_mso2 and not desired_fso2:
+		desired_mso2 = [0.5, 0.8, 1.5]
+
+	K = 39.089
+	S = 32.066
+	Na = 22.990
+	O = 15.999
+	def metamass(what):
+		return 2*what + 2*S + 5*O
+	kmeta = metamass(K)
+	nameta = metamass(Na)
+	SO2 = S + 2*O
+
+	kmetafrac = 2*SO2 / kmeta
+	nametafrac = 2*SO2 / nameta
+
+	# Given that pKa = -log([HSO3]/[SO2]) + pH, and
+	# s = [HSO3]+[SO2], setting [HSO3] = s-[SO2] and solving for [SO2]:
+	# [SO2] = s/(1+10^(pH-pKa))
+	sfraction = 1 + pow(10, pH - pKa_SO2)
+
+	res = []
+	for s in desired_fso2 + desired_mso2:
+		r = {}
+
+		if desired_mso2:
+			r['mso2'] = s
+			fso2 = s * sfraction
+		else:
+			assert(desired_fso2)
+			r['mso2'] = s / sfraction
+			fso2 = s
+
+		r['fso2'] = fso2
+		r['addso2'] = addso2 = max(fso2 - curso2, 0)
+
+		r['kmeta'] = addso2 / kmetafrac
+		r['nameta'] = addso2 / nametafrac
+
+		if volume:
+			r['totkmeta'] = Mass(r['kmeta'] * volume, Mass.MG)
+			r['totnameta'] = Mass(r['nameta'] * volume, Mass.MG)
+
+		res.append(r)
+
+	def prtone(r):
+		fmtstr = '{:20} : {:6.1f} mg/L {:>26}'
+		phstr = 'pH {:.2f}'.format(pH)
+		print(fmtstr.format('   Molecular SO2', r['mso2'], ''))
+		print(fmtstr.format('   Free SO2 required', r['fso2'], phstr))
+		print(fmtstr.format('-  Current free SO2', curso2, ''))
+		print(fmtstr.format('=  Additional SO2', r['addso2'], ''))
+
+		if volume:
+			tkm = r['totkmeta']
+			tnam = r['totnameta']
+
+			# do manual formatting for the amount of
+			# metabisulfite.  We almost invariably want it
+			# as grams with two decimals, but there's no
+			# convenient way to tell that to WBC.
+			# We define "almost invariably" as between 0.1g
+			# and 10g of K-meta (print Na-meta with the same
+			# precision regardless of it falls between those
+			# lines).
+			if (tkm.valueas(Mass.G) > 0.1
+			    and tkm.valueas(Mass.G) < 10):
+				tkms = '{:.2f} g'.format(tkm.valueas(Mass.G))
+				nakms = '{:.2f} g'.format(tnam.valueas(Mass.G))
+			else:
+				tkms = str(tkm)
+				nakms = str(tnam)
+
+			tkmstr = '{:} (for {:})'.format(tkms,
+			    volume.stras(volume.inputunit))
+			tnamstr = '{:} (for {:})'.format(nakms,
+			    volume.stras(volume.inputunit))
+		else:
+			tkmstr = ''
+			tnamstr = ''
+
+		print(fmtstr.format('=> Na metabisulfite',r['nameta'],tnamstr))
+		print(fmtstr.format('=> K  metabisulfite',r['kmeta'],tkmstr))
+
+	prtone(res[0])
+	for r in res[1:]:
+		print()
+		prtone(r)
+
+if __name__ == '__main__':
+	try:
+		main(sys.argv)
+	except PilotError as e:
+		sys.stderr.write('Pilot Error: ' + str(e) + '\n')
+		sys.exit(1)
+	sys.exit(0)

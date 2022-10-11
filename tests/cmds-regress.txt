@@ -36,3 +36,10 @@ wbcsolve 10degP 1l
 wbcsolve -e 80% -s 10L@1.050 1.090 minvol
 wbcsolve -s 10L@1.050 1.020 minvol
 wbcsolve -e 60% -s 10L@1.050 1.080 50L
+
+wbcso2 3.4
+wbcso2 -c 10mg/L 3.7
+wbcso2 -c 10mg/L -v 5gal 3.6
+wbcso2 -c 10mg/L -v 20L 3.5
+wbcso2 -m 0.5 -c 10mg/L -v 20L 3.7
+wbcso2 -f 20mg/L -c 10mg/L -v 20L 3.7
