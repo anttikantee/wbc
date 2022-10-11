@@ -116,10 +116,17 @@ class Hop:
 
 		bignessfact = 1.65 * pow(0.000125, SG-1)
 		boilfact = (1 - pow(math.e, -0.04 * int(mins))) / 4.15
-		bonus = 1.0
-		if self.type != self.LEAF:
-			bonus = 1.1
-		return bonus * bignessfact * boilfact
+
+		bonusmap = {
+			self.T90:	1.1,
+			self.T45:	2.0, # guess
+			self.LEAF:	1.0,
+			self.WET:	0.2, # guess
+			self.PLUG:	1.0,
+		}
+		assert self.type in bonusmap
+
+		return bonusmap[self.type] * bignessfact * boilfact
 
 	def mass2IBU(self, strength, volume, time, mass):
 		checktypes([(strength, Strength), (mass, Mass)])
