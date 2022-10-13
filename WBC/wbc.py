@@ -102,10 +102,7 @@ class Recipe:
 	THEREST=	'rest'
 
 	def _error(self, msg):
-		if self._usetheforce:
-			warn(msg + '\n')
-		else:
-			raise PilotError(msg)
+		raise PilotError(msg)
 
 	def _final_volume(self):
 		assert(self._calculatestatus > 0)
@@ -244,9 +241,6 @@ class Recipe:
 	def set_volume(self, volume):
 		checktype(volume, Volume)
 		self.volume_set = volume
-
-	def setflag_force(self):
-		self._usetheforce = True
 
 	def _setinputstr(self, what, value):
 		if self.input.get(what, None):
