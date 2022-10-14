@@ -32,6 +32,7 @@ import sys
 from os import path
 
 def _listify(x): return x if isinstance(x, list) else [x]
+def _tuplify(x): return x if isinstance(x, tuple) else (x,)
 
 def dohop(r, hopspec, unit, timespec):
 	hoptyp = hopspec[2] if len(hopspec) > 2 else Hop.T90
@@ -123,6 +124,18 @@ def dorecipenotes(r, v):
 	for n in _listify(v):
 		r.add_recipenote(n)
 
+def processyeast(v):
+	if isinstance(v, list):
+		if len(v) != 2 or \
+		    not (isinstance(v[0], str) and isinstance(v[1], str)):
+			raise PilotError('"yeast" should contain the name '
+			    + 'and fermentation schedule')
+		return v[0], v[1]
+	elif not isinstance(v, str):
+		raise PilotError('"yeast" needs to be a string or an array')
+	else:
+		return v, None
+
 def applyparams(r, clist, odict):
 	for f in odict.get('wbcparamfiles', []):
 		sysparams.processfile(f)
@@ -154,11 +167,11 @@ def processyaml(r, data):
 	def setdef(x, parsefun, setfun):
 		v = d.get(x, None)
 		if v:
-			setfun(parsefun(v))
+			setfun(*_tuplify(parsefun(v)))
 			del d[x]
 
 	setdef('name', lambda x: x, r.set_name)
-	setdef('yeast', lambda x: x, r.set_yeast)
+	setdef('yeast', processyeast, r.set_yeast)
 	setdef('volume', parse.volume, r.set_inherent_volume)
 	setdef('boil', parse.duration, r.set_boiltime)
 

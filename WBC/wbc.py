@@ -243,6 +243,7 @@ class Recipe:
 		self.volume_set = volume
 
 	def _setinputstr(self, what, value):
+		checktype(value, str)
 		if self.input.get(what, None):
 			self._error(what + ' set multiple times')
 		self.input[what] = value
@@ -250,8 +251,10 @@ class Recipe:
 	def set_name(self, name):
 		self._setinputstr('name', name)
 
-	def set_yeast(self, yeast):
+	def set_yeast(self, yeast, fermentplan):
 		self._setinputstr('yeast', yeast)
+		if fermentplan:
+			self._setinputstr('fermentplan', fermentplan)
 
 	def add_brewdaynote(self, note):
 		checktype(note, str)

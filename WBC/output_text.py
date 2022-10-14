@@ -309,16 +309,21 @@ def _keystats(input, results, miniprint):
 
 	print(twofmt_tight.format("F'tor loss (v/e):",
 	    str(fl.volume()) + ' / ' + str(fl.extract()),
-	    'Yeast:', input['yeast']))
+	    'Brewhouse eff:',
+	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
 	Ta = getparam('ambient_temp')
 	print(twofmt_tight.format(
 	    'Water (' + str(Ta) + '):',
 	    str(total_water.volume(Ta))
 	      + ' / ' + stras_unsystem(total_water.volume(Ta)),
-	    'Brewhouse eff:',
-	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
+	    'Yeast:', input['yeast']))
 
 	print()
+	# call it "Fermentation plan" instead of "Fermentation" so that
+	# it's visually clearly distict from      "Recipe notes", which
+	# contains the same number of characters
+	_prettyprint_withsugarontop('Fermentation plan:', cols[0],
+	    input.get('fermentplan', ''), sum(cols) - cols[0])
 
 	if len(input['notes']['recipe'] + input['notes']['brewday']) > 0:
 		for n in input['notes']['recipe']:
@@ -327,7 +332,7 @@ def _keystats(input, results, miniprint):
 		for n in input['notes']['brewday']:
 			_prettyprint_withsugarontop('Brewday notes:',
 			    cols[0], n, sum(cols) - cols[0])
-		print()
+	print()
 
 	if rwort[Worter.PREBOIL].volume() > 0.01:
 		boil_pretemp = getparam('preboil_temp')
