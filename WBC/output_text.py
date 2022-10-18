@@ -312,11 +312,14 @@ def _keystats(input, results, miniprint):
 	    'Brewhouse eff:',
 	    '{:.1f}%'.format(100 * results['brewhouse_efficiency'])))
 	Ta = getparam('ambient_temp')
+	yeast = input['yeast']
+	ymax = cols_tight[3]
+	yeast = yeast[0:ymax-2] + '..' if len(yeast) > ymax else yeast
 	print(twofmt_tight.format(
 	    'Water (' + str(Ta) + '):',
 	    str(total_water.volume(Ta))
 	      + ' / ' + stras_unsystem(total_water.volume(Ta)),
-	    'Yeast:', input['yeast']))
+	    'Yeast:', yeast))
 
 	print()
 	# call it "Fermentation plan" instead of "Fermentation" so that
