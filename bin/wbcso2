@@ -40,11 +40,12 @@ pKa_SO2 = 1.81
 def usage():
 	sys.stderr.write('usage: ' + path.basename(sys.argv[0])
 	    + ' [-f free SO2 target] [-m molecular SO2 target]\n'
+	    + '\t[-l metabisulfite solution mass percent]\n'
 	    + '\t[-c current free SO2] [-v volume] pH\n')
 	sys.exit(1)
 
 def main(argv):
-	opts, args = getopt.getopt(argv[1:], 'hc:f:m:v:')
+	opts, args = getopt.getopt(argv[1:], 'hc:f:l:m:v:')
 
 	if len(args) != 1:
 		usage()
@@ -65,6 +66,7 @@ def main(argv):
 	desired_mso2 = desired_fso2 = []
 	curso2 = 0
 	fmerrstr = 'max one of -f/-m per invoke accepted'
+	metasolution = None
 	for o, a in opts:
 		if o == '-c':
 			curso2 = parseso2(a)
@@ -84,6 +86,17 @@ def main(argv):
 			if v < 0.1 or v > 2.0:
 				warn('unusual molecular SO2 level\n')
 			desired_mso2 = [v]
+		elif o == '-l':
+			for x in ( parse.percent, float ):
+				try:
+					metasolution = x(a)
+				except ValueError:
+					pass
+			if (not metasolution
+			    or metasolution < 1 or metasolution > 50):
+				raise PilotError('unbelievable metabisulfite '
+				    'solution strength. You gave: ' + a)
+
 		elif o == '-v':
 			volume = parse.volume(a)
 		elif o == '-h':
@@ -119,6 +132,15 @@ def main(argv):
 	# [SO2] = s/(1+10^(pH-pKa))
 	sfraction = 1 + pow(10, pH - pKa_SO2)
 
+	if metasolution:
+		# multiplier from mg/vol to mL/vol.  Notably, 100mL
+		# of solution contains metasolution g of metabisulfite
+		# (*NOT* mg, but g, since 1mL = 1g).  Therefore, to get
+		# mg, we need to further divide by 1000.
+		metamassmul = 1/(1000*metasolution/100.0)
+	else:
+		metamassmul = 1.0
+
 	res = []
 	for s in desired_fso2 + desired_mso2:
 		r = {}
@@ -134,24 +156,46 @@ def main(argv):
 		r['fso2'] = fso2
 		r['addso2'] = addso2 = max(fso2 - curso2, 0)
 
-		r['kmeta'] = addso2 / kmetafrac
-		r['nameta'] = addso2 / nametafrac
+		r['kmeta'] = metamassmul * addso2 / kmetafrac
+		r['nameta'] = metamassmul * addso2 / nametafrac
 
 		if volume:
-			r['totkmeta'] = Mass(r['kmeta'] * volume, Mass.MG)
-			r['totnameta'] = Mass(r['nameta'] * volume, Mass.MG)
-
+			if metasolution:
+				uclass = Volume
+				unit = Volume.MILLILITER
+			else:
+				uclass = Mass
+				unit = Mass.MG
+			r['totkmeta'] = uclass(r['kmeta'] * volume, unit)
+			r['totnameta'] = uclass(r['nameta'] * volume, unit)
 		res.append(r)
 
 	def prtone(r):
 		fmtstr = '{:20} : {:6.1f} mg/L {:>26}'
+
+		# Use a divisor for printing the liquid solution
+		# ratio, because we're talking about very small amounts
+		# for mL/L (typically in the order of 0.5mL/L).  Using
+		# a divisor gets us significant numbers without
+		# increasing decimal places (which would line up with
+		# m/v, where we typically are fine with 1 decimal place).
+		#
+		# print the divisor as "100L" instead of "hL", because the
+		# former looks visually more distinctive from just "L",
+		# and will hopefully prevent someone working on low
+		# bloodcoffee levels from putting in 100x.  Of course,
+		# they should be using -v anyway, because that does the
+		# calculation with full decimals.
+		voldiv = 100
+		volfmtstr = '{:20} : {:6.1f} mL/' + str(voldiv) + 'L {:>23}'
+
 		phstr = 'pH {:.2f}'.format(pH)
 		print(fmtstr.format('   Molecular SO2', r['mso2'], ''))
 		print(fmtstr.format('   Free SO2 required', r['fso2'], phstr))
 		print(fmtstr.format('-  Current free SO2', curso2, ''))
 		print(fmtstr.format('=  Additional SO2', r['addso2'], ''))
 
-		if volume:
+		if volume and not metasolution:
 			tkm = r['totkmeta']
 			tnam = r['totnameta']
 
@@ -176,11 +220,27 @@ def main(argv):
 			tnamstr = '{:} (for {:})'.format(nakms,
 			    volume.stras(volume.inputunit))
 		else:
-			tkmstr = ''
-			tnamstr = ''
+			if volume:
+				tkmstr = '{:} (for {:})'.format(r['totkmeta'],
+				    volume.stras(volume.inputunit))
+				tnamstr = '{:} (for {:})'.format(r['totnameta'],
+				    volume.stras(volume.inputunit))
+			else:
+				tkmstr = ''
+				tnamstr = ''
 
-		print(fmtstr.format('=> Na metabisulfite',r['nameta'],tnamstr))
-		print(fmtstr.format('=> K  metabisulfite',r['kmeta'],tkmstr))
+		if metasolution:
+			solstr = 'meta {:.1f}% m/v'.format(metasolution)
+			finfmt = volfmtstr
+		else:
+			solstr = 'metabisulfite'
+			finfmt = fmtstr
+			voldiv = 1
+
+		print(finfmt.format('=> Na ' + solstr,
+		    voldiv*r['nameta'], tnamstr))
+		print(finfmt.format('=> K  ' + solstr,
+		    voldiv*r['kmeta'], tkmstr))
 
 	prtone(res[0])
 	for r in res[1:]:

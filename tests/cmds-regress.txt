@@ -43,3 +43,6 @@ wbcso2 -c 10mg/L -v 5gal 3.6
 wbcso2 -c 10mg/L -v 20L 3.5
 wbcso2 -m 0.5 -c 10mg/L -v 20L 3.7
 wbcso2 -f 20mg/L -c 10mg/L -v 20L 3.7
+
+wbcso2 -l 10 3.4
+wbcso2 -l 15% -v 20L 3.4
