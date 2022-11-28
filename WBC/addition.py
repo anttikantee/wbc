@@ -30,7 +30,9 @@ class Addition:
 	def __init__(self, obj, amount, resolver, time, cookie = None):
 		self.obj = obj
 		self._amount = amount
+
 		self._resolver = resolver
+		self._resopaque = None
 
 		self.time = time
 		self.cookie = cookie
@@ -49,9 +51,13 @@ class Addition:
 	def set_amount(self, amount):
 		self._amount = amount
 
+	def set_resolverarg(self, opaque):
+		self._resopaque = opaque
+
 	def get_amount(self, type = None):
 		if self._resolver is not None:
-			return self._resolver(self._amount, self.time)
+			return self._resolver(self._amount,
+			    self.time, self._resopaque)
 		return self._amount
 
 	def namestr(self, maxlen):

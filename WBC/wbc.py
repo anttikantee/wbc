@@ -146,7 +146,7 @@ class Recipe:
 	#
 	# various scaling routines
 	#
-	def _scale(self, what, when):
+	def _resolver_scale(self, what, when, opaque):
 		if self.volume_inherent is None or self.volume_scaled is None:
 			return what
 
@@ -155,12 +155,15 @@ class Recipe:
 		scale = self.volume_scaled / self.volume_inherent
 		return what.__class__(scale * what, what.defaultunit)
 
+	def _scale(self, what):
+		return self._resolver_scale(what, None, None)
+
 	def _xvol2x_fromvol(self, x, vol):
 		assert(istupletype(x, (Mass, Volume))
 		    or istupletype(x, (Volume, Volume)))
 		return x[0].__class__(x[0]/x[1] * vol, x[0].defaultunit)
 
-	def _xvol2x(self, x, when):
+	def _resolver_xvol2x(self, x, when, opaque):
 		return self._xvol2x_fromvol(x, self._final_volume())
 
 	# scale to volume, but instead of final volume use amount of
@@ -173,7 +176,7 @@ class Recipe:
 	#   * fermentor    : final volume (i.e. after sugar additions)
 	#   * package      : final volume (i.e. after sugar additions)
 	#
-	def _xvol2x_withwater(self, x, when):
+	def _resolver_xvol2x_withwater(self, x, when, opaque):
 		if isinstance(when, timespec.MashSpecial):
 			vol = self.results['mash']['sparge_water'].water()
 		elif isinstance(when, timespec.Mash):
@@ -208,11 +211,11 @@ class Recipe:
 		# XXX: ugly
 		if isinstance(unit, tuple):
 			if iswater:
-				scale = self._xvol2x_withwater
+				scale = self._resolver_xvol2x_withwater
 			else:
-				scale = self._xvol2x
+				scale = self._resolver_xvol2x
 		else:
-			scale = self._scale
+			scale = self._resolver_scale
 			self._needinherentvol(fname)
 		return scale
 
@@ -282,14 +285,14 @@ class Recipe:
 		checktype(mass, Mass)
 		self._needinherentvol('hop_byAA')
 		amount = _Mass(mass / hop.aa)
-		self._hopstore(hop, amount, self._scale, time, 'm')
+		self._hopstore(hop, amount, self._resolver_scale, time, 'm')
 
 	# alpha acid mass per final volume
 	def hop_byAAvolratio(self, hop, mv, time):
 		(mass, vol) = mv
 		checktypes([(mass, Mass), (vol, Volume)])
 		amount = (_Mass(mass / hop.aa), vol)
-		self._hopstore(hop, amount, self._xvol2x, time, 'm')
+		self._hopstore(hop, amount, self._resolver_xvol2x, time, 'm')
 
 	def hop_byIBU(self, hop, IBU, time):
 		a = self._hopstore(hop, None, None, time, 'i')
@@ -400,7 +403,7 @@ class Recipe:
 	# because, for example, you don't want the salts in the mash
 	# scaled to the final volume but rather the water in the mash.
 	#
-	# see comment above xvol2x_withwater for more info.
+	# see comment above resolver_xvol2x_withwater for more info.
 	def water_byunit(self, what, unit, when):
 		checktype(when, Timespec)
 
@@ -1249,7 +1252,7 @@ class Recipe:
 
 		self._checkinputs()
 
-		s = self._scale(_Mass(1), None)
+		s = self._scale(_Mass(1))
 		if abs(s - 1.0) > .0001:
 			notice('Scaling recipe ingredients by a factor of '
 			    + '{:.4f}'.format(s) + '\n')
