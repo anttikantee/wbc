@@ -201,19 +201,32 @@ def _printmash(input, results):
 	return True
 
 def _printtimers(input, results):
-	if len(results['timer_additions']) == 0:
+	ta = results['timer_additions']
+	if len(ta) == 0:
 		return False
+
+	def taname(entry):
+		return type(entry.obj).__name__
+
+	n_hops = len([x for x in ta if taname(x) == 'Hop'])
+	n_nutes = len([x for x in ta if taname(x) == 'Nute'])
+
+	# UNUSED for now to avoid changing test output
+	if n_hops > 0 and n_nutes > 0:	iname = 'I/N'
+	elif n_hops > 0:		iname = 'IBUs'
+	elif n_nutes > 0:		iname = 'YAN'
+	else:				iname = ''
 
 	nlen = 36
 	ilen = 6
 	onefmt = ('{:} {:' + str(nlen) + '}{:>' + str(ilen)
 	    + '}{:>12}{:>12}{:>10}')
-	print(onefmt.format("T", "Additions & Hops", "IBUs",
+	print(onefmt.format("T", "Additions & Hops", iname,
 	    "amount", "timespec", "timer"))
 	_prtsep()
 
 	prevstage = None
-	for t in results['timer_additions']:
+	for t in ta:
 		stage = t.time.__class__
 		if prevstage is not None and prevstage is not stage:
 			_prtsep('-')
@@ -225,8 +238,9 @@ def _printtimers(input, results):
 			'Opaque':	'o',
 			'Fermentable':	'X',
 			'Water':	'|',
+			'Nute':		'N',
 			'Internal':	' ',
-		}.get(type(t.obj).__name__, '?')
+		}.get(taname(t), '?')
 
 		v = (c, t.namestr(nlen), t.infostr(ilen),
 		    str(t.get_amount(type = t.TYPE_NATIVE)))
@@ -271,10 +285,26 @@ def _keystats(input, results, miniprint):
 	    str(pwort.strength()),
 	    'Package volume:',
 	      str(pwort.volume()) + ' / ' + stras_unsystem(pwort.volume())))
+
+	# Most likely a recipe won't have hops and nutes.  So, reuse
+	# the same field.  In the very odd case that both are included
+	# in a recipe, only the hop summary gets printed (YAN is still
+	# printed as part of the additions).
+	hs = results['hop_stats']
+	ns = results['nute_stats']
+	if hs['mass'] > 0.0001:
+		namestr = 'Total hops:'
+		valuestr = str(hs['mass'])
+	elif ns['masspervol'] > 0.0001:
+		namestr = 'Total YAN:'
+		valuestr = '{:.0f}mg/L ; {:.1f}mg/L{:}Bx'.format(
+		    ns['masspervol'], ns['masspervolbx'], chr(0x00b0))
+	else:
+		namestr = valuestr = ''
+
 	print(twofmt_tight.format('Total fermentables:',
 	    str(results['fermentable_stats_all']['amount']),
-	    'Total hops:',
-	    str(results['hop_stats']['mass'])))
+	    namestr, valuestr))
 
 	totibus = results['hop_stats']['ibu']
 	color = results['color']

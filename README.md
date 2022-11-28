@@ -48,6 +48,8 @@ The main (and only?) features are:
     mashes.  calculate decoction sizes.
   * calculate IBUs and optionally calculate hop additions based on
     desired IBUs
+  * calculate YAN from the specified nutrients, plus how much nutrient
+    is required for a desired total YAN (for wine, seltzer, etc.)
   * scales recipes to desired final volume
   * a machine-readable compiled format -- if the recipe is what
     you want to brew, the compiled format is the ingredients you used

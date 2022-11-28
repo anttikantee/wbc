@@ -18,6 +18,7 @@ from WBC import units
 from WBC.utils import PilotError, warn
 from WBC.wbc import Recipe
 from WBC.hop import Hop
+from WBC.nute import Nute
 
 from WBC import mash
 
@@ -298,3 +299,20 @@ def hopunit(input):
 		except ValueError: pass
 
 	raise PilotError('invalid boilhop quantity: ' + str(input))
+
+def nuteunit(input):
+	originput = input
+	input = str(input)
+
+	flags = []
+	for f in Nute.flags:
+		if f in input:
+			flags.append(f)
+			input = input.replace(f, '')
+
+	try:
+		amount = _additionunit(input, [mass, (mass, volume)])
+	except ValueError:
+		raise PilotError('invalid nutrient quantity: ' + str(originput))
+
+	return amount, flags

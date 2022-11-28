@@ -9,6 +9,13 @@ fermentables:
         apple juice: rest
         table sugar: 100g/L
 
+yan:
+  - [ [ complex nute 10, 10% ],   5g/10L gross,         day 0 ]
+  - [ [ complex nute 11, 11% ],   20g gross,            day 0 ]
+  - [ [ DAP 21,          21% ],   2mg/L perBx,          day 0 ]
+  - [ [ NAP 16,          16% ],   Recipe 11mg/L perBx,  day 0 ]
+
+
 opaques:
     byunit:
         - [ yeast,        11.0g,     day 0 ]

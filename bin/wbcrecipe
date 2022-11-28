@@ -18,6 +18,7 @@
 
 from WBC.wbc import Recipe, WBC
 from WBC.hop import Hop
+from WBC.nute import Nute
 from WBC.units import Mass, Temperature, Volume, Strength
 from WBC.units import _Mass, _Temperature, _Volume
 from WBC.utils import PilotError, diagnosticflush
@@ -47,6 +48,18 @@ def dohop(r, hopspec, unit, timespec):
 def dohops(r, d_hops):
 	for h in d_hops:
 		dohop(r, *h)
+
+def donute(r, nutespec, unit, timespec):
+	nute = Nute(nutespec[0], parse.percent(nutespec[1]))
+
+	amount, flags = parse.nuteunit(unit)
+	for te in _listify(timespec):
+		ts = parse.timespec(te)
+		Recipe.nute_byunit(r, nute, amount, ts, flags)
+
+def donutes(r, d_nutes):
+	for n in d_nutes:
+		donute(r, *n)
 
 def doopaques(r, opaques):
 	def doopaque_byunit(r, opaque, input, timespec):
@@ -179,6 +192,7 @@ def processyaml(r, data):
 		'mashparams'	: domashparams,
 		'fermentables'	: dofermentables,
 		'hops'		: dohops,
+		'yan'		: donutes,
 		'opaques'	: doopaques,
 		'defs'		: lambda *x: None,
 		'water'		: dowater,

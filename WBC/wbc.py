@@ -26,6 +26,7 @@ from WBC.utils import *
 from WBC.units import *
 from WBC.units import _Mass, _Strength, _Temperature, _Volume, _Duration
 from WBC.hop import Hop
+from WBC.nute import Nute
 from WBC.mash import Mash
 from WBC.worter import Worter, laterworter
 
@@ -61,6 +62,9 @@ class Recipe:
 
 		self.hops_in = []
 		self.hops_recipeIBUBUGU = None
+
+		self.nutes_in = []
+		self.nutes_recipe = None
 
 		self.ferms_in = []
 
@@ -321,6 +325,61 @@ class Recipe:
 			warn("Hop \"" + hop.name + "\" has high BUGU ("
 			    + str(BUGU) + ")\n")
 		self._setIBUBUGU(hop, time, BUGU, 'BUGU')
+
+	#
+	# Nutrients
+	#
+
+	def _resolver_x2x_withnute(self, x, when, opaque):
+		vol, yan, bxp = opaque
+
+		rv = _Mass(bxp*x / yan)
+		return rv
+
+	def _resolver_xvol2x_withnute(self, x, when, opaque):
+		vol, yan, bxp = opaque
+
+		x1 = _Mass(self._xvol2x_fromvol(x, vol))
+		return self._resolver_x2x_withnute(x1, when, opaque)
+
+	def _nute_byindividual(self, nute, amount, time, flags):
+		checktypes([(nute, Nute), (time, Timespec)])
+		assert(Nute.RECIPE not in flags)
+
+		if _ismass(amount):
+			resolver = self._resolver_x2x_withnute
+		elif _ismassvolume(amount):
+			resolver = self._resolver_xvol2x_withnute
+		else:
+			raise PilotError('invalid nutrient specifier')
+
+		if len([x for x in flags if x not in Nute.flags]) > 0:
+			raise PilotError('invalid flags')
+
+		a = Addition(nute, amount, resolver, time, cookie = flags)
+		self.nutes_in.append(a)
+
+	def _nute_byrecipe(self, nute, value, time, flags):
+		checktypes([(nute, Nute), (time, Timespec)])
+		assert(Nute.RECIPE in flags)
+
+		if self.nutes_recipe is not None:
+			raise PilotError('Recipe nutes specified >once')
+		if Nute.GROSS in flags:
+			raise PilotError('cannot specify gross recipe YAN')
+
+		self.nutes_recipe = {
+			'nute': nute,
+			'time': time,
+			'value': value,
+			'perBx': Nute.PERBX in flags,
+		}
+
+	def nute_byunit(self, nute, unit, time, flags):
+		if Nute.RECIPE in flags:
+			return self._nute_byrecipe(nute, unit, time, flags)
+		else:
+			return self._nute_byindividual(nute, unit, time, flags)
 
 	#
 	# Opaques.
@@ -1137,9 +1196,54 @@ class Recipe:
 		# result is stable
 		return False
 
+	# calculate nutes
+	def _donutes(self, w_fermentor):
+		nin = self.nutes_in
+
+		bx = float(w_fermentor.strength())
+		vol = w_fermentor.volume()
+
+		allnutes = nin[:]
+		for ns in allnutes:
+			bxarg = bx if Nute.PERBX in ns.cookie else 1.0
+			yanarg = 1.0 if Nute.GROSS in ns.cookie else ns.obj.yan
+			ns.set_resolverarg((vol, yanarg, bxarg))
+			ns.info = (ns.get_amount().valueas(Mass.MG)
+			    * ns.obj.yan / vol)
+
+		curyan = sum([x.info for x in allnutes]) * vol
+
+		nr = self.nutes_recipe
+		if nr:
+			n, t, amt = nr['nute'], nr['time'], nr['value']
+
+			if _ismassvolume(amt):
+				amt = self._xvol2x_fromvol(amt, vol)
+			if nr['perBx']:
+				amt = _Mass(amt*bx)
+
+			needyan = amt.valueas(Mass.MG) - curyan
+			if needyan <= 0:
+				raise PilotError('too much YAN in recipe')
+
+			mass = Mass(needyan / n.yan, Mass.MG)
+			ns = Addition(n, mass, None, t)
+			ns.info = needyan / vol
+			allnutes.append(ns)
+		else:
+			needyan = 0
+
+		self.nutes = allnutes
+		tot = needyan + curyan
+		return {
+			'mass'		: tot,
+			'masspervol'	: tot / vol,
+			'masspervolbx'	: tot / (vol * bx),
+		}
+
 	def _dotimers(self):
 		# sort the timerable additions
-		timers = self.hops + self.opaques + self.water
+		timers = self.hops + self.nutes + self.opaques + self.water
 
 		# include boiltime fermentables under timers if there's a boil,
 		# else include all (think e.g. step-fed meads).
@@ -1352,6 +1456,7 @@ class Recipe:
 			    _Volume(self._boiladj), None,
 			    tf(tf.UNDEF, tf.UNDEF))
 
+		self.results['nute_stats']=self._donutes(wrt[Worter.FERMENTOR])
 		self._dotimers()
 
 		# calculate kettle & fermentor losses

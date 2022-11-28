@@ -11,6 +11,12 @@ fermentables:
     package:
         table sugar:  11g/L
 
+yan:
+  - [ [ DAP 21%, 21% ],   5g gross,         day 0 ]
+  # questionable if anyone wants to specify YAN as an absolute
+  # number for the recipe, but test it anyway
+  - [ [ DAP 22%, 22% ],   Recipe 1.5g,      day 0 ]
+
 opaques:
     byunit:
         - [ yeast,        11.0g,     day 0 ]
